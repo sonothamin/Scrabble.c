@@ -19,30 +19,35 @@ You will need:
 - build/ contains the Premake configuration and bundled raylib setup
 
 ## Linux build
+* **For the first time**
+    1. Clone this repo 
+    ```bash
+        git clone https://github.com/sonothamin/Scrabble.c
+    ```
+    2. Install `make`, `gcc`, `g++`, `gdb`, etc.
+    ```bash
+        sudo apt update
+        sudo apt install build-essential
+    ```
+    3. Go to `[Project Root]/build`, run `premake5` and come back to root directory
+    ```bash
+        cd ./Scrabble.c/build
+        chmod +x premake5
+        ./premake5 gmake
+        cd ..
+    ```
+    You should be good to go !!
 
-From the project root:
+* **From now on, run the following to compile your code:**
 
-```bash
-make
-```
-
-To build a specific configuration:
-
-```bash
-make config=debug_x64
-```
-
-The executable is written to:
-
-```bash
-bin/Debug/Scrabble
-```
-
-Run it with:
-
-```bash
-./bin/Debug/Scrabble
-```
+    1. Run `make` to compile the code to an executable binary
+    ```bash
+        make
+    ```
+    2. Execute the resulting binary
+    ```bash
+        ./bin/Debug/Scrabble
+    ```
 
 ## Windows build
 
