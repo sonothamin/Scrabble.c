@@ -1,30 +1,31 @@
 #include "raylib.h"
 #include "resource_dir.h"
+#include "app_state.h"
 
 int main()
 {
-	// flags to work with high-dpi monitors and vsync
-	SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
+    // flags to work with high-dpi monitors and vsync
+    SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
 
-	InitWindow(800, 600, "Scrabble.c");
+    InitWindow(800, 600, "Scrabble.c");
 
-	SearchAndSetResourceDir("resources");
-	Texture logo = LoadTexture("scrabble_logo_256x256.png");
+    SearchAndSetResourceDir("resources");
 
-	// game loop
-	while (!WindowShouldClose())
-	{
-		BeginDrawing();
+    AppState appState;
+    InitAppState(&appState);
 
-		ClearBackground(BLACK);
-		DrawText("Scrabble.c", 200, 200, 25, WHITE);
-		DrawTexture(logo, 400, 200, WHITE);
+    while (!WindowShouldClose())
+    {
+        UpdateAppState(&appState);
 
-		EndDrawing();
-	}
+        BeginDrawing();
 
-	UnloadTexture(logo);
+        ClearBackground(RAYWHITE);
+        DrawAppState(&appState);
 
-	CloseWindow();
-	return 0;
+        EndDrawing();
+    }
+
+    CloseWindow();
+    return 0;
 }
