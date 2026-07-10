@@ -1,11 +1,11 @@
-#include "../include/bag.h"
+#include "bag.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 
 bool init_bag_from_file(TileBag *bag)
 {
-    FILE *file = fopen("resources/letters.txt", "r");
+    FILE *file = fopen("letters.txt", "r");
     if(file == NULL)
     {
         printf("Could not open the letters file\n");
