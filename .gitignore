@@ -10,6 +10,7 @@
 *.userosscache
 *.sln.docstates
 
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
@@ -408,3 +409,5 @@ Makefile
 /build/compile_commands.json
 
 
+Scrabble.make
+raylib.make
