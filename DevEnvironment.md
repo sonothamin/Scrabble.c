@@ -46,14 +46,14 @@ Run it with:
 
 ## Windows build
 
-* If you are using MinGW-W64 (with VSCode/CodeBlocks/Notepad++ etc), for the first time, run:
-
-    ```bat
-    build-MinGW-W64.bat
-    make
-    ```
-    And just run ```make``` for all further builds.
-
+* Using wMinGW64 **(Sonoth Recommended)**
+    1. Cleanly uninstall any and all pre-existing MinGW from your system
+    2. Install w64devkit from here https://github.com/skeeto/w64devkit/releases
+    3. Add the `[Path of the extracted w64devkit folder]/bin/` as `Path` in your Windows environment variables.
+    4. Open project folder and Double click `build-MinGW-W64.bat` in File Explorer
+    5. You should be good to go!! 
+    
+        For all susequent build, run `make` in the root of this repo folder. The executable `.exe` will be at `/bin/Debug/Scrabble.exe`.
 
 * If you are using Visual Studio, run `build-VisualStudio2022.bat` or `build-VisualStudio2026.bat`. Then open the generated solution file in Visual Studio.
 
