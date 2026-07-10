@@ -9,13 +9,13 @@ BEGIN
     //BLOCK "080904E4"  // English UK
     BLOCK "040904E4"    // English US
     BEGIN
-      //VALUE "CompanyName", "raylib technologies"
-      VALUE "FileDescription", "A cool game made with raylib (www.raylib.com)"
+      //VALUE "CompanyName", "Curious Cat Labs"
+      VALUE "FileDescription", "A C implementation of the popular game Scrabble"
       VALUE "FileVersion", "1.0.0"
-      VALUE "InternalName", "cool game"
-      VALUE "LegalCopyright", "(c) 2025 YOUR NAME"
-      //VALUE "OriginalFilename", "raylib_app"
-      VALUE "ProductName", "A cool game"
+      VALUE "InternalName", "Scrabble.c"
+      VALUE "LegalCopyright", "(c) 2025 Sonoth Amin"
+      //VALUE "OriginalFilename", "Scrabble.c"
+      VALUE "ProductName", "Scrabble.c"
       VALUE "ProductVersion", "1.0.0"
     END
   END
