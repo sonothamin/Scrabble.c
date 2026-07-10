@@ -413,3 +413,5 @@ Makefile
 
 Scrabble.make
 raylib.make
+
+/obj
