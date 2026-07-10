@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stddef.h>
 #include "raylib.h"
 
 #if defined(__cplusplus)
@@ -10,6 +11,7 @@ typedef enum AppScreen
 {
     APP_SCREEN_MAIN_MENU = 0,
     APP_SCREEN_SETTINGS,
+    APP_SCREEN_GAME,
 } AppScreen;
 
 typedef struct AppState

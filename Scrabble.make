@@ -118,10 +118,18 @@ endif
 GENERATED :=
 OBJECTS :=
 
-GENERATED += $(OBJDIR)/main.o
 GENERATED += $(OBJDIR)/app_state.o
-OBJECTS += $(OBJDIR)/main.o
+GENERATED += $(OBJDIR)/game.o
+GENERATED += $(OBJDIR)/main.o
+GENERATED += $(OBJDIR)/menu.o
+GENERATED += $(OBJDIR)/settings.o
+GENERATED += $(OBJDIR)/ui.o
 OBJECTS += $(OBJDIR)/app_state.o
+OBJECTS += $(OBJDIR)/game.o
+OBJECTS += $(OBJDIR)/main.o
+OBJECTS += $(OBJDIR)/menu.o
+OBJECTS += $(OBJDIR)/settings.o
+OBJECTS += $(OBJDIR)/ui.o
 
 # Rules
 # #############################################
@@ -185,11 +193,22 @@ endif
 # File Rules
 # #############################################
 
+$(OBJDIR)/app_state.o: src/app_state.c
+	@echo "$(notdir $<)"
+	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/game.o: src/game.c
+	@echo "$(notdir $<)"
+	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/main.o: src/main.c
 	@echo "$(notdir $<)"
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-
-$(OBJDIR)/app_state.o: src/app_state.c
+$(OBJDIR)/menu.o: src/menu.c
+	@echo "$(notdir $<)"
+	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/settings.o: src/settings.c
+	@echo "$(notdir $<)"
+	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/ui.o: src/ui.c
 	@echo "$(notdir $<)"
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 

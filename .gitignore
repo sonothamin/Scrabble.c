@@ -407,4 +407,6 @@ Makefile
 *.swn
 /build/compile_commands.json
 
+*.make
+
 
