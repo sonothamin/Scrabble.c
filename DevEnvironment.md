@@ -19,41 +19,46 @@ You will need:
 - build/ contains the Premake configuration and bundled raylib setup
 
 ## Linux build
+* **For the first time**
+    1. Clone this repo 
+    ```bash
+        git clone https://github.com/sonothamin/Scrabble.c
+    ```
+    2. Install `make`, `gcc`, `g++`, `gdb`, etc.
+    ```bash
+        sudo apt update
+        sudo apt install build-essential
+    ```
+    3. Go to `[Project Root]/build`, run `premake5` and come back to root directory
+    ```bash
+        cd ./Scrabble.c/build
+        chmod +x premake5
+        ./premake5 gmake
+        cd ..
+    ```
+    You should be good to go !!
 
-From the project root:
+* **From now on, run the following to compile your code:**
 
-```bash
-make
-```
-
-To build a specific configuration:
-
-```bash
-make config=debug_x64
-```
-
-The executable is written to:
-
-```bash
-bin/Debug/Scrabble
-```
-
-Run it with:
-
-```bash
-./bin/Debug/Scrabble
-```
+    1. Run `make` to compile the code to an executable binary
+    ```bash
+        make
+    ```
+    2. Execute the resulting binary
+    ```bash
+        ./bin/Debug/Scrabble
+    ```
 
 ## Windows build
 
-* If you are using MinGW-W64 (with VSCode/CodeBlocks/Notepad++ etc), for the first time, run:
-
-    ```bat
-    build-MinGW-W64.bat
-    make
-    ```
-    And just run ```make``` for all further builds.
-
+* Using wMinGW64 **(Sonoth Recommended)**
+    1. Cleanly uninstall any and all pre-existing MinGW from your system
+    2. Install w64devkit from here https://github.com/skeeto/w64devkit/releases
+    3. Add the `[Path of the extracted w64devkit folder]/bin/` as `Path` in your Windows environment variables.
+    4. Open project folder and Double click `build-MinGW-W64.bat` in File Explorer
+    5. You should be good to go!! 
+    
+        For all susequent build, run `make` in the root of this repo folder. The executable `.exe` will be at `/bin/Debug/Scrabble.exe`.
 
 * If you are using Visual Studio, run `build-VisualStudio2022.bat` or `build-VisualStudio2026.bat`. Then open the generated solution file in Visual Studio.
 
