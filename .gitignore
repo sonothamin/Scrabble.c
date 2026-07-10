@@ -408,6 +408,8 @@ Makefile
 *.swn
 /build/compile_commands.json
 
+*.make
+
 
 Scrabble.make
 raylib.make
