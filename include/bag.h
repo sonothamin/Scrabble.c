@@ -22,6 +22,6 @@ typedef struct TileBag
 } TileBag;
 
 bool init_bag_from_file(TileBag *bag);
-void shuffle_bag();
-void draw_tile();
+void shuffle_tiles_in_bag(TileBag *bag);
+Tile taking_out_tile_from_bag(TileBag *bag);
 #endif
