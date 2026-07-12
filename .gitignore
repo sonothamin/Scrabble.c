@@ -411,7 +411,7 @@ Makefile
 *.make
 
 
-Scrabble.make
-raylib.make
+/Scrabble.make
+/raylib.make
 
 /obj
