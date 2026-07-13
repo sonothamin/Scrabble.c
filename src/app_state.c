@@ -1,5 +1,5 @@
 #include <stddef.h>
-#include <stdlib.h> // Include stdlib for malloc/free functions
+#include <stdlib.h>
 #include "app_state.h"
 #include "ui.h"
 #include "menu.h"
@@ -14,8 +14,6 @@ void InitAppState(AppState *state)
         return;
 
     state->currentScreen = APP_SCREEN_LOADING;
-    
-    // Allocate the heap container space for the pointer safely
     state->loadingState = (LoadingState*)malloc(sizeof(LoadingState));
     
     if (state->loadingState != NULL)

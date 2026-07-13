@@ -7,9 +7,8 @@
 extern "C" {
 #endif
 
-// Forward declaration tells the compiler the type exists
-// without conflicting with the actual structure layout inside loading.h
 struct LoadingState;
+struct GameState;
 
 typedef enum AppScreen
 {
@@ -22,7 +21,8 @@ typedef enum AppScreen
 typedef struct AppState
 {
     AppScreen currentScreen;
-    struct LoadingState* loadingState; // Changed to a pointer to cleanly resolve sizing rules
+    struct LoadingState* loadingState;
+    struct GameState* gamestate;
 } AppState;
 
 void InitAppState(AppState* state);

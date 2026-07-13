@@ -9,6 +9,7 @@ int main()
     InitWindow(1024, 768, "Scrabble.c");
     MaximizeWindow();
     SetWindowMinSize(800, 600);
+    SetTargetFPS(30);
 
     SearchAndSetResourceDir("resources");
 
