@@ -27,7 +27,7 @@ void ApplyScrabbleTheme(int baseFontSize)
     
     // Background Slate Panel Styling
     GuiSetStyle(DEFAULT, BACKGROUND_COLOR, 0x182026FF); 
-    GuiSetStyle(DEFAULT, LINE_COLOR, 0x10B34CFF); 
+    GuiSetStyle(DEFAULT, LINE_COLOR, 0xC4B589FF); 
     GuiSetStyle(DEFAULT, TEXT_COLOR_NORMAL, 0xAACF9BFF);
 
     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x242C34FF);

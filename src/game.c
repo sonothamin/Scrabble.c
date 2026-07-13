@@ -14,7 +14,7 @@ void GameUpdate(AppState* state)
     }
 }
 
-void GameDraw(void)
+void GameDraw(AppState* state)
 {
     DrawScreenBox("Game Screen", "Press B to return to Main Menu");
 }
