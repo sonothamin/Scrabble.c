@@ -3,18 +3,10 @@
 #define BAG_H
 
 #include <stdbool.h>
+#include "tile.h"
 
 #define MAX_BAG_TILES 100
-// Maximum 100 tiles in international game
 
-// Individual tile
-typedef struct Tile
-{
-    char letter;
-    int value;
-} Tile;
-
-// Complete tile bag
 typedef struct TileBag
 {
     Tile tiles[MAX_BAG_TILES];

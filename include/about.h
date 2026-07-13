@@ -2,7 +2,6 @@
 #define ABOUT_H
 #include "app_state.h"
 
-// Tracks which tab is currently selected on the About screen
 typedef enum {
     ABOUT_TAB_OVERVIEW = 0,
     ABOUT_TAB_TEAM,
@@ -11,7 +10,7 @@ typedef enum {
 
 typedef struct AboutState{
     AboutTab activeTab;
-    float scrollOffset; // For text-heavy sections if needed
+    float scrollOffset;
 } AboutState;
 
 void AboutInit(AboutState* state);

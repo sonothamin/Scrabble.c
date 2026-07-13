@@ -6,7 +6,12 @@
 
 bool init_bag_from_file(TileBag *bag)
 {
-    FILE *file = fopen("letters.txt", "r");
+    FILE *file = fopen("resources/letters.txt", "r");
+    if (file == NULL)
+    {
+        file = fopen("letters.txt", "r");
+    }
+
     if (file == NULL)
     {
         printf("Could not open the letters file\n");
