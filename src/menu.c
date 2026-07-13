@@ -4,14 +4,10 @@
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 
-static bool newLocalGameButtonPressed = false;
-static bool newNetworkGameButtonPressed = false;
-static bool loadGameFromFileButtonPressed = false;
 static bool sfxCheckboxChecked = true;  
 static bool bgmCheckboxChecked = true;  
-static bool aboutNavButtonPressed = false;
-static bool settingsNavButtonPressed = false;
 
+// Internal helper for Scrabble Title Card layout point values
 static const char* GetMenuScrabbleScore(char c) 
 {
     switch (c) {
@@ -25,13 +21,17 @@ static const char* GetMenuScrabbleScore(char c)
     }
 }
 
+// Applies custom themes to RayGui controls matching the dark loading screen palette
 static void ApplyScrabbleTheme(int baseFontSize)
 {
     GuiSetStyle(DEFAULT, TEXT_SIZE, baseFontSize);
+    
+    // Background Slate Panel Styling
     GuiSetStyle(DEFAULT, BACKGROUND_COLOR, 0x182026FF); 
     GuiSetStyle(DEFAULT, LINE_COLOR, 0x2ECA7140); 
     GuiSetStyle(DEFAULT, TEXT_COLOR_NORMAL, 0x697D8CFF);
 
+    // Button & Control Styling (Rich Charcoal + Sharp Emerald Accents)
     GuiSetStyle(BUTTON, BASE_COLOR_NORMAL, 0x242C34FF);
     GuiSetStyle(BUTTON, BORDER_COLOR_NORMAL, 0x364452FF);
     GuiSetStyle(BUTTON, TEXT_COLOR_NORMAL, 0x8F8FA0FF);
@@ -44,9 +44,11 @@ static void ApplyScrabbleTheme(int baseFontSize)
     GuiSetStyle(BUTTON, BORDER_COLOR_PRESSED, 0x2ECA71FF);
     GuiSetStyle(BUTTON, TEXT_COLOR_PRESSED, 0x8FF2B8FF);
 
+    // Checkbox Theme overrides using standard control properties
     GuiSetStyle(CHECKBOX, BASE_COLOR_NORMAL, 0x242C34FF);
     GuiSetStyle(CHECKBOX, BORDER_COLOR_NORMAL, 0x364452FF);
     GuiSetStyle(CHECKBOX, TEXT_COLOR_NORMAL, 0x8F8FA0FF);
+    
     GuiSetStyle(CHECKBOX, BASE_COLOR_PRESSED, 0x2ECA71FF); 
     GuiSetStyle(CHECKBOX, BORDER_COLOR_PRESSED, 0x8FF2B8FF);
 }
@@ -55,21 +57,13 @@ void MenuUpdate(AppState* state)
 {
     if (state == NULL) return;
 
-    if (newLocalGameButtonPressed || newNetworkGameButtonPressed || loadGameFromFileButtonPressed)
-        state->currentScreen = APP_SCREEN_GAME;
-    
-    if (settingsNavButtonPressed)
-        state->currentScreen = APP_SCREEN_SETTINGS;
-
-    if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE))
+    // Global Key Bind Controllers
+    if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_N) || IsKeyPressed(KEY_L))
         state->currentScreen = APP_SCREEN_GAME;
     else if (IsKeyPressed(KEY_S))
         state->currentScreen = APP_SCREEN_SETTINGS;
     else if (IsKeyPressed(KEY_Q) || IsKeyPressed(KEY_ESCAPE))
         CloseWindow();
-        
-    if (IsKeyPressed(KEY_N) || IsKeyPressed(KEY_L))
-        state->currentScreen = APP_SCREEN_GAME;
 
     if (IsKeyPressed(KEY_M))
     {
@@ -88,68 +82,74 @@ void MenuDraw(AppState* state)
 
     ClearBackground((Color){ 24, 32, 38, 255 });
 
-    int baseFontSize = screenHeight / 42; 
+    int baseFontSize = screenHeight / 38; 
     if (baseFontSize < 16) baseFontSize = 16;
+    
     ApplyScrabbleTheme(baseFontSize);
 
     const int padding = screenWidth / 25;
-    const int panelGap = screenWidth / 40;
+    const int panelGap = screenWidth / 35;
     
     // ----------------------------------------------------
-    // HEADER: Giant Wood Scrabble Board Tiles 
+    // TITLE: Procedural Wood Scrabble Board Tiles (BIGGG)
     // ----------------------------------------------------
     const char* titleText = "SCRABBLE.C";
-    int titleLength = 10;
+    const int titleLength = 10;
     
-    // Significantly increased tile proportions relative to global font scaling
-    float menuTileSize = baseFontSize * 2.4f; 
+    float menuTileSize = baseFontSize * 3.0f;
     float menuTileSpacing = menuTileSize * 0.10f;
     float titleY = (float)padding;
-    int tileFontSize = (int)(menuTileSize * 0.65f); // Large bold typography stamp
     
     for (int i = 0; i < titleLength; i++)
     {
         float currentX = (float)padding + i * (menuTileSize + menuTileSpacing);
         Rectangle tileRect = { currentX, titleY, menuTileSize, menuTileSize };
 
-        DrawRectangleRounded((Rectangle){ tileRect.x + 4, tileRect.y + 5, tileRect.width, tileRect.height }, 0.18f, 4, (Color){ 10, 14, 18, 160 });
+        // 3D Drop Shadow effect
+        DrawRectangleRounded((Rectangle){ tileRect.x + 5, tileRect.y + 6, tileRect.width, tileRect.height }, 0.18f, 4, (Color){ 10, 14, 18, 160 });
+
+        // Birch Wood Ivory Body Base
         DrawRectangleRounded(tileRect, 0.18f, 4, (Color){ 244, 228, 198, 255 });
         
-        Rectangle innerBevel = { tileRect.x + 3, tileRect.y + 3, tileRect.width - 6, tileRect.height - 6 };
+        // Inner Beveling Frame
+        Rectangle innerBevel = { tileRect.x + 4, tileRect.y + 4, tileRect.width - 8, tileRect.height - 8 };
         DrawRectangleRoundedLines(innerBevel, 0.15f, 4, (Color){ 255, 248, 230, 255 });
         DrawRectangleRoundedLines(tileRect, 0.18f, 4, (Color){ 194, 169, 126, 255 });
 
+        // Character Core Stamp scaled proportionally
         char letterStr[2] = { titleText[i], '\0' };
+        int tileFontSize = (int)(menuTileSize * 0.65f); 
         int textWidth = MeasureText(letterStr, tileFontSize);
         DrawText(
             letterStr, 
             tileRect.x + (menuTileSize - textWidth) / 2.0f, 
-            tileRect.y + (menuTileSize - tileFontSize) / 2.0f - 2.0f, 
+            tileRect.y + (menuTileSize - tileFontSize) / 2.0f - 4.0f, 
             tileFontSize, 
             (Color){ 38, 28, 16, 255 }
         );
 
+        // Score Subscript Indexing scaled proportionally
         if (titleText[i] != '.')
         {
             const char* score = GetMenuScrabbleScore(titleText[i]);
             int scoreFontSize = (int)(menuTileSize * 0.22f);
             DrawText(
                 score, 
-                tileRect.x + tileRect.width - (scoreFontSize * 1.3f), 
-                tileRect.y + tileRect.height - (scoreFontSize * 1.4f), 
+                tileRect.x + tileRect.width - scoreFontSize - 6.0f, 
+                tileRect.y + tileRect.height - scoreFontSize - 6.0f, 
                 scoreFontSize, 
                 (Color){ 120, 95, 68, 255 }
             );
         }
     }
     
-    float subtitleY = titleY + menuTileSize + 14.0f;
+    float subtitleY = titleY + menuTileSize + 16.0f;
     float subtitleHeight = (float)baseFontSize * 1.2f;
     GuiLabel((Rectangle){ (float)padding, subtitleY, (float)screenWidth - (2 * padding), subtitleHeight }, "Be aware adventurer! Here every letter counts!");
 
     // Layout Containers Dimensions Parsing
-    const int contentTop = (int)(subtitleY + subtitleHeight + 25);
-    const int optionPanelWidth = screenWidth / 4 < 280 ? 280 : screenWidth / 4;
+    const int contentTop = (int)(subtitleY + subtitleHeight + 45);
+    const int optionPanelWidth = screenWidth / 4 < 260 ? 260 : screenWidth / 4;
     const int mainPanelWidth = screenWidth - (2 * padding) - panelGap - optionPanelWidth;
     const int mainPanelHeight = screenHeight - contentTop - padding;
 
@@ -164,67 +164,73 @@ void MenuDraw(AppState* state)
     const float optionPanelH = (float)mainPanelHeight;
 
     // ----------------------------------------------------
-    // MAIN WIDGET PANEL: Compact & Framed Game Selection
+    // MAIN WIDGET PANEL: Game Management Group
     // ----------------------------------------------------
     GuiGroupBox((Rectangle){ mainPanelX, mainPanelY, mainPanelW, mainPanelH }, "START A GAME");
     
-    // Hardfixed absolute item scaling prevents massive vertical stretching on tall viewports
-    float itemRowHeight = baseFontSize * 2.2f; 
-    float innerSpacingY = baseFontSize * 0.4f;
-    float menuContentStartY = mainPanelY + (baseFontSize * 1.5f); // Tightened top container deadspace
-
-    float btnWidth = mainPanelW * 0.35f;
+    float rowHeight = mainPanelH / 6.0f;
+    float btnWidth = mainPanelW * 0.38f;
     if (btnWidth < 180) btnWidth = 180;
+    
     float labelX = mainPanelX + btnWidth + 40;
     float labelW = mainPanelW - btnWidth - 60; 
 
     GuiSetStyle(LABEL, TEXT_ALIGNMENT, 0); 
 
-    // Action Row 1: Local
-    float currentY = menuContentStartY;
-    newLocalGameButtonPressed = GuiButton((Rectangle){ mainPanelX + 25, currentY, btnWidth, itemRowHeight }, "New Local Game");
-    GuiLabel((Rectangle){ labelX, currentY, labelW, itemRowHeight }, "Play on this device turn-by-turn");
+    // Action Row 1: Local Setup
+    if (GuiButton((Rectangle){ mainPanelX + 25, mainPanelY + rowHeight * 0.8f, btnWidth, rowHeight * 0.65f }, "New Local Game")) {
+        state->currentScreen = APP_SCREEN_GAME;
+    }
+    GuiLabel((Rectangle){ labelX, mainPanelY + rowHeight * 0.8f, labelW, rowHeight * 0.65f }, "Play on this device turn-by-turn");
 
-    // Action Row 2: Networking
-    currentY += itemRowHeight + innerSpacingY;
-    newNetworkGameButtonPressed = GuiButton((Rectangle){ mainPanelX + 25, currentY, btnWidth, itemRowHeight }, "New Network Game");
-    GuiLabel((Rectangle){ labelX, currentY, labelW, itemRowHeight }, "Play with friends within the LAN");
+    // Action Row 2: Networking Infrastructure Setup
+    if (GuiButton((Rectangle){ mainPanelX + 25, mainPanelY + (rowHeight * 1.8f), btnWidth, rowHeight * 0.65f }, "New Network Game")) {
+        state->currentScreen = APP_SCREEN_GAME;
+    }
+    GuiLabel((Rectangle){ labelX, mainPanelY + (rowHeight * 1.8f), labelW, rowHeight * 0.65f }, "Play with friends within the LAN");
 
-    // Action Row 3: Load File
-    currentY += itemRowHeight + innerSpacingY;
-    loadGameFromFileButtonPressed = GuiButton((Rectangle){ mainPanelX + 25, currentY, btnWidth, itemRowHeight }, "Load Saved Game");
-    GuiLabel((Rectangle){ labelX, currentY, labelW, itemRowHeight }, "Load a previous saved game file");
+    // Action Row 3: Disk I/O Parser
+    if (GuiButton((Rectangle){ mainPanelX + 25, mainPanelY + (rowHeight * 2.8f), btnWidth, rowHeight * 0.65f }, "Load Saved Game")) {
+        state->currentScreen = APP_SCREEN_GAME;
+    }
+    GuiLabel((Rectangle){ labelX, mainPanelY + (rowHeight * 2.8f), labelW, rowHeight * 0.65f }, "Load a previous saved game file");
 
-    // Shortcut Footer anchored tightly to the base of the main panel instead of floating loose
-    float footerH = baseFontSize * 1.5f;
-    float lineY = mainPanelY + mainPanelH - footerH - 16.0f;
-    GuiLine((Rectangle){ mainPanelX + 25, lineY, mainPanelW - 50, 8 }, NULL);
-    GuiLabel((Rectangle){ mainPanelX + 25, lineY + 12.0f, mainPanelW - 50, footerH }, "Q: Quit   M: Mute Everything   L: Quick Load   N: Quick Local   F11: Fullscreen");
+    // Shortcut Command Keys Footer Bar
+    GuiLine((Rectangle){ mainPanelX + 25, mainPanelY + (rowHeight * 4.6f), mainPanelW - 50, 8 }, NULL);
+    GuiLabel((Rectangle){ mainPanelX + 25, mainPanelY + (rowHeight * 4.9f), mainPanelW - 50, rowHeight * 0.5f }, "Q: Quit   M: Mute Everything   L: Quick Load   N: Quick Local   F11: Fullscreen");
 
     // ----------------------------------------------------
-    // RIGHT SIDEBAR PANEL: Compact Mixer & Bottom Anchored Navigation
+    // RIGHT SIDEBAR PANEL: Options & Meta Controllers
     // ----------------------------------------------------
     GuiGroupBox((Rectangle){ optionPanelX, optionPanelY, optionPanelW, optionPanelH }, "SETTINGS & OPTIONS");
 
-    float sideMarginX = 16.0f;
-    float sideTopY = optionPanelY + (baseFontSize * 1.5f); 
-    float audioBoxHeight = baseFontSize * 5.5f; // Absolute sizing tightly bounds checkboxes
+    float soundGroupPaddingX = 16.0f;
+    float soundGroupPaddingY = 24.0f;
+    float soundInnerPaddingX = 20.0f;
     
-    GuiGroupBox((Rectangle){ optionPanelX + sideMarginX, sideTopY, optionPanelW - (sideMarginX * 2), audioBoxHeight }, "Audio Mixer");
+    float soundBoxHeight = optionPanelH * 0.38f;
+    GuiGroupBox((Rectangle){ optionPanelX + soundGroupPaddingX, optionPanelY + soundGroupPaddingY, optionPanelW - (soundGroupPaddingX * 2), soundBoxHeight }, "Audio Mixer");
     
-    float checkboxHeight = baseFontSize * 1.1f;
-    float chkMarginX = sideMarginX + 16.0f;
-    float sfxCheckboxY = sideTopY + (baseFontSize * 1.4f);
-    float bgmCheckboxY = sfxCheckboxY + checkboxHeight + (baseFontSize * 0.8f);
+    float checkboxHeight = baseFontSize * 1.0f;
+    if (checkboxHeight > 22.0f) checkboxHeight = 22.0f;
+    if (checkboxHeight < 16.0f) checkboxHeight = 16.0f;
 
-    GuiCheckBox((Rectangle){ optionPanelX + chkMarginX, sfxCheckboxY, checkboxHeight, checkboxHeight }, "Sound Effects (SFX)", &sfxCheckboxChecked);
-    GuiCheckBox((Rectangle){ optionPanelX + chkMarginX, bgmCheckboxY, checkboxHeight, checkboxHeight }, "Background Music (BGM)", &bgmCheckboxChecked);
+    float sfxCheckboxY = optionPanelY + soundGroupPaddingY + (soundBoxHeight * 0.28f);
+    float bgmCheckboxY = optionPanelY + soundGroupPaddingY + (soundBoxHeight * 0.62f);
 
-    // Meta Actions anchored directly into the bottom corner limits
-    float navBtnWidth = (optionPanelW - (sideMarginX * 2) - 16.0f) / 2.0f;
-    float navBtnHeight = baseFontSize * 1.8f;
-    float navY = optionPanelY + optionPanelH - navBtnHeight - 20.0f;
+    GuiCheckBox((Rectangle){ optionPanelX + soundGroupPaddingX + soundInnerPaddingX, sfxCheckboxY, checkboxHeight, checkboxHeight }, "Sound Effects (SFX)", &sfxCheckboxChecked);
+    GuiCheckBox((Rectangle){ optionPanelX + soundGroupPaddingX + soundInnerPaddingX, bgmCheckboxY, checkboxHeight, checkboxHeight }, "Background Music (BGM)", &bgmCheckboxChecked);
+
+    // Meta Control Footer Actions
+    float navBtnWidth = (optionPanelW - 48) / 2.0f;
+    float navBtnHeight = rowHeight * 0.6f;
+    if (navBtnHeight > 42) navBtnHeight = 42;
     
-    aboutNavButtonPressed = GuiButton((Rectangle){ optionPanelX + sideMarginX, navY, navBtnWidth, navBtnHeight }, "About");
-    settingsNavButtonPressed = GuiButton((Rectangle){ optionPanelX + sideMarginX + navBtnWidth + 16.0f, navY, navBtnWidth, navBtnHeight }, "Settings");
+    if (GuiButton((Rectangle){ optionPanelX + 16, optionPanelY + optionPanelH - navBtnHeight - 20, navBtnWidth, navBtnHeight }, "About")) {
+        // Handle "About" screen routing if state enum exists later
+    }
+    
+    if (GuiButton((Rectangle){ optionPanelX + 16 + navBtnWidth + 16, optionPanelY + optionPanelH - navBtnHeight - 20, navBtnWidth, navBtnHeight }, "Settings")) {
+        state->currentScreen = APP_SCREEN_SETTINGS;
+    }
 }
