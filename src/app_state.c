@@ -24,7 +24,7 @@ void InitAppState(AppState *state)
     state->aboutState = (AboutState *)malloc(sizeof(AboutState));
     if (state->aboutState != NULL)
     {
-        // AboutInit(state->aboutState);
+        AboutInit(state->aboutState);
     }
 }
 
