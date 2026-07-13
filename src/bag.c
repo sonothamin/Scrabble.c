@@ -23,7 +23,7 @@ bool init_bag_from_file(TileBag *bag)
         {
             if (bag->tiles_remaining >= MAX_BAG_TILES)
                 break;
-            
+
             bag->tiles[bag->tiles_remaining].letter = letter;
             bag->tiles[bag->tiles_remaining].value = value;
             bag->tiles_remaining++;
