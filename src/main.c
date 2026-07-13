@@ -4,25 +4,28 @@
 
 int main()
 {
-    // flags to work with high-dpi monitors and vsync
-    SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
 
-    InitWindow(800, 600, "Scrabble.c");
+    InitWindow(1024, 768, "Scrabble.c");
+    MaximizeWindow();
+    SetWindowMinSize(800, 600);
 
     SearchAndSetResourceDir("resources");
 
     AppState appState;
     InitAppState(&appState);
 
+    appState.currentScreen = APP_SCREEN_LOADING;
+
     while (!WindowShouldClose())
     {
+        if (IsKeyPressed(KEY_F11))
+            ToggleFullscreen();
+
         UpdateAppState(&appState);
 
         BeginDrawing();
-
-        ClearBackground(RAYWHITE);
-        DrawAppState(&appState);
-
+           DrawAppState(&appState);
         EndDrawing();
     }
 

@@ -1,203 +1,157 @@
 #include "menu.h"
-#include "ui.h"
+#include "raylib.h"
 
-typedef enum MenuAction
-{
-    MENU_ACTION_LOCAL_GAME = 0,
-    MENU_ACTION_NETWORK_GAME,
-    MENU_ACTION_LOAD_GAME,
-    MENU_ACTION_SETTINGS,
-    MENU_ACTION_EXIT,
-    MENU_ACTION_COUNT
-} MenuAction;
+#define RAYGUI_IMPLEMENTATION
+#include "raygui.h"
 
-typedef struct MenuEntry
-{
-    const char* title;
-    const char* description;
-} MenuEntry;
-
-static int selectedOption = 0;
-
-static int ClampInt(int value, int minValue, int maxValue)
-{
-    if (value < minValue)
-        return minValue;
-
-    if (value > maxValue)
-        return maxValue;
-
-    return value;
-}
-
-static void ExecuteMenuSelection(AppState* state, int option)
-{
-    if (state == NULL)
-        return;
-
-    switch (option)
-    {
-        case MENU_ACTION_LOCAL_GAME:
-            state->currentScreen = APP_SCREEN_GAME;
-            break;
-
-        case MENU_ACTION_NETWORK_GAME:
-            state->currentScreen = APP_SCREEN_GAME;
-            break;
-
-        case MENU_ACTION_LOAD_GAME:
-            state->currentScreen = APP_SCREEN_GAME;
-            break;
-
-        case MENU_ACTION_SETTINGS:
-            state->currentScreen = APP_SCREEN_SETTINGS;
-            break;
-
-        case MENU_ACTION_EXIT:
-            CloseWindow();
-            break;
-
-        default:
-            break;
-    }
-}
-
-static void DrawMenuButton(int x, int y, int width, int height, const MenuEntry* entry, bool selected)
-{
-    Color fillColor = selected ? Fade(ORANGE, 0.22f) : Fade(WHITE, 0.95f);
-    Color outlineColor = selected ? ORANGE : LIGHTGRAY;
-    Color titleColor = selected ? MAROON : DARKGRAY;
-
-    DrawRectangle(x, y, width, height, fillColor);
-    DrawRectangleLines(x, y, width, height, outlineColor);
-
-    const int fontSize = (height >= 70) ? 22 : 18;
-    const int titleWidth = MeasureText(entry->title, fontSize);
-    const int titleX = x + (width - titleWidth) / 2;
-    const int titleY = y + (height - fontSize) / 2;
-
-    DrawText(entry->title, titleX, titleY, fontSize, titleColor);
-
-    if (selected)
-    {
-        DrawText("->", x + 16, y + (height - 20) / 2, 20, ORANGE);
-        DrawText("<-", x + width - 36, y + (height - 20) / 2, 20, ORANGE);
-    }
-}
+static bool newLocalGameButtonPressed = false;
+static bool newNetworkGameButtonPressed = false;
+static bool loadGameFromFileButtonPressed = false;
+static bool sfxCheckboxChecked = false;
+static bool bgmCheckboxChecked = false;
+static bool aboutNavButtonPressed = false;
+static bool settingsNavButtonPressed = false;
 
 void MenuUpdate(AppState* state)
 {
     if (state == NULL)
         return;
 
-    if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S))
+    // Key binds (F11 check removed here to be handled globally in the main engine loop)
+    if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE))
+        state->currentScreen = APP_SCREEN_GAME;
+    else if (IsKeyPressed(KEY_S))
+        state->currentScreen = APP_SCREEN_SETTINGS;
+    else if (IsKeyPressed(KEY_Q) || IsKeyPressed(KEY_ESCAPE))
+        CloseWindow();
+        
+    if (IsKeyPressed(KEY_N))
+        state->currentScreen = APP_SCREEN_GAME;
+    if (IsKeyPressed(KEY_L))
+        state->currentScreen = APP_SCREEN_GAME;
+    if (IsKeyPressed(KEY_M))
     {
-        selectedOption = (selectedOption + 1) % MENU_ACTION_COUNT;
-    }
-    else if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W))
-    {
-        selectedOption = (selectedOption + MENU_ACTION_COUNT - 1) % MENU_ACTION_COUNT;
-    }
-    else if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE))
-    {
-        ExecuteMenuSelection(state, selectedOption);
-    }
-
-    const int screenWidth = GetScreenWidth();
-    const int screenHeight = GetScreenHeight();
-    const Vector2 mousePosition = GetMousePosition();
-
-    const int gameButtonHeight = ClampInt(screenHeight / 10, 56, 72);
-    const int gameButtonWidth = ClampInt((screenWidth - 140) / 3, 96, 160);
-    const int gameGap = ClampInt((screenWidth - 3 * gameButtonWidth - 80) / 2, 14, 24);
-    const int gameGroupY = ClampInt(screenHeight / 2 - 40, 180, 230);
-    const int gameGroupStartX = (screenWidth - (3 * gameButtonWidth + 2 * gameGap)) / 2;
-
-    for (int i = 0; i < 3; ++i)
-    {
-        Rectangle buttonRect = {
-            (float)(gameGroupStartX + i * (gameButtonWidth + gameGap)),
-            (float)gameGroupY,
-            (float)gameButtonWidth,
-            (float)gameButtonHeight
-        };
-
-        if (CheckCollisionPointRec(mousePosition, buttonRect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+        if (sfxCheckboxChecked || bgmCheckboxChecked)
         {
-            selectedOption = i;
-            ExecuteMenuSelection(state, selectedOption);
+            sfxCheckboxChecked = false;
+            bgmCheckboxChecked = false;
         }
-    }
-
-    const int actionWidth = ClampInt(screenWidth - 140, 240, 420);
-    const int actionHeight = ClampInt(screenHeight / 10, 54, 64);
-    const int actionX = (screenWidth - actionWidth) / 2;
-    const int settingsY = ClampInt(gameGroupY + gameButtonHeight + 32, 300, 360);
-    const int exitY = ClampInt(settingsY + actionHeight + 18, 380, 440);
-
-    Rectangle settingsRect = {(float)actionX, (float)settingsY, (float)actionWidth, (float)actionHeight};
-    Rectangle exitRect = {(float)actionX, (float)exitY, (float)actionWidth, (float)actionHeight};
-
-    if (CheckCollisionPointRec(mousePosition, settingsRect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
-    {
-        selectedOption = MENU_ACTION_SETTINGS;
-        ExecuteMenuSelection(state, selectedOption);
-    }
-
-    if (CheckCollisionPointRec(mousePosition, exitRect) && IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
-    {
-        selectedOption = MENU_ACTION_EXIT;
-        ExecuteMenuSelection(state, selectedOption);
+        else
+        {
+            sfxCheckboxChecked = true;
+            bgmCheckboxChecked = true;
+        }
     }
 }
 
-void MenuDraw(void)
+void MenuDraw(AppState* state)
 {
+    if (state == NULL)
+        return;
+
     const int screenWidth = GetScreenWidth();
     const int screenHeight = GetScreenHeight();
 
-    const int titleY = 70;
-    const int subtitleY = 112;
-    const int titleWidth = MeasureText("SCRABBLE.C", 42);
-    const int subtitleWidth = MeasureText("Choose your next move", 20);
+    int baseFontSize = screenHeight / 40; 
+    if (baseFontSize < 16) baseFontSize = 16;
+    GuiSetStyle(DEFAULT, TEXT_SIZE, baseFontSize);
 
-    DrawText("SCRABBLE.C", (screenWidth - titleWidth) / 2, titleY, 42, DARKGRAY);
-    DrawText("Choose your next move", (screenWidth - subtitleWidth) / 2, subtitleY, 20, GRAY);
+    // Dynamic layout measurements
+    const int padding = screenWidth / 25;
+    const int panelGap = screenWidth / 30;
+    
+    GuiSetStyle(DEFAULT, TEXT_SIZE, baseFontSize * 2.5);
+    float titleHeight = baseFontSize * 3.0f;
+    GuiLabel((Rectangle){ (float)padding, (float)padding, (float)screenWidth - (2 * padding), titleHeight }, "Scrabble.c");
+    
+    GuiSetStyle(DEFAULT, TEXT_SIZE, baseFontSize);
+    float subtitleY = (float)padding + titleHeight - (baseFontSize * 0.4f); 
+    float subtitleHeight = (float)baseFontSize * 1.5f;
+    GuiLabel((Rectangle){ (float)padding, subtitleY, (float)screenWidth - (2 * padding), subtitleHeight }, "Be aware adventurer! Here every letter counts!");
 
-    DrawLine(80, 150, screenWidth - 80, 150, LIGHTGRAY);
+    float bottomPadding = baseFontSize * 1.5f; 
+    const int contentTop = (int)(subtitleY + subtitleHeight + bottomPadding);
+    
+    const int optionPanelWidth = screenWidth / 4 < 240 ? 240 : screenWidth / 4;
+    const int mainPanelWidth = screenWidth - (2 * padding) - panelGap - optionPanelWidth;
+    const int mainPanelHeight = screenHeight - contentTop - padding;
+    const int optionPanelHeight = mainPanelHeight;
 
-    static const MenuEntry gameEntries[3] = {
-        {"Local", "Play a match locally"},
-        {"Network", "Challenge another player"},
-        {"Load", "Resume from a save file"}
-    };
+    const float mainPanelX = (float)padding;
+    const float mainPanelY = (float)contentTop;
+    const float mainPanelW = (float)mainPanelWidth;
+    const float mainPanelH = (float)mainPanelHeight;
 
-    static const MenuEntry settingsEntry = {"Settings", "Adjust visuals, sound, and rules"};
-    static const MenuEntry exitEntry = {"Exit", "Leave the game"};
+    const float optionPanelX = (float)(screenWidth - padding - optionPanelWidth);
+    const float optionPanelY = (float)contentTop;
+    const float optionPanelW = (float)optionPanelWidth;
+    const float optionPanelH = (float)optionPanelHeight;
 
-    const int sectionLabelY = 172;
-    DrawText("Start Game", 80, sectionLabelY, 24, DARKGRAY);
+    // ("Start a Game") ---
+    GuiGroupBox((Rectangle){ mainPanelX, mainPanelY, mainPanelW, mainPanelH }, "Start a Game");
+    
+    float rowHeight = mainPanelH / 6.0f;
+    float btnWidth = mainPanelW * 0.35f;
+    if (btnWidth < 160) btnWidth = 160;
+    
+    float labelX = mainPanelX + btnWidth + 30;
+    float labelW = mainPanelW - btnWidth - 50; 
 
-    const int gameButtonHeight = ClampInt(screenHeight / 10, 56, 72);
-    const int gameButtonWidth = ClampInt((screenWidth - 140) / 3, 96, 160);
-    const int gameGap = ClampInt((screenWidth - 3 * gameButtonWidth - 80) / 2, 14, 24);
-    const int gameGroupY = ClampInt(screenHeight / 2 - 40, 180, 230);
-    const int gameGroupStartX = (screenWidth - (3 * gameButtonWidth + 2 * gameGap)) / 2;
+    GuiSetStyle(LABEL, TEXT_ALIGNMENT, 0); 
 
-    for (int i = 0; i < 3; ++i)
+    newLocalGameButtonPressed = GuiButton((Rectangle){ mainPanelX + 20, mainPanelY + rowHeight, btnWidth, rowHeight * 0.6f }, "New Local Game");
+    GuiLabel((Rectangle){ labelX, mainPanelY + rowHeight, labelW, rowHeight * 0.6f }, "Play on this device turn-by-turn");
+
+    newNetworkGameButtonPressed = GuiButton((Rectangle){ mainPanelX + 20, mainPanelY + (rowHeight * 2), btnWidth, rowHeight * 0.6f }, "New Network Game");
+    GuiLabel((Rectangle){ labelX, mainPanelY + (rowHeight * 2), labelW, rowHeight * 0.6f }, "Play with friends within the LAN");
+
+    loadGameFromFileButtonPressed = GuiButton((Rectangle){ mainPanelX + 20, mainPanelY + (rowHeight * 3), btnWidth, rowHeight * 0.6f }, "Load Saved Game");
+    GuiLabel((Rectangle){ labelX, mainPanelY + (rowHeight * 3), labelW, rowHeight * 0.6f }, "Load a previous saved game file");
+
+    // Hotkey Info Footer (Keeping the visual instruction)
+    GuiLine((Rectangle){ mainPanelX + 20, mainPanelY + (rowHeight * 4.5f), mainPanelW - 40, 12 }, NULL);
+    GuiLabel((Rectangle){ mainPanelX + 20, mainPanelY + (rowHeight * 4.8f), mainPanelW - 40, rowHeight * 0.6f }, "Q: Quit  M: Mute  L: Load  N: New  F11: Fullscreen");
+
+    // Options Panel ---
+    GuiGroupBox((Rectangle){ optionPanelX, optionPanelY, optionPanelW, optionPanelH }, "Options");
+
+    float soundGroupPaddingX = 16.0f;
+    float soundGroupPaddingY = 32.0f;
+    float soundInnerPaddingX = 20.0f;
+    
+    float soundBoxHeight = optionPanelH * 0.38f;
+    GuiGroupBox((Rectangle){ optionPanelX + soundGroupPaddingX, optionPanelY + soundGroupPaddingY, optionPanelW - (soundGroupPaddingX * 2), soundBoxHeight }, "Sound");
+    
+    float checkboxHeight = baseFontSize * 1.1f;
+    if (checkboxHeight > 22.0f) checkboxHeight = 22.0f;
+    if (checkboxHeight < 16.0f) checkboxHeight = 16.0f;
+
+    float sfxCheckboxY = optionPanelY + soundGroupPaddingY + (soundBoxHeight * 0.25f);
+    float bgmCheckboxY = optionPanelY + soundGroupPaddingY + (soundBoxHeight * 0.60f);
+
+    GuiCheckBox((Rectangle){ optionPanelX + soundGroupPaddingX + soundInnerPaddingX, sfxCheckboxY, checkboxHeight, checkboxHeight }, "Sound Effects", &sfxCheckboxChecked);
+    GuiCheckBox((Rectangle){ optionPanelX + soundGroupPaddingX + soundInnerPaddingX, bgmCheckboxY, checkboxHeight, checkboxHeight }, "Background", &bgmCheckboxChecked);
+
+    float navBtnWidth = (optionPanelW - 48) / 2.0f;
+    float navBtnHeight = rowHeight * 0.6f;
+    if (navBtnHeight > 40) navBtnHeight = 40;
+    
+    aboutNavButtonPressed = GuiButton((Rectangle){ optionPanelX + 16, optionPanelY + optionPanelH - navBtnHeight - 16, navBtnWidth, navBtnHeight }, "About");
+    settingsNavButtonPressed = GuiButton((Rectangle){ optionPanelX + 16 + navBtnWidth + 16, optionPanelY + optionPanelH - navBtnHeight - 16, navBtnWidth, navBtnHeight }, "Settings");
+
+    // State Management (UI Interactions) ---
+    if (newLocalGameButtonPressed || newNetworkGameButtonPressed || loadGameFromFileButtonPressed)
     {
-        DrawMenuButton(gameGroupStartX + i * (gameButtonWidth + gameGap), gameGroupY, gameButtonWidth, gameButtonHeight, &gameEntries[i], i == selectedOption);
+        state->currentScreen = APP_SCREEN_GAME;
     }
 
-    const int actionWidth = ClampInt(screenWidth - 140, 240, 420);
-    const int actionHeight = ClampInt(screenHeight / 10, 54, 64);
-    const int actionX = (screenWidth - actionWidth) / 2;
-    const int settingsY = ClampInt(gameGroupY + gameButtonHeight + 32, 300, 360);
-    const int exitY = ClampInt(settingsY + actionHeight + 18, 380, 440);
+    if (settingsNavButtonPressed)
+    {
+        state->currentScreen = APP_SCREEN_SETTINGS;
+    }
 
-    DrawMenuButton(actionX, settingsY, actionWidth, actionHeight, &settingsEntry, selectedOption == MENU_ACTION_SETTINGS);
-    DrawMenuButton(actionX, exitY, actionWidth, actionHeight, &exitEntry, selectedOption == MENU_ACTION_EXIT);
-
-    DrawText("Use the arrow keys or mouse to navigate", (screenWidth - MeasureText("Use the arrow keys or mouse to navigate", 20)) / 2, screenHeight - 80, 20, GRAY);
-    DrawText("Press Enter to confirm", (screenWidth - MeasureText("Press Enter to confirm", 18)) / 2, screenHeight - 48, 18, DARKGRAY);
+    if (aboutNavButtonPressed)
+    {
+        // Reserved for future content.
+    }
 }
