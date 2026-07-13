@@ -7,6 +7,7 @@ int main()
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
 
     InitWindow(1024, 768, "Scrabble.c");
+    SetExitKey(KEY_F4);
     MaximizeWindow();
     SetWindowMinSize(800, 600);
 
@@ -16,6 +17,7 @@ int main()
     InitAppState(&appState);
 
     appState.currentScreen = APP_SCREEN_LOADING;
+    
 
     while (!WindowShouldClose())
     {

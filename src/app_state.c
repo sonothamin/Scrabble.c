@@ -1,12 +1,13 @@
 #include <stddef.h>
-#include <stdlib.h> // Include stdlib for malloc/free functions
+#include <stdlib.h>
 #include "app_state.h"
 #include "ui.h"
 #include "menu.h"
 #include "settings.h"
 #include "game.h"
-#include "loading.h" 
-#include "raylib.h"  
+#include "loading.h"
+#include "about.h"
+#include "raylib.h"
 
 void InitAppState(AppState *state)
 {
@@ -14,13 +15,16 @@ void InitAppState(AppState *state)
         return;
 
     state->currentScreen = APP_SCREEN_LOADING;
-    
-    // Allocate the heap container space for the pointer safely
-    state->loadingState = (LoadingState*)malloc(sizeof(LoadingState));
-    
+
+    // Allocate Loading State memory
+    state->loadingState = (LoadingState *)malloc(sizeof(LoadingState));
     if (state->loadingState != NULL)
-    {
         LoadingInit(state->loadingState);
+
+    state->aboutState = (AboutState *)malloc(sizeof(AboutState));
+    if (state->aboutState != NULL)
+    {
+        // AboutInit(state->aboutState);
     }
 }
 
@@ -50,17 +54,24 @@ void UpdateAppState(AppState *state)
         GameUpdate(state);
         break;
 
+    case APP_SCREEN_ABOUT:
+        if (state->aboutState != NULL)
+        {
+            AboutUpdate(state, state->aboutState);
+        }
+        break;
+
     default:
         state->currentScreen = APP_SCREEN_MAIN_MENU;
         break;
     }
 }
 
-void DrawAppState(AppState* state)
+void DrawAppState(AppState *state)
 {
     if (state == NULL)
         return;
-        
+
     ClearBackground(RAYWHITE);
 
     switch (state->currentScreen)
@@ -84,8 +95,23 @@ void DrawAppState(AppState* state)
         GameDraw();
         break;
 
+    case APP_SCREEN_ABOUT:
+        if (state->aboutState != NULL)
+            AboutDraw(state, state->aboutState);
+        break;
+
     default:
         MenuDraw(state);
         break;
     }
+}
+
+void CloseAppState(AppState *state)
+{
+    if (state == NULL)
+        return;
+    if (state->loadingState)
+        free(state->loadingState);
+    if (state->aboutState)
+        free(state->aboutState);
 }
