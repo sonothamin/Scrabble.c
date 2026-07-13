@@ -7,7 +7,7 @@ extern "C" {
 #endif
 
 void GameUpdate(AppState* state);
-void GameDraw(void);
+void GameDraw(AppState* state);
 
 #if defined(__cplusplus)
 }

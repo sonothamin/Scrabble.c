@@ -1,13 +1,13 @@
 #include <stddef.h>
-#include <stdlib.h>
+#include <stdlib.h> 
 #include "app_state.h"
 #include "ui.h"
 #include "menu.h"
 #include "settings.h"
 #include "game.h"
-#include "loading.h"
-#include "about.h"
-#include "raylib.h"
+#include "loading.h" 
+#include "about.h"    
+#include "raylib.h"  
 
 void InitAppState(AppState *state)
 {
@@ -15,16 +15,16 @@ void InitAppState(AppState *state)
         return;
 
     state->currentScreen = APP_SCREEN_LOADING;
-
+    
     // Allocate Loading State memory
-    state->loadingState = (LoadingState *)malloc(sizeof(LoadingState));
+    state->loadingState = (LoadingState*)malloc(sizeof(LoadingState));
     if (state->loadingState != NULL)
         LoadingInit(state->loadingState);
 
-    state->aboutState = (AboutState *)malloc(sizeof(AboutState));
+    state->aboutState = (AboutState*)malloc(sizeof(AboutState));
     if (state->aboutState != NULL)
     {
-        AboutInit(state->aboutState);
+        //AboutInit(state->aboutState);
     }
 }
 
@@ -67,11 +67,11 @@ void UpdateAppState(AppState *state)
     }
 }
 
-void DrawAppState(AppState *state)
+void DrawAppState(AppState* state)
 {
     if (state == NULL)
         return;
-
+        
     ClearBackground(RAYWHITE);
 
     switch (state->currentScreen)
@@ -92,7 +92,7 @@ void DrawAppState(AppState *state)
         break;
 
     case APP_SCREEN_GAME:
-        GameDraw();
+        GameDraw(state);
         break;
 
     case APP_SCREEN_ABOUT:
@@ -106,12 +106,9 @@ void DrawAppState(AppState *state)
     }
 }
 
-void CloseAppState(AppState *state)
+void CloseAppState(AppState* state)
 {
-    if (state == NULL)
-        return;
-    if (state->loadingState)
-        free(state->loadingState);
-    if (state->aboutState)
-        free(state->aboutState);
+    if (state == NULL) return;
+    if (state->loadingState) free(state->loadingState);
+    if (state->aboutState) free(state->aboutState);
 }
