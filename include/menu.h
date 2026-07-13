@@ -7,7 +7,7 @@ extern "C" {
 #endif
 
 void MenuUpdate(AppState* state);
-void MenuDraw(void);
+void MenuDraw(AppState* state);
 
 #if defined(__cplusplus)
 }
