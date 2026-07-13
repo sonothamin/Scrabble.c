@@ -43,7 +43,7 @@ void shuffle_tiles_in_bag(TileBag *bag)
         return; // for 1 tile we don't need to shuffle
     }
 
-                                     // continuously change the random number
+    // continuously change the random number
     for (int i = bag->tiles_remaining - 1; i > 0; i--) // loop will run for all the remaining tiles
     {
         // generating a random index between 0 and i

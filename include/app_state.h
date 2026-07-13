@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 #include "raylib.h"
+#include "board.h"
 
 #if defined(__cplusplus)
 extern "C" {
@@ -17,6 +18,7 @@ typedef enum AppScreen
 typedef struct AppState
 {
     AppScreen currentScreen;
+    CellType boardLayout[BOARD_SIZE][BOARD_SIZE];
 } AppState;
 
 void InitAppState(AppState* state);
