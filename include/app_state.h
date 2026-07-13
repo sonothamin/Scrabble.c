@@ -2,6 +2,7 @@
 
 #include <stddef.h>
 #include "raylib.h"
+#include "game.h"
 
 #if defined(__cplusplus)
 extern "C" {
@@ -23,12 +24,17 @@ typedef struct AppState
     AppScreen currentScreen;
     LoadingState* loadingState;
     AboutState* aboutState;
+    GameState* gamestate;
+    
+    bool shouldClose;
 } AppState;
 
 void InitAppState(AppState* state);
 void UpdateAppState(AppState* state);
 void DrawAppState(AppState* state);
 void CloseAppState(AppState* state);
+void StartNewGame(AppState* state);
+
 
 #if defined(__cplusplus)
 }

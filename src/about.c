@@ -36,7 +36,6 @@ void AboutUpdate(AppState *appState, AboutState *aboutState)
         return;
     }
 
-    // FIXED: Removed KEY_W and KEY_S to eliminate state conflicts with the Easter Egg triggering
     if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_D))
     {
         aboutState->activeTab = (aboutState->activeTab + 1) % 3;
@@ -55,7 +54,6 @@ void AboutUpdate(AppState *appState, AboutState *aboutState)
     if (IsKeyPressed(KEY_THREE))
         aboutState->activeTab = ABOUT_TAB_TECH;
 
-    // Scrolling implementation with content bounding boundaries calculated during Draw context
     float mouseWheel = GetMouseWheelMove();
     if (mouseWheel != 0)
     {

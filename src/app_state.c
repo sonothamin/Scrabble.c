@@ -15,17 +15,34 @@ void InitAppState(AppState *state)
         return;
 
     state->currentScreen = APP_SCREEN_LOADING;
+    state->gamestate = NULL;
     
-    // Allocate Loading State memory
     state->loadingState = (LoadingState*)malloc(sizeof(LoadingState));
     if (state->loadingState != NULL)
         LoadingInit(state->loadingState);
 
     state->aboutState = (AboutState*)malloc(sizeof(AboutState));
+
     if (state->aboutState != NULL)
+        AboutInit(state->aboutState);
+}
+
+void StartNewGame(AppState* state)
+{
+    if (state == NULL)
+        return;
+
+    if (state->gamestate != NULL)
     {
-        //AboutInit(state->aboutState);
+        free(state->gamestate);
+        state->gamestate = NULL;
     }
+
+    state->gamestate = (GameState*)malloc(sizeof(GameState));
+    if (state->gamestate != NULL)
+        GameInit(state->gamestate);
+
+    state->currentScreen = APP_SCREEN_GAME;
 }
 
 void UpdateAppState(AppState *state)
@@ -37,9 +54,8 @@ void UpdateAppState(AppState *state)
     {
     case APP_SCREEN_LOADING:
         if (state->loadingState != NULL)
-        {
             LoadingUpdate(state, state->loadingState, GetFrameTime());
-        }
+
         break;
 
     case APP_SCREEN_MAIN_MENU:
@@ -51,14 +67,19 @@ void UpdateAppState(AppState *state)
         break;
 
     case APP_SCREEN_GAME:
+        if (state->gamestate == NULL)
+        {
+            state->gamestate = (GameState*)malloc(sizeof(GameState));
+            if (state->gamestate != NULL)
+                GameInit(state->gamestate);
+        }
+
         GameUpdate(state);
         break;
 
     case APP_SCREEN_ABOUT:
         if (state->aboutState != NULL)
-        {
             AboutUpdate(state, state->aboutState);
-        }
         break;
 
     default:
@@ -71,16 +92,14 @@ void DrawAppState(AppState* state)
 {
     if (state == NULL)
         return;
-        
+    
     ClearBackground(RAYWHITE);
 
     switch (state->currentScreen)
     {
     case APP_SCREEN_LOADING:
         if (state->loadingState != NULL)
-        {
             LoadingDraw(state, state->loadingState);
-        }
         break;
 
     case APP_SCREEN_MAIN_MENU:
@@ -111,4 +130,5 @@ void CloseAppState(AppState* state)
     if (state == NULL) return;
     if (state->loadingState) free(state->loadingState);
     if (state->aboutState) free(state->aboutState);
+    if (state->gamestate) free(state->gamestate);
 }
