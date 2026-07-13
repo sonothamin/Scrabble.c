@@ -1,157 +1,171 @@
 #include "menu.h"
+#include "ui.h"
 #include "raylib.h"
-
-#define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 
-static bool newLocalGameButtonPressed = false;
-static bool newNetworkGameButtonPressed = false;
-static bool loadGameFromFileButtonPressed = false;
-static bool sfxCheckboxChecked = false;
-static bool bgmCheckboxChecked = false;
-static bool aboutNavButtonPressed = false;
-static bool settingsNavButtonPressed = false;
+static bool sfxCheckboxChecked = true;  
+static bool bgmCheckboxChecked = true;  
+
+static const char* GetMenuScrabbleScore(char c) 
+{
+    switch (c) {
+        case 'D': case 'G': return "2";
+        case 'B': case 'C': case 'M': case 'P': return "3";
+        case 'F': case 'H': case 'V': case 'W': case 'Y': return "4";
+        case 'K': return "5";
+        case 'J': case 'X': return "8";
+        case 'Q': case 'Z': return "10";
+        default: return "1"; 
+    }
+}
 
 void MenuUpdate(AppState* state)
 {
-    if (state == NULL)
-        return;
+    if (!state) return;
 
-    // Key binds (F11 check removed here to be handled globally in the main engine loop)
-    if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE))
-        state->currentScreen = APP_SCREEN_GAME;
-    else if (IsKeyPressed(KEY_S))
-        state->currentScreen = APP_SCREEN_SETTINGS;
-    else if (IsKeyPressed(KEY_Q) || IsKeyPressed(KEY_ESCAPE))
-        CloseWindow();
-        
-    if (IsKeyPressed(KEY_N))
-        state->currentScreen = APP_SCREEN_GAME;
-    if (IsKeyPressed(KEY_L))
-        state->currentScreen = APP_SCREEN_GAME;
-    if (IsKeyPressed(KEY_M))
+    if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_N) || IsKeyPressed(KEY_L))
     {
-        if (sfxCheckboxChecked || bgmCheckboxChecked)
-        {
-            sfxCheckboxChecked = false;
-            bgmCheckboxChecked = false;
-        }
-        else
-        {
-            sfxCheckboxChecked = true;
-            bgmCheckboxChecked = true;
-        }
+        state->currentScreen = APP_SCREEN_GAME;
+    }
+    else if (IsKeyPressed(KEY_S))
+    {
+        state->currentScreen = APP_SCREEN_SETTINGS;
+    }
+    else if (IsKeyPressed(KEY_Q) || IsKeyPressed(KEY_ESCAPE))
+    {
+        CloseWindow();
+    }
+    else if (IsKeyPressed(KEY_M))
+    {
+        bool toggled = !(sfxCheckboxChecked || bgmCheckboxChecked);
+        sfxCheckboxChecked = toggled;
+        bgmCheckboxChecked = toggled;
     }
 }
 
 void MenuDraw(AppState* state)
 {
-    if (state == NULL)
-        return;
+    if (!state) return;
 
     const int screenWidth = GetScreenWidth();
     const int screenHeight = GetScreenHeight();
 
-    int baseFontSize = screenHeight / 40; 
+    ClearBackground((Color){ 24, 32, 38, 255 });
+
+    int baseFontSize = screenHeight / 38; 
     if (baseFontSize < 16) baseFontSize = 16;
-    GuiSetStyle(DEFAULT, TEXT_SIZE, baseFontSize);
+    ApplyScrabbleTheme(baseFontSize);
 
-    // Dynamic layout measurements
-    const int padding = screenWidth / 25;
-    const int panelGap = screenWidth / 30;
-    
-    GuiSetStyle(DEFAULT, TEXT_SIZE, baseFontSize * 2.5);
-    float titleHeight = baseFontSize * 3.0f;
-    GuiLabel((Rectangle){ (float)padding, (float)padding, (float)screenWidth - (2 * padding), titleHeight }, "Scrabble.c");
-    
-    GuiSetStyle(DEFAULT, TEXT_SIZE, baseFontSize);
-    float subtitleY = (float)padding + titleHeight - (baseFontSize * 0.4f); 
-    float subtitleHeight = (float)baseFontSize * 1.5f;
-    GuiLabel((Rectangle){ (float)padding, subtitleY, (float)screenWidth - (2 * padding), subtitleHeight }, "Be aware adventurer! Here every letter counts!");
+    const float padding = screenWidth / 25.0f;
+    const float panelGap = screenWidth / 35.0f;
 
-    float bottomPadding = baseFontSize * 1.5f; 
-    const int contentTop = (int)(subtitleY + subtitleHeight + bottomPadding);
+    const char* titleText = "SCRABBLE.C";
+    const int titleLength = 10;
     
-    const int optionPanelWidth = screenWidth / 4 < 240 ? 240 : screenWidth / 4;
-    const int mainPanelWidth = screenWidth - (2 * padding) - panelGap - optionPanelWidth;
-    const int mainPanelHeight = screenHeight - contentTop - padding;
-    const int optionPanelHeight = mainPanelHeight;
+    const float menuTileSize = baseFontSize * 3.0f;
+    const float menuTileSpacing = menuTileSize * 0.10f;
+    const int tileFontSize = (int)(menuTileSize * 0.65f); 
+    const int scoreFontSize = (int)(menuTileSize * 0.22f);
 
-    const float mainPanelX = (float)padding;
-    const float mainPanelY = (float)contentTop;
-    const float mainPanelW = (float)mainPanelWidth;
-    const float mainPanelH = (float)mainPanelHeight;
-
-    const float optionPanelX = (float)(screenWidth - padding - optionPanelWidth);
-    const float optionPanelY = (float)contentTop;
-    const float optionPanelW = (float)optionPanelWidth;
-    const float optionPanelH = (float)optionPanelHeight;
-
-    // ("Start a Game") ---
-    GuiGroupBox((Rectangle){ mainPanelX, mainPanelY, mainPanelW, mainPanelH }, "Start a Game");
+    const Color shadowColor = { 10, 14, 18, 160 };
+    const Color tileColor = { 244, 228, 198, 255 };
+    const Color innerLineColor = { 255, 248, 230, 255 };
+    const Color outerLineColor = { 194, 169, 126, 255 };
+    const Color textColor = { 38, 28, 16, 255 };
+    const Color scoreColor = { 120, 95, 68, 255 };
     
-    float rowHeight = mainPanelH / 6.0f;
-    float btnWidth = mainPanelW * 0.35f;
-    if (btnWidth < 160) btnWidth = 160;
+    for (int i = 0; i < titleLength; i++)
+    {
+        float currentX = padding + i * (menuTileSize + menuTileSpacing);
+        Rectangle tileRect = { currentX, padding, menuTileSize, menuTileSize };
+
+        DrawRectangleRounded((Rectangle){ tileRect.x + 5.0f, tileRect.y + 6.0f, tileRect.width, tileRect.height }, 0.18f, 4, shadowColor);
+        DrawRectangleRounded(tileRect, 0.18f, 4, tileColor);
+        DrawRectangleRoundedLines((Rectangle){ tileRect.x + 4.0f, tileRect.y + 4.0f, tileRect.width - 8.0f, tileRect.height - 8.0f }, 0.15f, 4, innerLineColor);
+        DrawRectangleRoundedLines(tileRect, 0.18f, 4, outerLineColor);
+
+        char letterStr[2] = { titleText[i], '\0' };
+        DrawText(
+            letterStr, 
+            tileRect.x + (menuTileSize - MeasureText(letterStr, tileFontSize)) / 2.0f, 
+            tileRect.y + (menuTileSize - tileFontSize) / 2.0f - 4.0f, 
+            tileFontSize, 
+            textColor
+        );
+
+        if (titleText[i] != '.')
+        {
+            DrawText(
+                GetMenuScrabbleScore(titleText[i]), 
+                tileRect.x + tileRect.width - scoreFontSize - 6.0f, 
+                tileRect.y + tileRect.height - scoreFontSize - 6.0f, 
+                scoreFontSize, 
+                scoreColor
+            );
+        }
+    }
     
-    float labelX = mainPanelX + btnWidth + 30;
-    float labelW = mainPanelW - btnWidth - 50; 
+    float subtitleY = padding + menuTileSize + 16.0f;
+    float subtitleHeight = baseFontSize * 1.2f;
+    GuiLabel((Rectangle){ padding, subtitleY, screenWidth - (2.0f * padding), subtitleHeight }, "Be aware adventurer! Here every letter counts!");
+
+    const float contentTop = subtitleY + subtitleHeight + 45.0f;
+    const float optionPanelWidth = (screenWidth / 4 < 260) ? 260.0f : (float)(screenWidth / 4);
+    const float mainPanelWidth = screenWidth - (2.0f * padding) - panelGap - optionPanelWidth;
+    const float mainPanelHeight = screenHeight - contentTop - padding;
+
+    float rowHeight = mainPanelHeight / 6.0f;
+    float btnWidth = (mainPanelWidth * 0.38f < 180.0f) ? 180.0f : mainPanelWidth * 0.38f;
+    float targetBtnHeight = rowHeight * 0.65f;
+    float labelX = padding + btnWidth + 40.0f;
+    float labelW = mainPanelWidth - btnWidth - 60.0f; 
 
     GuiSetStyle(LABEL, TEXT_ALIGNMENT, 0); 
 
-    newLocalGameButtonPressed = GuiButton((Rectangle){ mainPanelX + 20, mainPanelY + rowHeight, btnWidth, rowHeight * 0.6f }, "New Local Game");
-    GuiLabel((Rectangle){ labelX, mainPanelY + rowHeight, labelW, rowHeight * 0.6f }, "Play on this device turn-by-turn");
+    GuiGroupBox((Rectangle){ padding, contentTop, mainPanelWidth, mainPanelHeight }, "START A GAME");
 
-    newNetworkGameButtonPressed = GuiButton((Rectangle){ mainPanelX + 20, mainPanelY + (rowHeight * 2), btnWidth, rowHeight * 0.6f }, "New Network Game");
-    GuiLabel((Rectangle){ labelX, mainPanelY + (rowHeight * 2), labelW, rowHeight * 0.6f }, "Play with friends within the LAN");
-
-    loadGameFromFileButtonPressed = GuiButton((Rectangle){ mainPanelX + 20, mainPanelY + (rowHeight * 3), btnWidth, rowHeight * 0.6f }, "Load Saved Game");
-    GuiLabel((Rectangle){ labelX, mainPanelY + (rowHeight * 3), labelW, rowHeight * 0.6f }, "Load a previous saved game file");
-
-    // Hotkey Info Footer (Keeping the visual instruction)
-    GuiLine((Rectangle){ mainPanelX + 20, mainPanelY + (rowHeight * 4.5f), mainPanelW - 40, 12 }, NULL);
-    GuiLabel((Rectangle){ mainPanelX + 20, mainPanelY + (rowHeight * 4.8f), mainPanelW - 40, rowHeight * 0.6f }, "Q: Quit  M: Mute  L: Load  N: New  F11: Fullscreen");
-
-    // Options Panel ---
-    GuiGroupBox((Rectangle){ optionPanelX, optionPanelY, optionPanelW, optionPanelH }, "Options");
-
-    float soundGroupPaddingX = 16.0f;
-    float soundGroupPaddingY = 32.0f;
-    float soundInnerPaddingX = 20.0f;
-    
-    float soundBoxHeight = optionPanelH * 0.38f;
-    GuiGroupBox((Rectangle){ optionPanelX + soundGroupPaddingX, optionPanelY + soundGroupPaddingY, optionPanelW - (soundGroupPaddingX * 2), soundBoxHeight }, "Sound");
-    
-    float checkboxHeight = baseFontSize * 1.1f;
-    if (checkboxHeight > 22.0f) checkboxHeight = 22.0f;
-    if (checkboxHeight < 16.0f) checkboxHeight = 16.0f;
-
-    float sfxCheckboxY = optionPanelY + soundGroupPaddingY + (soundBoxHeight * 0.25f);
-    float bgmCheckboxY = optionPanelY + soundGroupPaddingY + (soundBoxHeight * 0.60f);
-
-    GuiCheckBox((Rectangle){ optionPanelX + soundGroupPaddingX + soundInnerPaddingX, sfxCheckboxY, checkboxHeight, checkboxHeight }, "Sound Effects", &sfxCheckboxChecked);
-    GuiCheckBox((Rectangle){ optionPanelX + soundGroupPaddingX + soundInnerPaddingX, bgmCheckboxY, checkboxHeight, checkboxHeight }, "Background", &bgmCheckboxChecked);
-
-    float navBtnWidth = (optionPanelW - 48) / 2.0f;
-    float navBtnHeight = rowHeight * 0.6f;
-    if (navBtnHeight > 40) navBtnHeight = 40;
-    
-    aboutNavButtonPressed = GuiButton((Rectangle){ optionPanelX + 16, optionPanelY + optionPanelH - navBtnHeight - 16, navBtnWidth, navBtnHeight }, "About");
-    settingsNavButtonPressed = GuiButton((Rectangle){ optionPanelX + 16 + navBtnWidth + 16, optionPanelY + optionPanelH - navBtnHeight - 16, navBtnWidth, navBtnHeight }, "Settings");
-
-    // State Management (UI Interactions) ---
-    if (newLocalGameButtonPressed || newNetworkGameButtonPressed || loadGameFromFileButtonPressed)
-    {
+    if (GuiButton((Rectangle){ padding + 25.0f, contentTop + rowHeight * 0.8f, btnWidth, targetBtnHeight }, "New Local Game")) {
         state->currentScreen = APP_SCREEN_GAME;
     }
+    GuiLabel((Rectangle){ labelX, contentTop + rowHeight * 0.8f, labelW, targetBtnHeight }, "Play on this device turn-by-turn");
 
-    if (settingsNavButtonPressed)
-    {
-        state->currentScreen = APP_SCREEN_SETTINGS;
+    if (GuiButton((Rectangle){ padding + 25.0f, contentTop + (rowHeight * 1.8f), btnWidth, targetBtnHeight }, "New Network Game")) {
+        state->currentScreen = APP_SCREEN_GAME;
     }
+    GuiLabel((Rectangle){ labelX, contentTop + (rowHeight * 1.8f), labelW, targetBtnHeight }, "Play with friends within the LAN");
 
-    if (aboutNavButtonPressed)
-    {
-        // Reserved for future content.
+    if (GuiButton((Rectangle){ padding + 25.0f, contentTop + (rowHeight * 2.8f), btnWidth, targetBtnHeight }, "Load Saved Game")) {
+        state->currentScreen = APP_SCREEN_GAME;
+    }
+    GuiLabel((Rectangle){ labelX, contentTop + (rowHeight * 2.8f), labelW, targetBtnHeight }, "Load a previous saved game file");
+
+    GuiLine((Rectangle){ padding + 25.0f, contentTop + (rowHeight * 4.6f), mainPanelWidth - 50.0f, 8.0f }, NULL);
+    GuiLabel((Rectangle){ padding + 25.0f, contentTop + (rowHeight * 4.9f), mainPanelWidth - 50.0f, rowHeight * 0.5f }, "Q: Quit   M: Mute Everything   L: Quick Load   N: Quick Local   F11: Fullscreen");
+
+    float optionPanelX = screenWidth - padding - optionPanelWidth;
+    GuiGroupBox((Rectangle){ optionPanelX, contentTop, optionPanelWidth, mainPanelHeight }, "SETTINGS & OPTIONS");
+
+    float soundGroupMarginX = 50.0f;
+    float soundGroupMarginY = 70.0f;
+    float soundBoxWidth = optionPanelWidth - (soundGroupMarginX * 2.0f);
+    float soundBoxHeight = mainPanelHeight * 0.38f;
+    
+    GuiGroupBox((Rectangle){ optionPanelX + soundGroupMarginX, contentTop + soundGroupMarginY, soundBoxWidth, soundBoxHeight }, "Audio Mixer");
+    
+    float checkboxHeight = (baseFontSize < 16) ? 16.0f : ((baseFontSize > 22) ? 22.0f : (float)baseFontSize);
+    float sfxCheckboxY = contentTop + soundGroupMarginY + (soundBoxHeight * 0.28f);
+    float bgmCheckboxY = contentTop + soundGroupMarginY + (soundBoxHeight * 0.62f);
+
+    GuiCheckBox((Rectangle){ optionPanelX + soundGroupMarginX + 20.0f, sfxCheckboxY, checkboxHeight, checkboxHeight }, "Sound Effects (SFX)", &sfxCheckboxChecked);
+    GuiCheckBox((Rectangle){ optionPanelX + soundGroupMarginX + 20.0f, bgmCheckboxY, checkboxHeight, checkboxHeight }, "Background Music (BGM)", &bgmCheckboxChecked);
+
+    float navBtnWidth = (optionPanelWidth - 56.0f) / 2.0f;
+    float navBtnY = contentTop + mainPanelHeight - targetBtnHeight - 20.0f;
+    
+    if (GuiButton((Rectangle){ optionPanelX + 20.0f, navBtnY, navBtnWidth, targetBtnHeight }, "About")) {
+        state->currentScreen = APP_SCREEN_ABOUT;
+    }
+    if (GuiButton((Rectangle){ optionPanelX + 36.0f + navBtnWidth, navBtnY, navBtnWidth, targetBtnHeight }, "Settings")) {
+        state->currentScreen = APP_SCREEN_SETTINGS;
     }
 }
