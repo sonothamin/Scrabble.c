@@ -15,5 +15,5 @@ typedef enum
 } CellType;
 
 void LoadBoardLayout(CellType board_layout[BOARD_SIZE][BOARD_SIZE], const char *filename);
-void DrawScrabbleBoard(const CellType layout[BOARD_SIZE][BOARD_SIZE]);
+void DrawScrabbleBoard(CellType layout[BOARD_SIZE][BOARD_SIZE]);
 #endif

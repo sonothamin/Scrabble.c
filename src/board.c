@@ -44,7 +44,7 @@ void LoadBoardLayout(CellType board_layout[BOARD_SIZE][BOARD_SIZE], const char *
     }
     fclose(file);
 }
-void DrawScrabbleBoard(const CellType layout[BOARD_SIZE][BOARD_SIZE])
+void DrawScrabbleBoard(CellType board_layout[BOARD_SIZE][BOARD_SIZE])
 {
-
+    
 }

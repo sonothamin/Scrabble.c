@@ -4,6 +4,7 @@
 #include "app_state.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "game.h"
 
 void GameInit(GameState *game)
 {
@@ -36,6 +37,7 @@ void GameUpdate(AppState *state, GameState *game)
 void GameDraw(const GameState *game)
 {
     if (game == NULL)
-        return // for safety, if the memory is not allocated
-            DrawScreenBox("Game Screen", "Press B to return to Main Menu");
+        return; // for safety, if the memory is not allocated
+
+    DrawScrabbleBoard(game->board_layout);
 }
