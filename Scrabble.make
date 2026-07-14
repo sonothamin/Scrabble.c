@@ -122,6 +122,7 @@ GENERATED += $(OBJDIR)/app_state.o
 GENERATED += $(OBJDIR)/bag.o
 GENERATED += $(OBJDIR)/board.o
 GENERATED += $(OBJDIR)/game.o
+GENERATED += $(OBJDIR)/loading.o
 GENERATED += $(OBJDIR)/main.o
 GENERATED += $(OBJDIR)/menu.o
 GENERATED += $(OBJDIR)/player.o
@@ -131,6 +132,7 @@ OBJECTS += $(OBJDIR)/app_state.o
 OBJECTS += $(OBJDIR)/bag.o
 OBJECTS += $(OBJDIR)/board.o
 OBJECTS += $(OBJDIR)/game.o
+OBJECTS += $(OBJDIR)/loading.o
 OBJECTS += $(OBJDIR)/main.o
 OBJECTS += $(OBJDIR)/menu.o
 OBJECTS += $(OBJDIR)/player.o
@@ -209,6 +211,9 @@ $(OBJDIR)/board.o: src/board.c
 	@echo "$(notdir $<)"
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/game.o: src/game.c
+	@echo "$(notdir $<)"
+	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/loading.o: src/loading.c
 	@echo "$(notdir $<)"
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/main.o: src/main.c

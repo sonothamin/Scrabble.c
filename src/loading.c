@@ -1,3 +1,4 @@
+// Sonoth
 #include "loading.h"
 #include "raylib.h"
 #include <math.h>

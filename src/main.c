@@ -1,3 +1,4 @@
+// Sonoth
 #include "raylib.h"
 #include "resource_dir.h"
 #include "app_state.h"
@@ -5,10 +6,10 @@
 int main()
 {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
-
+    // To drag the window and make its size smaller and larger
     InitWindow(1024, 768, "Scrabble.c");
-    MaximizeWindow();
-    SetWindowMinSize(800, 600);
+    MaximizeWindow();           // grabs the monitor size
+    SetWindowMinSize(800, 600); // Guardrail to prevent accidental screen shrinkage
 
     SearchAndSetResourceDir("resources");
 
@@ -25,7 +26,7 @@ int main()
         UpdateAppState(&appState);
 
         BeginDrawing();
-           DrawAppState(&appState);
+        DrawAppState(&appState);
         EndDrawing();
     }
 

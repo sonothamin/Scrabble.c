@@ -1,8 +1,8 @@
+//Sonoth
 #pragma once
 
 #include <stddef.h>
 #include "raylib.h"
-#include "board.h"
 
 #if defined(__cplusplus)
 extern "C"
@@ -12,6 +12,7 @@ extern "C"
     // Forward declaration tells the compiler the type exists
     // without conflicting with the actual structure layout inside loading.h
     struct LoadingState;
+    struct GameState;
 
     typedef enum AppScreen
     {
@@ -24,8 +25,8 @@ extern "C"
     typedef struct AppState
     {
         AppScreen currentScreen;
-        CellType boardLayout[BOARD_SIZE][BOARD_SIZE];
         struct LoadingState *loadingState; // Changed to a pointer to cleanly resolve sizing rules
+        struct GameState *gameState;
     } AppState;
 
     void InitAppState(AppState *state);

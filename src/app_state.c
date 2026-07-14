@@ -1,3 +1,4 @@
+// Sonoth
 #include <stddef.h>
 #include <stdlib.h> // Include stdlib for malloc/free functions
 #include "app_state.h"
@@ -5,19 +6,19 @@
 #include "menu.h"
 #include "settings.h"
 #include "game.h"
-#include "loading.h" 
-#include "raylib.h"  
+#include "loading.h"
+#include "raylib.h"
 
 void InitAppState(AppState *state)
 {
     if (state == NULL)
-        return;
+        return; // for safety, if memory is not available
 
     state->currentScreen = APP_SCREEN_LOADING;
-    
+    state->gameState = NULL; // Zero memory footprints for game assests on launch to keep it lightweight
     // Allocate the heap container space for the pointer safely
-    state->loadingState = (LoadingState*)malloc(sizeof(LoadingState));
-    
+    state->loadingState = (LoadingState *)malloc(sizeof(LoadingState));
+
     if (state->loadingState != NULL)
     {
         LoadingInit(state->loadingState);
@@ -47,7 +48,12 @@ void UpdateAppState(AppState *state)
         break;
 
     case APP_SCREEN_GAME:
-        GameUpdate(state);
+        if (state->gameState == NULL)
+        {
+            state->gameState = (GameState *)malloc(sizeof(GameState)); // allocating heap memory for the heavy game state machine
+            GameInit(state->gameState);
+        }
+        GameUpdate(state, state->gameState);
         break;
 
     default:
@@ -56,11 +62,11 @@ void UpdateAppState(AppState *state)
     }
 }
 
-void DrawAppState(AppState* state)
+void DrawAppState(AppState *state)
 {
     if (state == NULL)
         return;
-        
+
     ClearBackground(RAYWHITE);
 
     switch (state->currentScreen)
@@ -81,7 +87,10 @@ void DrawAppState(AppState* state)
         break;
 
     case APP_SCREEN_GAME:
-        GameDraw();
+        if (state->gameState != NULL)
+        {
+            GameDraw(state->gameState);
+        }
         break;
 
     default:
