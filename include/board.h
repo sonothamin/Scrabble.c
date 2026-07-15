@@ -5,14 +5,22 @@
 
 #define BOARD_SIDE 15
 
+typedef enum
+{
+    Normal,
+    DL,
+    DW,
+    TL,
+    TW
+} CellType;
 typedef struct GameBoard
 {
-    Tile cells[BOARD_SIDE][BOARD_SIDE];
+    CellType cells[BOARD_SIDE][BOARD_SIDE];
     unsigned char luxuryLayout[BOARD_SIDE][BOARD_SIDE];
     int sideSize;
 } GameBoard;
 
-void BoardInit(GameBoard* board);
-void BoardReset(GameBoard* board);
+void BoardInit(GameBoard *board, const char *filename);
+void BoardReset(GameBoard *board);
 
 #endif
