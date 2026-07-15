@@ -14,7 +14,7 @@ void BoardInit(GameBoard *board, const char *filename)
     FILE *file = fopen(filename, "r");
     if (file == NULL)
     {
-        file = fopen("resources/board->cells.txt", "r");
+        file = fopen("resources/board_layout.txt", "r");
     }
     if (file == NULL)
     {
