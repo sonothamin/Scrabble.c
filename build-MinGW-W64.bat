@@ -3,4 +3,5 @@ premake5.exe gmake
 cd ..
 mingw32-make clean
 make
+pause
 explorer .\bin\Debug\

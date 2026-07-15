@@ -1,3 +1,4 @@
+
 #ifndef BOARD_H
 #define BOARD_H
 
@@ -21,6 +22,7 @@ typedef struct GameBoard
 } GameBoard;
 
 void BoardInit(GameBoard *board, const char *filename);
+void DrawTheCellTypes(GameBoard *match, float boardX, float boardY, float boardVisualSize, float cellSize);
 void BoardReset(GameBoard *board);
 
 #endif

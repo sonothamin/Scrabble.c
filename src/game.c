@@ -75,8 +75,9 @@ void GameDraw(AppState *state)
 
     DrawRectangle(boardX, boardY, boardVisualSize, boardVisualSize, (Color){34, 44, 52, 255});
     float cellSize = boardVisualSize / (float)match->board.sideSize;
-    
-    
+
+    DrawTheCellTypes(&match->board, boardX, boardY, boardVisualSize, cellSize);
+
     for (int i = 0; i <= match->board.sideSize; i++)
     {
         DrawLineV((Vector2){boardX + (i * cellSize), boardY}, (Vector2){boardX + (i * cellSize), boardY + boardVisualSize}, (Color){54, 68, 82, 100});
