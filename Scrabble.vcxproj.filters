@@ -97,6 +97,9 @@
     <None Include="resources\board_layout.txt">
       <Filter>Game Resource Files</Filter>
     </None>
+    <None Include="resources\letters.txt">
+      <Filter>Game Resource Files</Filter>
+    </None>
     <None Include="src\icon.ico">
       <Filter>Windows Resource Files</Filter>
     </None>
