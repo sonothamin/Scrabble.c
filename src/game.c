@@ -68,10 +68,13 @@ void GameDraw(AppState *state)
     Rectangle boardBoundaries = {padding, padding, screenWidth * 0.45f, screenHeight - (padding * 2.0f)};
     GuiGroupBox(boardBoundaries, "Game Board");
 
+    float groupBoxHeaderHeight = 25.0f;
     float gridInnerPad = 15.0f;
-    float boardVisualSize = fminf(boardBoundaries.width, boardBoundaries.height - 40.0f) - (gridInnerPad * 2.0f);
-    float boardX = padding + gridInnerPad;
-    float boardY = padding + 30.0f + gridInnerPad;
+    float usableWidth = boardBoundaries.width - (gridInnerPad * 2.0f);
+    float usableHeight = boardBoundaries.height - groupBoxHeaderHeight - (gridInnerPad * 2.0f);
+    float boardVisualSize = fminf(usableWidth, usableHeight);
+    float boardX = boardBoundaries.x + (boardBoundaries.width - boardVisualSize) / 2.0f;
+    float boardY = boardBoundaries.y + groupBoxHeaderHeight + (usableHeight - boardVisualSize) / 2.0f;
 
     DrawRectangle(boardX, boardY, boardVisualSize, boardVisualSize, (Color){34, 44, 52, 255});
     float cellSize = boardVisualSize / (float)match->board.sideSize;

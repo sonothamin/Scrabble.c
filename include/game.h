@@ -7,28 +7,22 @@
 #include "player.h"
 #include "tile.h"
 
-#define MAX_PLAYER_TILES  7
+#define MAX_PLAYER_TILES 7
 #define MAX_TILE_BAG_SIZE 100
-#define MAX_HISTORY_LOGS  20
-#define MAX_WORD_LEN      15
+#define MAX_HISTORY_LOGS 20
+#define MAX_WORD_LEN 15
 
 typedef struct AppState AppState;
 
-typedef enum {
+typedef enum
+{
     GAME_MODE_LOCAL_1V1 = 0,
     GAME_MODE_AI_VS_PLAYER,
     GAME_MODE_ONLINE_MATCH
 } GameMode;
 
-typedef enum {
-    LUXURY_NONE = 0,
-    LUXURY_DOUBLE_LETTER,
-    LUXURY_TRIPLE_LETTER,
-    LUXURY_DOUBLE_WORD,
-    LUXURY_TRIPLE_WORD
-} LuxuryType;
-
-typedef struct {
+typedef struct
+{
     GameMode mode;
     char dictionaryPath[256];
     bool specialTilesEnabled;
@@ -41,7 +35,6 @@ typedef struct {
     bool isMatchOver;
     int winningPlayerIdx;
 } GameState;
-
 
 void GameInit(GameState *state);
 void GameUpdate(AppState *state);
