@@ -26,19 +26,19 @@ void BoardInit(GameBoard *board, const char *filename)
     while ((fscanf(file, "%3s", token)) != EOF && (row < BOARD_SIDE))
     {
         if (strcmp(token, "..") == 0)
-            board->cells[row][col] = Normal;
+            board->cells[row][col] = LUXURY_NONE;
         else if (strcmp(token, "2L") == 0)
-            board->cells[row][col] = DL;
+            board->cells[row][col] = LUXURY_DOUBLE_LETTER;
         else if (strcmp(token, "2W") == 0)
-            board->cells[row][col] = DW;
+            board->cells[row][col] = LUXURY_DOUBLE_WORD;
         else if (strcmp(token, "3L") == 0)
-            board->cells[row][col] = TL;
+            board->cells[row][col] = LUXURY_TRIPLE_LETTER;
         else if (strcmp(token, "3W") == 0)
-            board->cells[row][col] = TW;
+            board->cells[row][col] = LUXURY_TRIPLE_WORD;
         else if (strcmp(token, "ST") == 0)
-            board->cells[row][col] = DW; // when the 1st word is formed it is automatically double word
+            board->cells[row][col] = LUXURY_DOUBLE_WORD; // when the 1st word is formed it is automatically double word
         else
-            board->cells[row][col] = Normal;
+            board->cells[row][col] = LUXURY_NONE;
         col++;
         if (col >= BOARD_SIDE)
         {
@@ -81,17 +81,17 @@ void DrawTheCellTypes(GameBoard *match, float boardX, float boardY, float boardV
             // Read the logic type mapping from your game state matrix
             switch (match->cells[r][c])
             {
-            case DL:
+            case LUXURY_DOUBLE_LETTER:
                 bgStyle = (Color){155, 203, 237, 255}; // Light Blue
                 cellText = "DL";
                 textColor = (Color){25, 45, 65, 255};
                 break;
-            case TL:
+            case LUXURY_TRIPLE_LETTER:
                 bgStyle = (Color){45, 120, 210, 255}; // Dark Blue
                 cellText = "TL";
                 textColor = (Color){255, 255, 255, 255};
                 break;
-            case DW:
+            case LUXURY_DOUBLE_WORD:
                 bgStyle = (Color){237, 160, 160, 255}; // Pink / Coral
                 cellText = "DW";
                 textColor = (Color){65, 20, 20, 255};
@@ -101,18 +101,18 @@ void DrawTheCellTypes(GameBoard *match, float boardX, float boardY, float boardV
                     cellText = "*";
                 }
                 break;
-            case TW:
+            case LUXURY_TRIPLE_WORD:
                 bgStyle = (Color){220, 55, 55, 255}; // Deep Red
                 cellText = "TW";
                 textColor = (Color){255, 255, 255, 255};
                 break;
-            case Normal:
+            case LUXURY_NONE:
             default:
                 break;
             }
 
             // Draw styling if it's a special bonus multiplier square
-            if (match->cells[r][c] != Normal)
+            if (match->cells[r][c] != LUXURY_NONE)
             {
                 // Inset by 1px so it nests perfectly inside your grid outline lines
                 DrawRectangleRec((Rectangle){cellBounds.x + 1, cellBounds.y + 1, cellBounds.width - 2, cellBounds.height - 2}, bgStyle);
