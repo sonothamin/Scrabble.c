@@ -117,7 +117,6 @@ void DrawTheCellTypes(GameBoard *match, float boardX, float boardY, float boardV
                 // Inset by 1px so it nests perfectly inside your grid outline lines
                 DrawRectangleRec((Rectangle){cellBounds.x + 1, cellBounds.y + 1, cellBounds.width - 2, cellBounds.height - 2}, bgStyle);
 
-                // Scale typography relative to the current cell size
                 int cellFontSize = (int)(cellSize * 0.38f);
                 int textWidth = MeasureText(cellText, cellFontSize);
 
