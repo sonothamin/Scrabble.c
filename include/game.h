@@ -1,14 +1,43 @@
-#pragma once
+#ifndef GAME_H
+#define GAME_H
 
-#include "app_state.h"
+#include <stdbool.h>
+#include "board.h"
+#include "bag.h"
+#include "player.h"
+#include "tile.h"
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
+#define MAX_PLAYER_TILES 7
+#define MAX_TILE_BAG_SIZE 100
+#define MAX_HISTORY_LOGS 20
+#define MAX_WORD_LEN 15
 
-void GameUpdate(AppState* state);
-void GameDraw(void);
+typedef struct AppState AppState;
 
-#if defined(__cplusplus)
-}
-#endif
+typedef enum
+{
+    GAME_MODE_LOCAL_1V1 = 0,
+    GAME_MODE_AI_VS_PLAYER,
+    GAME_MODE_ONLINE_MATCH
+} GameMode;
+
+typedef struct
+{
+    GameMode mode;
+    char dictionaryPath[256];
+    bool specialTilesEnabled;
+    GameBoard board;
+    Player players[2];
+    int activePlayerIdx;
+    unsigned int currentTurnNumber;
+    TileBag tileBag;
+    int tileBagCount;
+    bool isMatchOver;
+    int winningPlayerIdx;
+} GameState;
+
+void GameInit(GameState *state);
+void GameUpdate(AppState *state);
+void GameDraw(AppState *state);
+
+#endif // GAME_H
