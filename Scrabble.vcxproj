@@ -343,6 +343,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\board_layout.txt" />
+    <None Include="resources\letters.txt" />
     <None Include="src\icon.ico" />
   </ItemGroup>
   <ItemGroup>
