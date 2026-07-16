@@ -1,0 +1,42 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # 1. Install raylib's required Ubuntu dependencies
+    - name: Install Raylib Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libasound2-dev libx11-dev libxrandr-dev libxi-dev libxinerama-dev libxcursor-dev libxkbcommon-dev libgl1-mesa-dev libglu1-mesa-dev
+
+    # 2. Make sure the premake binary inside ./build can execute
+    - name: Make Premake Executable
+      run: chmod +x ./build/premake5
+
+    # 3. Run premake from the root, pointing to your script inside ./build
+    # (Assuming your script is named premake5.lua)
+    - name: Configure with Premake
+      run: ./build/premake5 gmake
+
+    # 4. Build the project at the project root
+    - name: Make
+      run: |
+        make clean
+        make
+
+    # 5. Test steps (running at the project root)
+    - name: Make check
+      run: make check
+
+    - name: Make distcheck
+      run: make distcheck
