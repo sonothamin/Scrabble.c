@@ -2,8 +2,6 @@
 #ifndef BOARD_H
 #define BOARD_H
 
-#include "tile.h"
-
 #define BOARD_SIDE 15
 
 typedef enum
@@ -14,6 +12,12 @@ typedef enum
     LUXURY_DOUBLE_WORD,
     LUXURY_TRIPLE_WORD
 } LuxuryType;
+
+typedef struct Tile
+{
+    char letter;
+    int value;
+} Tile;
 
 typedef struct GameBoard
 {

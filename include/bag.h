@@ -3,7 +3,7 @@
 #define BAG_H
 
 #include <stdbool.h>
-#include "tile.h"
+#include "board.h"
 
 #define MAX_BAG_TILES 100
 
