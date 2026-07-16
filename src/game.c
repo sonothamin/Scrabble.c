@@ -7,6 +7,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include "bag.h"
 
 void GameInit(GameState *match)
 {
@@ -180,7 +181,7 @@ void GameDraw(AppState *state)
             int rackTileFontSize = (int)(tileSize * 0.55f);
             DrawText(letterStr, tileBounds.x + (tileSize * 0.15f), tileBounds.y + (tileSize - rackTileFontSize) / 2.0f, rackTileFontSize, (Color){38, 28, 16, 255});
 
-            int scoreValue = GetTileScore(tile.letter);
+            int scoreValue = tile.value;
             const char *scoreStr = TextFormat("%d", scoreValue);
             int scoreFontSize = (int)(tileSize * 0.22f);
             DrawText(scoreStr, tileBounds.x + tileSize - MeasureText(scoreStr, scoreFontSize) - (tileSize * 0.12f), tileBounds.y + tileSize - scoreFontSize - (tileSize * 0.10f), scoreFontSize, (Color){80, 65, 50, 255});

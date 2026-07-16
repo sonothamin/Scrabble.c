@@ -5,7 +5,6 @@
 #include "board.h"
 #include "bag.h"
 #include "player.h"
-#include "tile.h"
 
 #define MAX_PLAYER_TILES 7
 #define MAX_TILE_BAG_SIZE 100
