@@ -1,13 +1,15 @@
 #include <stddef.h>
-#include <stdlib.h> 
+#include <stdlib.h>
 #include "app_state.h"
 #include "ui.h"
 #include "menu.h"
 #include "settings.h"
 #include "game.h"
-#include "loading.h" 
-#include "about.h"    
-#include "raylib.h"  
+#include "loading.h"
+#include "about.h"
+#include "raylib.h"
+#include "raygui.h"
+#include "error_service.h"
 
 void InitAppState(AppState *state)
 {
@@ -16,18 +18,18 @@ void InitAppState(AppState *state)
 
     state->currentScreen = APP_SCREEN_LOADING;
     state->gamestate = NULL;
-    
-    state->loadingState = (LoadingState*)malloc(sizeof(LoadingState));
+
+    state->loadingState = (LoadingState *)malloc(sizeof(LoadingState));
     if (state->loadingState != NULL)
         LoadingInit(state->loadingState);
 
-    state->aboutState = (AboutState*)malloc(sizeof(AboutState));
+    state->aboutState = (AboutState *)malloc(sizeof(AboutState));
 
     if (state->aboutState != NULL)
         AboutInit(state->aboutState);
 }
 
-void StartNewGame(AppState* state)
+void StartNewGame(AppState *state)
 {
     if (state == NULL)
         return;
@@ -38,7 +40,7 @@ void StartNewGame(AppState* state)
         state->gamestate = NULL;
     }
 
-    state->gamestate = (GameState*)malloc(sizeof(GameState));
+    state->gamestate = (GameState *)malloc(sizeof(GameState));
     if (state->gamestate != NULL)
         GameInit(state->gamestate);
 
@@ -48,7 +50,10 @@ void StartNewGame(AppState* state)
 void UpdateAppState(AppState *state)
 {
     if (state == NULL)
+    {
+        ReportCriticalError("Invalid App State", "NULL AppState pointer encountered while updating app state.");
         return;
+    }
 
     switch (state->currentScreen)
     {
@@ -69,7 +74,7 @@ void UpdateAppState(AppState *state)
     case APP_SCREEN_GAME:
         if (state->gamestate == NULL)
         {
-            state->gamestate = (GameState*)malloc(sizeof(GameState));
+            state->gamestate = (GameState *)malloc(sizeof(GameState));
             if (state->gamestate != NULL)
                 GameInit(state->gamestate);
         }
@@ -88,11 +93,14 @@ void UpdateAppState(AppState *state)
     }
 }
 
-void DrawAppState(AppState* state)
+void DrawAppState(AppState *state)
 {
     if (state == NULL)
+    {
+        ReportCriticalError("Invalid App State", "NULL AppState pointer encountered while drawing app state.");
         return;
-    
+    }
+
     ClearBackground(RAYWHITE);
 
     switch (state->currentScreen)
@@ -125,10 +133,17 @@ void DrawAppState(AppState* state)
     }
 }
 
-void CloseAppState(AppState* state)
+void CloseAppState(AppState *state)
 {
-    if (state == NULL) return;
-    if (state->loadingState) free(state->loadingState);
-    if (state->aboutState) free(state->aboutState);
-    if (state->gamestate) free(state->gamestate);
+    if (state == NULL)
+    {
+        ReportCriticalError("Invalid App State", "NULL AppState pointer encountered when closing app state.");
+        return;
+    }
+    if (state->loadingState)
+        free(state->loadingState);
+    if (state->aboutState)
+        free(state->aboutState);
+    if (state->gamestate)
+        free(state->gamestate);
 }

@@ -25,7 +25,6 @@ typedef struct AppState
     LoadingState* loadingState;
     AboutState* aboutState;
     GameState* gamestate;
-    
     bool shouldClose;
 } AppState;
 

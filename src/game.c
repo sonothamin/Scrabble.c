@@ -3,6 +3,7 @@
 #include "app_state.h"
 #include "raylib.h"
 #include "raygui.h"
+#include "error_service.h"
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,7 +30,10 @@ void GameInit(GameState *match)
 void GameUpdate(AppState *state)
 {
     if (!state)
+    {
+        ReportCriticalError("Invalid App State", "NULL AppState pointer encountered while updating Game.");
         return;
+    }
 
     if (IsKeyPressed(KEY_ESCAPE))
     {
@@ -40,7 +44,10 @@ void GameUpdate(AppState *state)
 void GameDraw(AppState *state)
 {
     if (!state)
+    {
+        ReportCriticalError("Invalid App State", "NULL AppState pointer encountered while drawing Game.");
         return;
+    }
 
     if (state->gamestate == NULL)
     {
