@@ -1,8 +1,11 @@
-#include "menu.h"
-#include "ui.h"
 #include "raylib.h"
 #include "raygui.h"
 #include "error_service.h"
+
+#include "menu.h"
+#include "ui.h"
+#include "sound.h"
+
 
 static bool sfxCheckboxChecked = true;  
 static bool bgmCheckboxChecked = true;  
@@ -38,7 +41,7 @@ void MenuUpdate(AppState* state)
     }
     else if (IsKeyPressed(KEY_Q) || IsKeyPressed(KEY_ESCAPE))
     {
-        state->shouldClose = true; // Safe main loop exit trigger
+        state->shouldClose = true;
     }
     else if (IsKeyPressed(KEY_F11))
     {
