@@ -48,8 +48,3 @@ jobs:
         make clean
         make
 
-    # 5. Run test targets (Ensure these exist in your premake script, otherwise remove them)
-    - name: Run Checks
-      run: |
-        make check
-        make distcheck
