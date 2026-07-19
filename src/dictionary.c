@@ -5,19 +5,41 @@
 #include <string.h>
 #include <ctype.h>
 
+void Free_Dictionary(Dictionary *dictionary)
+{
+    if (!dictionary || !dictionary->words)
+        return;
+
+    for (int i = 0; i < dictionary->size; i++)
+    {
+        free(dictionary->words[i]);
+    }
+
+    free(dictionary->words);
+    dictionary->words = NULL;
+    dictionary->size = 0;
+    dictionary->capacity = 0;
+}
+
 bool Load_Dictionary(Dictionary *dictionary, const char *dictionary_file)
 {
+    if (!dictionary || !dictionary_file)
+        ReportCriticalError("Dictionary struct or file is not received", "Failed to receive struct or the dictionary file");
+    return false;
+
     FILE *file = fopen(dictionary_file, "r");
 
     if (!file)
     {
-        ReportCriticalError("Dictionary Load Failure", TextFormat("Could not Locate dictionary file at: %s", dictionary_file));
+        char errorMessage[512];
+        snprintf(errorMessage, sizeof(errorMessage), "Could not open dictionary file from: %s", dictionary_file);
+        ReportCriticalError("Dictionary Load Failure", errorMessage);
         return false;
     }
 
     dictionary->size = 0;
-    dictionary->capacity = 1000;                                       // initial capacity, it can be expanded using realloc
-    dictionary->words = malloc(dictionary->capacity * sizeof(char *)); // typically 1000*8 = 8000 bytes
+    dictionary->capacity = 1000;
+    dictionary->words = malloc(dictionary->capacity * sizeof(char *));
 
     if (!dictionary->words)
     {
@@ -26,10 +48,10 @@ bool Load_Dictionary(Dictionary *dictionary, const char *dictionary_file)
         return false;
     }
 
-    char line[64]; // array for each line
+    char line[64];
     while (fgets(line, sizeof(line), file))
     {
-        strtok(line, "\r\n"); // removes the hidden newline
+        strtok(line, "\r\n");
 
         if (strlen(line) == 0)
             continue;
@@ -47,5 +69,22 @@ bool Load_Dictionary(Dictionary *dictionary, const char *dictionary_file)
             }
             dictionary->words = temp;
         }
+
+        int wordLength = strlen(line) + 1;
+        dictionary->words[dictionary->size] = malloc((wordLength) * sizeof(char));
+        if (!dictionary->words[dictionary->size])
+        {
+            ReportCriticalError("System Memory Exhausted", "Failed to allocate memory for a dictionary word");
+            Free_Dictionary(dictionary);
+            fclose(file);
+            return false;
+        }
+
+        memcpy(dictionary->words[dictionary->size], line, wordLength); // aggressivrly copies all the things upto wordLength
+        // don't need to check null character, saves time
+        dictionary->size++;
     }
+
+    fclose(file);
+    return true;
 }
