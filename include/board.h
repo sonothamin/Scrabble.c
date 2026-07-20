@@ -17,6 +17,7 @@ typedef struct Tile
 {
     char letter;
     int value;
+    bool isWildCard;
 } Tile;
 
 typedef struct GameBoard
