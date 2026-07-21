@@ -3,25 +3,31 @@
 #include <stdio.h>
 #include "game.h"
 #include "raylib.h"
+#include "error_service.h"
 
 void BoardInit(GameBoard *board, const char *filename)
 {
     if (board == NULL)
+    {
+        ReportCriticalError("Board Inialization Failed", "A NULL board address has been passed.");
         return;
+    }
 
     BoardReset(board);
     board->sideSize = BOARD_SIDE;
     FILE *file = fopen(filename, "r");
     if (file == NULL)
     {
-        file = fopen("resources/board->cells.txt", "r");
+        ReportCriticalError("Board Inialization Failed", "Failed to open board layout file. Falling back to default board file.");
+        file = fopen("resources/board_layout.txt", "r");
     }
     if (file == NULL)
     {
+        ReportCriticalError("Board Inialization Failed", "Failed to open board layout file. Default board file not found");
         return;
     }
 
-    char token[4]; // 3 for the type and one is the null character
+    char token[4];
     int row = 0, col = 0;
     while ((fscanf(file, "%3s", token)) != EOF && (row < BOARD_SIDE))
     {
@@ -36,7 +42,7 @@ void BoardInit(GameBoard *board, const char *filename)
         else if (strcmp(token, "3W") == 0)
             board->cells[row][col] = LUXURY_TRIPLE_WORD;
         else if (strcmp(token, "ST") == 0)
-            board->cells[row][col] = LUXURY_DOUBLE_WORD; // when the 1st word is formed it is automatically double word
+            board->cells[row][col] = LUXURY_DOUBLE_WORD;
         else
             board->cells[row][col] = LUXURY_NONE;
         col++;
@@ -47,6 +53,7 @@ void BoardInit(GameBoard *board, const char *filename)
         }
     }
     fclose(file);
+    return;
 }
 
 void BoardReset(GameBoard *board)
