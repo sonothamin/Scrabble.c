@@ -5,12 +5,10 @@
 #include "raylib.h"
 #include "raygui.h"
 
-// Define statusbar height fallback required by gui_window_file_dialog.h
 #ifndef RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT
-#define RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT 24
+#define RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT 30
 #endif
 
-// Compile file dialog implementation
 #define GUI_WINDOW_FILE_DIALOG_IMPLEMENTATION
 #include "gui_window_file_dialog.h"
 
@@ -30,13 +28,13 @@ typedef enum
     FILE_PICKER_TILE_MAP
 } FilePickerTarget;
 
-// Extended runtime state holding file dialog instance data
 typedef struct
 {
     SettingsState base;
     GuiWindowFileDialogState fileDialogState;
     FilePickerTarget activeTarget;
 } ExtendedSettingsState;
+
 
 // =============================================================================
 // PERSISTENCE (FILE I/O)
@@ -87,7 +85,6 @@ bool LoadSettingsFromFile(SettingsState *settings, const char *filePath)
 
     if (readCount == 1)
     {
-        // Reset transient editing states after loading binary dump
         settings->dictionaryEditMode = false;
         settings->boardLayoutEditMode = false;
         settings->tileMapEditMode = false;
@@ -109,9 +106,7 @@ SettingsState *InitSettingsState(void)
     ExtendedSettingsState *extSettings = (ExtendedSettingsState *)calloc(1, sizeof(ExtendedSettingsState));
     if (extSettings == NULL)
     {
-        ReportCriticalError(
-            "Memory Allocation Failed",
-            "Failed to allocate memory for SettingsState during initialization.");
+        ReportCriticalError("Memory Allocation Failed","Failed to allocate memory for SettingsState during initialization.");
         return NULL;
     }
 
@@ -124,9 +119,9 @@ SettingsState *InitSettingsState(void)
     settings->bgmEnable = true;
     settings->sfxEnable = true;
 
-    snprintf(settings->dictionaryPath, sizeof(settings->dictionaryPath), "resources/dictionaries/CSW19.txt");
-    snprintf(settings->boardLayoutPath, sizeof(settings->boardLayoutPath), "resources/layouts/standard_15x15.json");
-    snprintf(settings->tileMapPath, sizeof(settings->tileMapPath), "resources/scores/english_classic.csv");
+    snprintf(settings->dictionaryPath, sizeof(settings->dictionaryPath), "resources/dictionary.txt");
+    snprintf(settings->boardLayoutPath, sizeof(settings->boardLayoutPath), "resources/board_layout.txt");
+    snprintf(settings->tileMapPath, sizeof(settings->tileMapPath), "resources/scores/letters.txt");
 
     settings->dictionaryEditMode = false;
     settings->boardLayoutEditMode = false;
@@ -134,21 +129,17 @@ SettingsState *InitSettingsState(void)
     settings->luxuryTilesEnabled = true;
     settings->showLoadingScreen = true;
 
-    // Load from binary disk config if present
     LoadSettingsFromFile(settings, CONFIG_FILE_PATH);
 
-    // Initialize custom modal dialog state
     extSettings->fileDialogState = InitGuiWindowFileDialog(GetWorkingDirectory());
     extSettings->activeTarget = FILE_PICKER_NONE;
 
-    // Expand dialog boundaries for breathing room (default raygui box is too small)
     extSettings->fileDialogState.windowBounds = (Rectangle){
         (GetScreenWidth() - 640.0f) / 2.0f,
         (GetScreenHeight() - 460.0f) / 2.0f,
         640.0f,
         460.0f};
 
-    // Synchronize Sound Mixer
     SetMusicVolumeLevel(settings->bgmEnable ? settings->bgmVolume : 0.0f);
     SetSfxVolumeLevel(settings->sfxEnable ? settings->sfxVolume : 0.0f);
 
@@ -170,11 +161,9 @@ void FreeSettingsState(SettingsState *settings)
 static void HandleFileSelection(ExtendedSettingsState *extSettings)
 {
     if (!extSettings->fileDialogState.SelectFilePressed)
-    {
         return;
-    }
 
-    // Allocate buffer size sufficient for dirPathText (1024) + fileNameText (1024)
+    // Allocate buffer for path string
     char selectedPath[2048] = {0};
     snprintf(selectedPath, sizeof(selectedPath), "%s" PATH_SEPERATOR "%s",
              extSettings->fileDialogState.dirPathText,
@@ -182,7 +171,6 @@ static void HandleFileSelection(ExtendedSettingsState *extSettings)
 
     SettingsState *settings = &extSettings->base;
 
-    // Safely copy string and guarantee null-termination
     switch (extSettings->activeTarget)
     {
     case FILE_PICKER_DICTIONARY:
@@ -325,7 +313,6 @@ void SettingsDraw(const AppState *state)
     const float headerLineY = padding + (baseFontSize * 1.5f) + 15.0f;
     const bool isDialogOpen = extSettings->fileDialogState.windowActive;
 
-    // --- Modal Lock Guard ---
     if (isDialogOpen)
     {
         GuiLock();
