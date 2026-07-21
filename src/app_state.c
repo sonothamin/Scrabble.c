@@ -11,6 +11,8 @@
 #include "raygui.h"
 #include "error_service.h"
 
+#define CONFIG_FILE_PATH "config.dat"
+
 void InitAppState(AppState *state)
 {
     if (state == NULL)
@@ -27,8 +29,21 @@ void InitAppState(AppState *state)
     if (state->aboutState != NULL)
         AboutInit(state->aboutState);
 
-    // Initialize Settings State
     state->settingsState = InitSettingsState();
+
+    if (state->settingsState != NULL && FileExists(CONFIG_FILE_PATH))
+    {
+        if (!LoadSettingsFromFile(state->settingsState, CONFIG_FILE_PATH))
+        {
+            TraceLog(LOG_WARNING, "APP_STATE: Failed to read %s despite file existing. Using defaults.", CONFIG_FILE_PATH);
+            ReportCriticalError("Settings State Error", "Failed to read file despite file existing. Using defaults. See log for path.");
+        }
+    }
+
+    if (state->settingsState != NULL && !state->settingsState->showLoadingScreen)
+    {
+        state->currentScreen = APP_SCREEN_MAIN_MENU;
+    }
 }
 
 void StartNewGame(AppState *state)
