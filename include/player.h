@@ -10,7 +10,7 @@ typedef struct Player
     int score;
 } Player;
 
-void init_player(Player *player);               // initialize player at the starting of the game
+void init_player(Player *player); // initialize player at the starting of the game
 void refill_rack(Player *player, TileBag *bag); // check the bag and refill the rack after each turn
 
 #endif
