@@ -20,7 +20,6 @@ int main(void)
 
     appState.shouldClose = false;
 
-    // Fixed: Accessed pointer member via '->' with NULL check
     if (appState.settingsState != NULL && appState.settingsState->showLoadingScreen)
     {
         appState.currentScreen = APP_SCREEN_LOADING;

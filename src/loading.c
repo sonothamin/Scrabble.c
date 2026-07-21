@@ -20,11 +20,10 @@ void LoadingInit(LoadingState *lState)
     lState->vfxRotation = 0.0f;
     lState->particlePulse = 0.0f;
 
-    // Stagger the drop timing of the Scrabble tiles
     for (int i = 0; i < TILE_COUNT; i++)
     {
-        lState->tileTimers[i] = -0.15f * i; // Negative value sets a staggered delay
-        lState->tileYOffsets[i] = -200.0f;  // Start high above their target positions
+        lState->tileTimers[i] = -0.15f * i;
+        lState->tileYOffsets[i] = -200.0f;
     }
 }
 
