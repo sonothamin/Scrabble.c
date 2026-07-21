@@ -21,7 +21,7 @@ typedef enum
     GAME_MODE_ONLINE_MATCH
 } GameMode;
 
-typedef struct
+typedef struct GameState
 {
     GameMode mode;
     char dictionaryPath[256];
@@ -35,7 +35,7 @@ typedef struct
     bool isMatchOver;
     int winningPlayerIdx;
     DragNDropState dragState;
-} GameState;
+}GameState;
 
 void GameInit(GameState *state);
 void GameUpdate(AppState *state);
