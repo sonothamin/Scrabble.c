@@ -103,4 +103,15 @@ void DrawDragNDropOverlay(const GameState *match, Rectangle rackRect, float tile
         dragBounds.y + (dragBounds.height - fontSize) / 2.0f,
         fontSize,
         (Color){38, 28, 16, 255});
+
+    const char *scoreStr = TextFormat("%d", activeTile.value);
+    int scoreFontSize = (int)(tileSize * 0.22f);
+    int scoreWidth = MeasureText(scoreStr, scoreFontSize);
+
+    DrawText(
+        scoreStr,
+        dragBounds.x + tileSize - scoreWidth - (tileSize * 0.10f),
+        dragBounds.y + tileSize - scoreFontSize - (tileSize * 0.08f),
+        scoreFontSize,
+        (Color){80, 65, 50, 255});
 }
