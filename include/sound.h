@@ -5,6 +5,8 @@
 
 typedef enum
 {
+    SFX_APP_LAUNCH,
+    SFX_ABOUT,
     SFX_BUTTON,
     SFX_TILE_PLACE,
     SFX_SCORE,

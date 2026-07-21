@@ -3,6 +3,7 @@
 #include "raylib.h"
 #include "raygui.h"
 #include "error_service.h"
+#include "sound.h"
 #include <math.h>
 
 #define TILE_COUNT 10
@@ -42,6 +43,7 @@ void LoadingUpdate(AppState *state, LoadingState *lState, float deltaTime)
     {
         lState->progress = 1.0f;
         state->currentScreen = APP_SCREEN_MAIN_MENU;
+        PlaySoundEffect(SFX_APP_LAUNCH);
     }
 
     // 2. Continuous Ambient VFX Animation

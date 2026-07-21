@@ -22,10 +22,12 @@ void SoundSysInit(void)
 
     gSound.music = LoadMusicStream("resources/audio/music/background.ogg");
 
+    gSound.sfx[SFX_APP_LAUNCH]        = LoadSound("resources/audio/sfx/app_started.wav");
+    gSound.sfx[SFX_ABOUT]        = LoadSound("resources/audio/sfx/about.wav");
     //gSound.sfx[SFX_BUTTON]       = LoadSound("resources/audio/sfx/button.wav");
     //gSound.sfx[SFX_TILE_PLACE]   = LoadSound("resources/audio/sfx/place.wav");
     gSound.sfx[SFX_SCORE]        = LoadSound("resources/audio/sfx/score.wav");
-    //gSound.sfx[SFX_INVALID_MOVE] = LoadSound("resources/audio/sfx/invalid_move.wav");
+    gSound.sfx[SFX_INVALID_MOVE] = LoadSound("resources/audio/sfx/invalid_move.wav");
     gSound.sfx[SFX_GAME_START]   = LoadSound("resources/audio/sfx/game_start.wav");
     gSound.sfx[SFX_GAME_OVER]    = LoadSound("resources/audio/sfx/game_over.wav");
     gSound.sfx[SFX_ERROR]    = LoadSound("resources/audio/sfx/err.wav");
