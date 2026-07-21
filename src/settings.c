@@ -2,29 +2,35 @@
 #include "sound.h"
 #include "ui.h"
 #include "raygui.h"
+#include "error_service.h"
 #include <stdlib.h>
 #include <stdio.h>
 
-SettingsState* SettingsInit(void)
+SettingsState *InitSettingsState(void)
 {
-    SettingsState* settings = (SettingsState*)malloc(sizeof(SettingsState));
+    SettingsState *settings = (SettingsState *)malloc(sizeof(SettingsState));
     if (settings == NULL)
     {
+        ReportCriticalError(
+            "Memory Allocation Failed",
+            "Failed to allocate memory for SettingsState during initialization."
+        );
         return NULL;
     }
 
-    settings->musicVolume = 0.8f;
+    settings->bgmVolume = 0.8f;
     settings->sfxVolume = 1.0f;
-    settings->muteAll = false;
+    settings->sfxEnable = true;
+    settings->bgmEnable = true;
     settings->selectedOption = 0;
 
-    SetMusicVolumeLevel(settings->musicVolume);
-    SetSfxVolumeLevel(settings->sfxVolume);
+    SetMusicVolumeLevel(settings->bgmEnable ? settings->bgmVolume : 0.0f);
+    SetSfxVolumeLevel(settings->sfxEnable ? settings->sfxVolume : 0.0f);
 
     return settings;
 }
 
-void SettingsFree(SettingsState* settings)
+void FreeSettingsState(SettingsState *settings)
 {
     if (settings != NULL)
     {
@@ -32,10 +38,23 @@ void SettingsFree(SettingsState* settings)
     }
 }
 
-void SettingsUpdate(AppState* state)
+void SettingsUpdate(AppState *state)
 {
-    if (state == NULL || state->settingsState == NULL)
+    if (state == NULL)
     {
+        ReportCriticalError(
+            "Invalid App State",
+            "NULL AppState pointer encountered during SettingsUpdate."
+        );
+        return;
+    }
+
+    if (state->settingsState == NULL)
+    {
+        ReportCriticalError(
+            "Invalid Settings State",
+            "NULL SettingsState pointer encountered during SettingsUpdate."
+        );
         return;
     }
 
@@ -46,14 +65,27 @@ void SettingsUpdate(AppState* state)
     }
 }
 
-void SettingsDraw(const AppState* state)
+void SettingsDraw(const AppState *state)
 {
-    if (state == NULL || state->settingsState == NULL)
+    if (state == NULL)
     {
+        ReportCriticalError(
+            "Invalid App State",
+            "NULL AppState pointer encountered during SettingsDraw."
+        );
         return;
     }
 
-    SettingsState* settings = state->settingsState;
+    if (state->settingsState == NULL)
+    {
+        ReportCriticalError(
+            "Invalid Settings State",
+            "NULL SettingsState pointer encountered during SettingsDraw."
+        );
+        return;
+    }
+
+    SettingsState *settings = state->settingsState;
 
     const int boxX = 100;
     const int boxY = 80;
@@ -63,30 +95,47 @@ void SettingsDraw(const AppState* state)
     DrawRectangle(boxX, boxY, boxWidth, boxHeight, Fade(LIGHTGRAY, 0.15f));
     DrawRectangleLines(boxX, boxY, boxWidth, boxHeight, GRAY);
 
-    const char* title = "SETTINGS";
+    const char *title = "SETTINGS";
     const int titleWidth = MeasureText(title, 32);
     DrawText(title, boxX + (boxWidth - titleWidth) / 2, boxY + 30, 32, DARKGRAY);
 
     const int startX = boxX + 180;
-    int currentY = boxY + 110;
+    int currentY = boxY + 100;
     const int controlWidth = 240;
     const int controlHeight = 30;
     const int spacing = 50;
 
+    // --- Music Volume Slider ---
     DrawText("Music Volume", boxX + 40, currentY + 5, 20, DARKGRAY);
-    
-    char musicText[16];
-    snprintf(musicText, sizeof(musicText), "%d%%", (int)(settings->musicVolume * 100.0f));
-    
-    float oldMusicVol = settings->musicVolume;
-    GuiSliderBar((Rectangle){ (float)startX, (float)currentY, (float)controlWidth, (float)controlHeight }, 
-                 NULL, musicText, &settings->musicVolume, 0.0f, 1.0f);
 
-    if (oldMusicVol != settings->musicVolume)
+    char musicText[16];
+    snprintf(musicText, sizeof(musicText), "%d%%", (int)(settings->bgmVolume * 100.0f));
+
+    float oldMusicVol = settings->bgmVolume;
+    GuiSliderBar((Rectangle){(float)startX, (float)currentY, (float)controlWidth, (float)controlHeight},
+                 NULL, musicText, &settings->bgmVolume, 0.0f, 1.0f);
+
+    if (oldMusicVol != settings->bgmVolume)
     {
-        SetMusicVolumeLevel(settings->musicVolume);
+        if (settings->bgmEnable)
+        {
+            SetMusicVolumeLevel(settings->bgmVolume);
+        }
     }
 
+    // --- Music Toggle Button ---
+    currentY += spacing;
+    DrawText("Music Audio", boxX + 40, currentY + 5, 20, DARKGRAY);
+
+    const char *bgmBtnText = settings->bgmEnable ? "Music Enabled" : "Music Muted";
+    if (GuiButton((Rectangle){(float)startX, (float)currentY, (float)controlWidth, (float)controlHeight}, bgmBtnText))
+    {
+        settings->bgmEnable = !settings->bgmEnable;
+        PlaySoundEffect(SFX_BUTTON);
+        SetMusicVolumeLevel(settings->bgmEnable ? settings->bgmVolume : 0.0f);
+    }
+
+    // --- SFX Volume Slider ---
     currentY += spacing;
     DrawText("SFX Volume", boxX + 40, currentY + 5, 20, DARKGRAY);
 
@@ -94,42 +143,37 @@ void SettingsDraw(const AppState* state)
     snprintf(sfxText, sizeof(sfxText), "%d%%", (int)(settings->sfxVolume * 100.0f));
 
     float oldSfxVol = settings->sfxVolume;
-    GuiSliderBar((Rectangle){ (float)startX, (float)currentY, (float)controlWidth, (float)controlHeight }, 
+    GuiSliderBar((Rectangle){(float)startX, (float)currentY, (float)controlWidth, (float)controlHeight},
                  NULL, sfxText, &settings->sfxVolume, 0.0f, 1.0f);
 
     if (oldSfxVol != settings->sfxVolume)
     {
-        SetSfxVolumeLevel(settings->sfxVolume);
-    }
-
-    currentY += spacing;
-    DrawText("Audio Output", boxX + 40, currentY + 5, 20, DARKGRAY);
-
-    const char* muteBtnText = settings->muteAll ? "Muted (Click to Unmute)" : "Audio Active (Click to Mute)";
-    if (GuiButton((Rectangle){ (float)startX, (float)currentY, (float)controlWidth, (float)controlHeight }, muteBtnText))
-    {
-        settings->muteAll = !settings->muteAll;
-        PlaySoundEffect(SFX_BUTTON);
-
-        if (settings->muteAll)
+        if (settings->sfxEnable)
         {
-            SetMusicVolumeLevel(0.0f);
-            SetSfxVolumeLevel(0.0f);
-        }
-        else
-        {
-            SetMusicVolumeLevel(settings->musicVolume);
             SetSfxVolumeLevel(settings->sfxVolume);
         }
     }
 
-    currentY += spacing + 20;
+    // --- SFX Toggle Button ---
+    currentY += spacing;
+    DrawText("SFX Audio", boxX + 40, currentY + 5, 20, DARKGRAY);
+
+    const char *sfxBtnText = settings->sfxEnable ? "SFX Enabled" : "SFX Muted";
+    if (GuiButton((Rectangle){(float)startX, (float)currentY, (float)controlWidth, (float)controlHeight}, sfxBtnText))
+    {
+        settings->sfxEnable = !settings->sfxEnable;
+        PlaySoundEffect(SFX_BUTTON);
+        SetSfxVolumeLevel(settings->sfxEnable ? settings->sfxVolume : 0.0f);
+    }
+
+    // --- Back Button ---
+    currentY += spacing + 15;
     const int backWidth = 160;
     const int backX = boxX + (boxWidth - backWidth) / 2;
 
-    if (GuiButton((Rectangle){ (float)backX, (float)currentY, (float)backWidth, (float)controlHeight }, "Back to Menu (B)"))
+    if (GuiButton((Rectangle){(float)backX, (float)currentY, (float)backWidth, (float)controlHeight}, "Back to Menu (B)"))
     {
         PlaySoundEffect(SFX_BACK_NAV);
-        ((AppState*)state)->currentScreen = APP_SCREEN_MAIN_MENU;
+        ((AppState *)state)->currentScreen = APP_SCREEN_MAIN_MENU;
     }
 }

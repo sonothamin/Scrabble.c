@@ -5,10 +5,7 @@
 #include "menu.h"
 #include "ui.h"
 #include "sound.h"
-
-
-static bool sfxCheckboxChecked = true;  
-static bool bgmCheckboxChecked = true;  
+#include "settings.h"
 
 static const char* GetMenuScrabbleScore(char c) 
 {
@@ -27,16 +24,18 @@ void MenuUpdate(AppState* state)
 {
     if (!state)
     {
-            ReportCriticalError("Invalid App State", "NULL AppState pointer encountered while updating Menu.");
-            return;
+        ReportCriticalError("Invalid App State", "NULL AppState pointer encountered while updating Menu.");
+        return;
     }
 
     if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_N) || IsKeyPressed(KEY_L))
     {
+        PlaySoundEffect(SFX_GAME_START);
         StartNewGame(state);
     }
     else if (IsKeyPressed(KEY_S))
     {
+        PlaySoundEffect(SFX_BUTTON);
         state->currentScreen = APP_SCREEN_SETTINGS;
     }
     else if (IsKeyPressed(KEY_Q) || IsKeyPressed(KEY_ESCAPE))
@@ -49,9 +48,19 @@ void MenuUpdate(AppState* state)
     }
     else if (IsKeyPressed(KEY_M))
     {
-        bool toggled = !(sfxCheckboxChecked || bgmCheckboxChecked);
-        sfxCheckboxChecked = toggled;
-        bgmCheckboxChecked = toggled;
+        if (state->settingsState)
+        {
+            SettingsState* settings = state->settingsState;
+            bool toggled = !(settings->sfxEnable || settings->bgmEnable);
+            
+            settings->sfxEnable = toggled;
+            settings->bgmEnable = toggled;
+
+            SetMusicVolumeLevel(settings->bgmEnable ? settings->bgmVolume : 0.0f);
+            SetSfxVolumeLevel(settings->sfxEnable ? settings->sfxVolume : 0.0f);
+
+            PlaySoundEffect(SFX_BUTTON);
+        }
     }
 }
 
@@ -59,8 +68,8 @@ void MenuDraw(AppState* state)
 {
     if (!state)
     {
-            ReportCriticalError("Invalid App State", "NULL AppState pointer encountered while drawing Menu.");
-            return;
+        ReportCriticalError("Invalid App State", "NULL AppState pointer encountered while drawing Menu.");
+        return;
     }
 
     const int screenWidth = GetScreenWidth();
@@ -125,7 +134,6 @@ void MenuDraw(AppState* state)
     float subtitleHeight = baseFontSize * 1.2f;
     GuiLabel((Rectangle){ padding, subtitleY, screenWidth - (2.0f * padding), subtitleHeight }, "Be aware adventurer! Here every letter counts!");
 
-
     const float contentTop = subtitleY + subtitleHeight + 45.0f;
     const float optionPanelWidth = (screenWidth / 4 < 260) ? 260.0f : (float)(screenWidth / 4);
     const float mainPanelWidth = screenWidth - (2.0f * padding) - panelGap - optionPanelWidth;
@@ -142,16 +150,19 @@ void MenuDraw(AppState* state)
     GuiGroupBox((Rectangle){ padding, contentTop, mainPanelWidth, mainPanelHeight }, "START A GAME");
 
     if (GuiButton((Rectangle){ padding + 25.0f, contentTop + rowHeight * 0.8f, btnWidth, targetBtnHeight }, "New Local Game")) {
+        PlaySoundEffect(SFX_GAME_START);
         StartNewGame(state);
     }
     GuiLabel((Rectangle){ labelX, contentTop + rowHeight * 0.8f, labelW, targetBtnHeight }, "Play on this device turn-by-turn");
 
     if (GuiButton((Rectangle){ padding + 25.0f, contentTop + (rowHeight * 1.8f), btnWidth, targetBtnHeight }, "New Network Game")) {
+        PlaySoundEffect(SFX_GAME_START);
         StartNewGame(state);
     }
     GuiLabel((Rectangle){ labelX, contentTop + (rowHeight * 1.8f), labelW, targetBtnHeight }, "Play with friends within the LAN");
 
     if (GuiButton((Rectangle){ padding + 25.0f, contentTop + (rowHeight * 2.8f), btnWidth, targetBtnHeight }, "Load Saved Game")) {
+        PlaySoundEffect(SFX_BUTTON);
         StartNewGame(state);
     }
     GuiLabel((Rectangle){ labelX, contentTop + (rowHeight * 2.8f), labelW, targetBtnHeight }, "Load a previous saved game file");
@@ -163,7 +174,7 @@ void MenuDraw(AppState* state)
     float optionPanelX = screenWidth - padding - optionPanelWidth;
     GuiGroupBox((Rectangle){ optionPanelX, contentTop, optionPanelWidth, mainPanelHeight }, "SETTINGS & OPTIONS");
 
-    float soundGroupMarginX = 30.0f; // Tighter padding for cleaner text formatting
+    float soundGroupMarginX = 30.0f;
     float soundGroupMarginY = 50.0f;
     float soundBoxWidth = optionPanelWidth - (soundGroupMarginX * 2.0f);
     float soundBoxHeight = mainPanelHeight * 0.38f;
@@ -174,16 +185,39 @@ void MenuDraw(AppState* state)
     float sfxCheckboxY = contentTop + soundGroupMarginY + (soundBoxHeight * 0.28f);
     float bgmCheckboxY = contentTop + soundGroupMarginY + (soundBoxHeight * 0.62f);
 
-    GuiCheckBox((Rectangle){ optionPanelX + soundGroupMarginX + 15.0f, sfxCheckboxY, checkboxHeight, checkboxHeight }, "Sound Effects (SFX)", &sfxCheckboxChecked);
-    GuiCheckBox((Rectangle){ optionPanelX + soundGroupMarginX + 15.0f, bgmCheckboxY, checkboxHeight, checkboxHeight }, "Background Music (BGM)", &bgmCheckboxChecked);
+    // Audio Checkbox Controls synced with SettingsState
+    if (state->settingsState)
+    {
+        SettingsState* settings = state->settingsState;
+
+        bool prevSfx = settings->sfxEnable;
+        bool prevBgm = settings->bgmEnable;
+
+        GuiCheckBox((Rectangle){ optionPanelX + soundGroupMarginX + 15.0f, sfxCheckboxY, checkboxHeight, checkboxHeight }, "Sound Effects (SFX)", &settings->sfxEnable);
+        GuiCheckBox((Rectangle){ optionPanelX + soundGroupMarginX + 15.0f, bgmCheckboxY, checkboxHeight, checkboxHeight }, "Background Music (BGM)", &settings->bgmEnable);
+
+        if (prevSfx != settings->sfxEnable)
+        {
+            PlaySoundEffect(SFX_BUTTON);
+            SetSfxVolumeLevel(settings->sfxEnable ? settings->sfxVolume : 0.0f);
+        }
+
+        if (prevBgm != settings->bgmEnable)
+        {
+            PlaySoundEffect(SFX_BUTTON);
+            SetMusicVolumeLevel(settings->bgmEnable ? settings->bgmVolume : 0.0f);
+        }
+    }
 
     float navBtnWidth = (optionPanelWidth - 56.0f) / 2.0f;
     float navBtnY = contentTop + mainPanelHeight - targetBtnHeight - 20.0f;
     
     if (GuiButton((Rectangle){ optionPanelX + 20.0f, navBtnY, navBtnWidth, targetBtnHeight }, "About")) {
+        PlaySoundEffect(SFX_BUTTON);
         state->currentScreen = APP_SCREEN_ABOUT;
     }
     if (GuiButton((Rectangle){ optionPanelX + 36.0f + navBtnWidth, navBtnY, navBtnWidth, targetBtnHeight }, "Settings")) {
+        PlaySoundEffect(SFX_BUTTON);
         state->currentScreen = APP_SCREEN_SETTINGS;
     }
 }
