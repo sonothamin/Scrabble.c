@@ -5,6 +5,7 @@
 #include "board.h"
 #include "bag.h"
 #include "player.h"
+#include "drag_drop.h"
 
 #define MAX_PLAYER_TILES 7
 #define MAX_TILE_BAG_SIZE 100
@@ -35,7 +36,7 @@ typedef struct
     GameBoard board;
     Player players[2];
     int activePlayerIdx;
-
+    DragNDropState dragState;
     unsigned int currentTurnNumber;
     TileBag tileBag;
     int tileBagCount;
@@ -48,4 +49,4 @@ void GameInit(GameState *state);
 void GameUpdate(AppState *state);
 void GameDraw(AppState *state);
 
-#endif // GAME_H
+#endif
