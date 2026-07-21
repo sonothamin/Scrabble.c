@@ -24,9 +24,11 @@ void InitAppState(AppState *state)
         LoadingInit(state->loadingState);
 
     state->aboutState = (AboutState *)malloc(sizeof(AboutState));
-
     if (state->aboutState != NULL)
         AboutInit(state->aboutState);
+
+    // Initialize Settings State
+    state->settingsState = InitSettingsState();
 }
 
 void StartNewGame(AppState *state)
@@ -60,7 +62,6 @@ void UpdateAppState(AppState *state)
     case APP_SCREEN_LOADING:
         if (state->loadingState != NULL)
             LoadingUpdate(state, state->loadingState, GetFrameTime());
-
         break;
 
     case APP_SCREEN_MAIN_MENU:
@@ -115,7 +116,7 @@ void DrawAppState(AppState *state)
         break;
 
     case APP_SCREEN_SETTINGS:
-        SettingsDraw();
+        SettingsDraw(state);
         break;
 
     case APP_SCREEN_GAME:
@@ -140,10 +141,13 @@ void CloseAppState(AppState *state)
         ReportCriticalError("Invalid App State", "NULL AppState pointer encountered when closing app state.");
         return;
     }
+
     if (state->loadingState)
         free(state->loadingState);
     if (state->aboutState)
         free(state->aboutState);
     if (state->gamestate)
         free(state->gamestate);
+    if (state->settingsState)
+        FreeSettingsState(state->settingsState);
 }
