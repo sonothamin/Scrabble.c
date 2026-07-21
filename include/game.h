@@ -20,6 +20,13 @@ typedef enum
     GAME_MODE_ONLINE_MATCH
 } GameMode;
 
+typedef enum
+{
+    GAME_SUB_SCREEN_PLAYING,
+    GAME_SUB_SCREEN_PAUSED,
+    GAME_SUB_SCREEN_MATCH_OVER
+} GameSubScreen;
+
 typedef struct
 {
     GameMode mode;
@@ -28,11 +35,13 @@ typedef struct
     GameBoard board;
     Player players[2];
     int activePlayerIdx;
+
     unsigned int currentTurnNumber;
     TileBag tileBag;
     int tileBagCount;
     bool isMatchOver;
     int winningPlayerIdx;
+    GameSubScreen currentSubScreen;
 } GameState;
 
 void GameInit(GameState *state);
