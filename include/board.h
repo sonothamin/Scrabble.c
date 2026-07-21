@@ -3,6 +3,7 @@
 #define BOARD_H
 
 #define BOARD_SIDE 15
+#include <stdbool.h>
 
 typedef enum
 {

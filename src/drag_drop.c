@@ -35,12 +35,12 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
         // Check if the drop location is within the centered board frame lines
         if (CheckCollisionPointRec(mousePos, boardBounds))
         {
-            float cellSize = boardBounds.width / (float)BOARD_SIZE;
+            float cellSize = boardBounds.width / (float)BOARD_SIDE;
             int gridX = (int)((mousePos.x - boardBounds.x) / cellSize);
             int gridY = (int)((mousePos.y - boardBounds.y) / cellSize);
 
             // Bounds check grid matrix limits
-            if (gridX >= 0 && gridX < BOARD_SIZE && gridY >= 0 && gridY < BOARD_SIZE)
+            if (gridX >= 0 && gridX < BOARD_SIDE && gridY >= 0 && gridY < BOARD_SIDE)
             {
                 // Only commit if target board slot is completely empty
                 if (match->board.grid[gridY][gridX].letter == '\0')

@@ -46,6 +46,23 @@ GameLayout CalculateGameLayout(const GameState *match)
     layout.tileSize = rackPanelHeight * 0.6f;
     layout.tileSpacing = 8.0f;
 
+    float historySectionY = rackSectionY + (rackPanelHeight * 2.0f) + (layout.layoutGap * 1.5f);
+    float bottomRowHeight = screenHeight * 0.07f;
+    float historyPanelHeight = screenHeight - historySectionY - bottomRowHeight - layout.padding - layout.layoutGap;
+
+    layout.historyOuterRect = (Rectangle){layout.rightSideX, historySectionY, layout.rightSideWidth, historyPanelHeight};
+
+    // 5. Bottom Action Bar (Turn Indicator & Save Button)
+    float footerY = screenHeight - bottomRowHeight - layout.padding;
+    float elementH = 45.0f;
+    float elementY = footerY + (bottomRowHeight - elementH) / 2.0f;
+
+    float actionBtnWidth = layout.rightSideWidth * 0.35f;
+    float turnIndicatorWidth = layout.rightSideWidth - actionBtnWidth - layout.layoutGap;
+
+    layout.turnRect = (Rectangle){layout.rightSideX, elementY, turnIndicatorWidth, elementH};
+    layout.actionBtnRect = (Rectangle){layout.rightSideX + layout.rightSideWidth - actionBtnWidth, elementY, actionBtnWidth, elementH};
+
     return layout;
 }
 
@@ -56,55 +73,30 @@ void DrawGamePlayView(AppState *state, GameState *match)
         ReportCriticalError("Invalid Game State", "Null GameState pointer encountered while drawing game view");
         return;
     }
-    const int screenWidth = GetScreenWidth();
-    const int screenHeight = GetScreenHeight();
 
     ClearBackground((Color){24, 32, 38, 255});
-    int baseFontSize = fmaxf(15, screenHeight / 42);
+    int baseFontSize = fmaxf(15, GetScreenHeight() / 42);
     ApplyScrabbleTheme(baseFontSize);
 
     // Obtain layout geometry
     GameLayout layout = CalculateGameLayout(match);
 
-    const float padding = screenWidth * 0.03f;
-    const float layoutGap = screenWidth * 0.02f;
-    const float rightSideX = (screenWidth * 0.45f) + padding + layoutGap;
-    const float rightSideWidth = screenWidth - rightSideX - padding;
+    GuiGroupBox(layout.boardOuterBounds, "Game Board");
+    DrawRectangle(layout.boardBounds.x, layout.boardBounds.y, layout.boardBounds.width, layout.boardBounds.height, (Color){34, 44, 52, 255});
+    float cellSize = layout.boardBounds.width / (float)match->board.sideSize;
 
-    // --- LEFT COLUMN: MAIN BOARD PANEL ---
-    Rectangle boardBoundaries = {padding, padding, screenWidth * 0.45f, screenHeight - (padding * 2.0f)};
-    GuiGroupBox(boardBoundaries, "Game Board");
-
-    float groupBoxHeaderHeight = 25.0f;
-    float gridInnerPad = 15.0f;
-    float usableWidth = boardBoundaries.width - (gridInnerPad * 2.0f);
-    float usableHeight = boardBoundaries.height - groupBoxHeaderHeight - (gridInnerPad * 2.0f);
-    float boardVisualSize = fminf(usableWidth, usableHeight);
-    float boardX = boardBoundaries.x + (boardBoundaries.width - boardVisualSize) / 2.0f;
-    float boardY = boardBoundaries.y + groupBoxHeaderHeight + (usableHeight - boardVisualSize) / 2.0f;
-
-    DrawRectangle(boardX, boardY, boardVisualSize, boardVisualSize, (Color){34, 44, 52, 255});
-    float cellSize = boardVisualSize / (float)match->board.sideSize;
-
-    DrawTheCellTypes(&match->board, boardX, boardY, boardVisualSize, cellSize);
+    DrawTheCellTypes(&match->board, layout.boardBounds.x, layout.boardBounds.y, layout.boardBounds.width, cellSize);
 
     for (int i = 0; i <= match->board.sideSize; i++)
     {
-        DrawLineV((Vector2){boardX + (i * cellSize), boardY}, (Vector2){boardX + (i * cellSize), boardY + boardVisualSize}, (Color){54, 68, 82, 100});
-        DrawLineV((Vector2){boardX, boardY + (i * cellSize)}, (Vector2){boardX + boardVisualSize, boardY + (i * cellSize)}, (Color){54, 68, 82, 100});
+        DrawLineV((Vector2){layout.boardBounds.x + (i * cellSize), layout.boardBounds.y}, (Vector2){layout.boardBounds.x + (i * cellSize), layout.boardBounds.y + layout.boardBounds.height}, (Color){54, 68, 82, 100});
+        DrawLineV((Vector2){layout.boardBounds.x, layout.boardBounds.y + (i * cellSize)}, (Vector2){layout.boardBounds.x + layout.boardBounds.width, layout.boardBounds.y + (i * cellSize)}, (Color){54, 68, 82, 100});
     }
 
-    // --- RIGHT COLUMN: STATISTICS & MANAGEMENT ---
-    float topPanelsY = padding;
-    float topPanelsHeight = screenHeight * 0.18f;
-    float halfRightWidth = (rightSideWidth - layoutGap) / 2.0f;
+    GuiGroupBox(layout.detailsRect, "Match Status");
 
-    // Block A: Game Details
-    Rectangle detailsRect = {rightSideX, topPanelsY, halfRightWidth, topPanelsHeight};
-    GuiGroupBox(detailsRect, "Match Status");
-
-    float tableY = detailsRect.y + 25.0f;
-    float rowHeight = (topPanelsHeight - 35.0f) / 3.0f;
+    float tableY = layout.detailsRect.y + 25.0f;
+    float rowHeight = (layout.detailsRect.height - 35.0f) / 3.0f;
     const char *keys[3] = {"Mode:", "Special Tiles:", "Tiles Left:"};
 
     const char *modeStr = (match->mode == GAME_MODE_LOCAL_1V1) ? "Local 1v1" : "AI vs Player";
@@ -116,58 +108,55 @@ void DrawGamePlayView(AppState *state, GameState *match)
         float currentRowY = tableY + (i * rowHeight);
         if (i % 2 == 0)
         {
-            DrawRectangleRec((Rectangle){detailsRect.x + 6.0f, currentRowY, halfRightWidth - 12.0f, rowHeight}, (Color){30, 38, 46, 180});
+            DrawRectangleRec((Rectangle){layout.detailsRect.x + 6.0f, currentRowY, layout.detailsRect.width - 12.0f, rowHeight}, (Color){30, 38, 46, 180});
         }
         GuiSetStyle(LABEL, TEXT_COLOR_NORMAL, 0x8F8FA0FF);
-        GuiLabel((Rectangle){detailsRect.x + 12.0f, currentRowY, halfRightWidth * 0.45f, rowHeight}, keys[i]);
+        GuiLabel((Rectangle){layout.detailsRect.x + 12.0f, currentRowY, layout.detailsRect.width * 0.45f, rowHeight}, keys[i]);
         GuiSetStyle(LABEL, TEXT_COLOR_NORMAL, 0xAACF9BFF);
-        GuiLabel((Rectangle){detailsRect.x + 12.0f + (halfRightWidth * 0.45f), currentRowY, (halfRightWidth * 0.55f) - 18.0f, rowHeight}, values[i]);
+        GuiLabel((Rectangle){layout.detailsRect.x + 12.0f + (layout.detailsRect.width * 0.45f), currentRowY, (layout.detailsRect.width * 0.55f) - 18.0f, rowHeight}, values[i]);
     }
 
-    // Block B: Score Panel
-    Rectangle scoreRect = {rightSideX + halfRightWidth + layoutGap, topPanelsY, halfRightWidth, topPanelsHeight};
-    GuiGroupBox(scoreRect, "Current Score");
+    GuiGroupBox(layout.scoreRect, "Current Score");
 
-    float scoreColW = (halfRightWidth - 20.0f) / 2.0f;
+    float scoreColW = (layout.scoreRect.width - 20.0f) / 2.0f;
     int massiveFontSize = (int)(baseFontSize * 2.5f);
-    float scoreTextY = scoreRect.y + 25.0f;
+    float scoreTextY = layout.scoreRect.y + 25.0f;
     Color neonLime = (Color){58, 223, 0, 255};
     Color separatorColor = (Color){54, 68, 82, 255};
 
     for (int p = 0; p < 2; p++)
     {
         const char *scoreStr = TextFormat("%03d", match->players[p].score);
-        float textX = scoreRect.x + 15.0f + (p * scoreColW) + (scoreColW - MeasureText(scoreStr, massiveFontSize)) / 2.0f;
+        float textX = layout.scoreRect.x + 15.0f + (p * scoreColW) + (scoreColW - MeasureText(scoreStr, massiveFontSize)) / 2.0f;
         DrawText(scoreStr, textX, scoreTextY, massiveFontSize, neonLime);
     }
 
     float horizontalLineY = scoreTextY + massiveFontSize + 12.0f;
-    DrawLineV((Vector2){scoreRect.x + 12.0f, horizontalLineY}, (Vector2){scoreRect.x + scoreRect.width - 12.0f, horizontalLineY}, separatorColor);
-    DrawLineV((Vector2){scoreRect.x + 15.0f + scoreColW, scoreRect.y + 20.0f}, (Vector2){scoreRect.x + 15.0f + scoreColW, scoreRect.y + scoreRect.height - 12.0f}, separatorColor);
+    DrawLineV((Vector2){layout.scoreRect.x + 12.0f, horizontalLineY}, (Vector2){layout.scoreRect.x + layout.scoreRect.width - 12.0f, horizontalLineY}, separatorColor);
+    DrawLineV((Vector2){layout.scoreRect.x + 15.0f + scoreColW, layout.scoreRect.y + 20.0f}, (Vector2){layout.scoreRect.x + 15.0f + scoreColW, layout.scoreRect.y + layout.scoreRect.height - 12.0f}, separatorColor);
 
     GuiSetStyle(LABEL, TEXT_SIZE, (int)(baseFontSize * 0.75f));
     GuiSetStyle(LABEL, TEXT_COLOR_NORMAL, 0x8F8FA0FF);
     GuiSetStyle(LABEL, TEXT_ALIGNMENT, 1);
 
-    GuiLabel((Rectangle){scoreRect.x + 15.0f, horizontalLineY + 8.0f, scoreColW, 20}, "PLAYER 1");
-    GuiLabel((Rectangle){scoreRect.x + 15.0f + scoreColW, horizontalLineY + 8.0f, scoreColW, 20}, "PLAYER 2");
+    GuiLabel((Rectangle){layout.scoreRect.x + 15.0f, horizontalLineY + 8.0f, scoreColW, 20}, "PLAYER 1");
+    GuiLabel((Rectangle){layout.scoreRect.x + 15.0f + scoreColW, horizontalLineY + 8.0f, scoreColW, 20}, "PLAYER 2");
 
     GuiSetStyle(LABEL, TEXT_SIZE, baseFontSize);
     GuiSetStyle(LABEL, TEXT_COLOR_NORMAL, 0xAACF9BFF);
     GuiSetStyle(LABEL, TEXT_ALIGNMENT, 0);
 
     // Center Section: Tile Racks
-    float rackSectionY = topPanelsY + topPanelsHeight + layoutGap;
-    float rackPanelHeight = screenHeight * 0.10f;
+    float rackSectionY = layout.detailsRect.y + layout.detailsRect.height + layout.layoutGap;
+    ;
+    float rackPanelHeight = GetScreenHeight() * 0.10f;
 
     for (int p = 0; p < 2; p++)
     {
-        Rectangle rackRect = {rightSideX, rackSectionY + (p * (rackPanelHeight + (layoutGap * 0.5f))), rightSideWidth, rackPanelHeight};
+        Rectangle rackRect = {layout.rightSideX, rackSectionY + (p * (rackPanelHeight + (layout.layoutGap * 0.5f))), layout.rightSideWidth, rackPanelHeight};
         GuiGroupBox(rackRect, TextFormat("Player %d Rack", p + 1));
 
-        float tileSize = rackPanelHeight * 0.6f;
-        float tileSpacing = 8.0f;
-        float tileY = rackRect.y + (rackPanelHeight - tileSize) / 2.0f + 4.0f;
+        float tileY = rackRect.y + (rackPanelHeight - layout.tileSize) / 2.0f + 4.0f;
 
         for (int t = 0; t < match->players[p].rack_count; t++)
         {
@@ -175,86 +164,40 @@ void DrawGamePlayView(AppState *state, GameState *match)
             if ((p == match->activePlayerIdx) && (match->dragState.isDragging) && (match->dragState.draggedTileIdx == t))
                 continue;
             Tile tile = match->players[p].rack[t];
-            Rectangle tileBounds = {rackRect.x + 15.0f + (t * (tileSize + tileSpacing)), tileY, tileSize, tileSize};
+            Rectangle tileBounds = {rackRect.x + 15.0f + (t * (layout.tileSize + layout.tileSpacing)), tileY, layout.tileSize, layout.tileSize};
             DrawRectangleRounded(tileBounds, 0.2f, 4, (Color){244, 228, 198, 255});
             DrawRectangleRoundedLines(tileBounds, 0.2f, 4, (Color){194, 169, 126, 255});
 
             char letterStr[2] = {tile.letter, '\0'};
-            int rackTileFontSize = (int)(tileSize * 0.55f);
-            DrawText(letterStr, tileBounds.x + (tileSize * 0.15f), tileBounds.y + (tileSize - rackTileFontSize) / 2.0f, rackTileFontSize, (Color){38, 28, 16, 255});
+            int rackTileFontSize = (int)(layout.tileSize * 0.55f);
+            DrawText(letterStr, tileBounds.x + (layout.tileSize * 0.15f), tileBounds.y + (layout.tileSize - rackTileFontSize) / 2.0f, rackTileFontSize, (Color){38, 28, 16, 255});
 
-            int scoreValue = tile.value;
-            const char *scoreStr = TextFormat("%d", scoreValue);
-            int scoreFontSize = (int)(tileSize * 0.22f);
-            DrawText(scoreStr, tileBounds.x + tileSize - MeasureText(scoreStr, scoreFontSize) - (tileSize * 0.12f), tileBounds.y + tileSize - scoreFontSize - (tileSize * 0.10f), scoreFontSize, (Color){80, 65, 50, 255});
+            const char *scoreStr = TextFormat("%d", tile.value);
+            int scoreFontSize = (int)(layout.tileSize * 0.22f);
+            DrawText(scoreStr, tileBounds.x + layout.tileSize - MeasureText(scoreStr, scoreFontSize) - (layout.tileSize * 0.12f), tileBounds.y + layout.tileSize - scoreFontSize - (layout.tileSize * 0.10f), scoreFontSize, (Color){80, 65, 50, 255});
         }
     }
 
-    // Lower Section: History Logs
-    float historySectionY = rackSectionY + (rackPanelHeight * 2.0f) + (layoutGap * 1.5f);
-    float bottomRowHeight = screenHeight * 0.07f;
-    float historyPanelHeight = screenHeight - historySectionY - bottomRowHeight - padding - layoutGap;
+    GuiGroupBox(layout.historyOuterRect, "Points History");
 
-    Rectangle historyOuterRect = {rightSideX, historySectionY, rightSideWidth, historyPanelHeight};
-    GuiGroupBox(historyOuterRect, "Points History");
-
-    float historySplitWidth = (rightSideWidth - (layoutGap * 1.5f)) / 2.0f;
-    float historyInnerY = historySectionY + 25.0f;
-    float ledgerRowH = (historyPanelHeight - 55.0f) / 5.0f;
-
-    for (int p = 0; p < 2; p++)
-    {
-        Rectangle subHistoryRect = {historyOuterRect.x + 12.0f + (p * (historySplitWidth + layoutGap)), historyInnerY, historySplitWidth, historyPanelHeight - 40.0f};
-
-        DrawRectangleRec(subHistoryRect, (Color){30, 38, 46, 255});
-        DrawRectangleLinesEx(subHistoryRect, 1.0f, (Color){54, 68, 82, 255});
-        DrawRectangle(subHistoryRect.x, subHistoryRect.y, subHistoryRect.width, 28, (Color){45, 55, 66, 255});
-        DrawText(TextFormat("Player %d History", p + 1), subHistoryRect.x + 12, subHistoryRect.y + 7, baseFontSize - 2, (Color){196, 181, 137, 255});
-
-        for (int w = 0; w < 0 && w < 5; w++)
-        {
-            float currentRowY = subHistoryRect.y + 28.0f + (w * ledgerRowH);
-            if (w % 2 == 1)
-            {
-                DrawRectangle(subHistoryRect.x + 1, currentRowY, subHistoryRect.width - 2, ledgerRowH, (Color){36, 46, 56, 255});
-            }
-
-            float textY = currentRowY + (ledgerRowH - (baseFontSize - 2)) / 2.0f;
-            DrawText("", subHistoryRect.x + 15.0f, textY, baseFontSize - 2, (Color){200, 200, 215, 255});
-
-            const char *ptsStr = "+0";
-            DrawText(ptsStr, subHistoryRect.x + subHistoryRect.width - MeasureText(ptsStr, baseFontSize - 2) - 15.0f, textY, baseFontSize - 2, (Color){111, 200, 140, 255});
-        }
-    }
-
-    // --- FOOTER MANAGEMENT ACTION BAR ---
-    float footerY = screenHeight - bottomRowHeight - padding;
-    float elementH = 45.0f;
-    float elementY = footerY + (bottomRowHeight - elementH) / 2.0f;
-
-    float actionBtnWidth = rightSideWidth * 0.35f;
-    float turnIndicatorWidth = rightSideWidth - actionBtnWidth - layoutGap;
-
-    Rectangle turnRect = {rightSideX, elementY, turnIndicatorWidth, elementH};
-    DrawRectangleRec(turnRect, (Color){33, 43, 51, 255});
-    DrawRectangleLinesEx(turnRect, 1.0f, separatorColor);
+    DrawRectangleRec(layout.turnRect, (Color){33, 43, 51, 255});
+    DrawRectangleLinesEx(layout.turnRect, 1.0f, separatorColor);
 
     Color activeAlertColor = (match->activePlayerIdx == 0) ? (Color){0, 220, 255, 255} : (Color){255, 180, 0, 255};
     const char *activeTurnStr = (match->activePlayerIdx == 0) ? "PLAYER 1" : "PLAYER 2";
 
     int turnFontSize = (int)(baseFontSize * 1.6f);
-    float indicatorTextY = turnRect.y + (turnRect.height - turnFontSize) / 2.0f;
+    float indicatorTextY = layout.turnRect.y + (layout.turnRect.height - turnFontSize) / 2.0f;
 
-    DrawRectangle(turnRect.x + 2, turnRect.y + 2, 8, turnRect.height - 4, activeAlertColor);
+    DrawRectangle(layout.turnRect.x + 2, layout.turnRect.y + 2, 8, layout.turnRect.height - 4, activeAlertColor);
 
-    DrawText("TURN:", turnRect.x + 22.0f, indicatorTextY, turnFontSize, (Color){150, 165, 175, 255});
-    DrawText(activeTurnStr, turnRect.x + 22.0f + MeasureText("TURN: ", turnFontSize), indicatorTextY, turnFontSize, activeAlertColor);
+    DrawText("TURN:", layout.turnRect.x + 22.0f, indicatorTextY, turnFontSize, (Color){150, 165, 175, 255});
+    DrawText(activeTurnStr, layout.turnRect.x + 22.0f + MeasureText("TURN: ", turnFontSize), indicatorTextY, turnFontSize, activeAlertColor);
 
-    Rectangle actionBtnRect = {rightSideX + rightSideWidth - actionBtnWidth, elementY, actionBtnWidth, elementH};
-    if (GuiButton(actionBtnRect, "Save & Exit Match"))
+    if (GuiButton(layout.actionBtnRect, "Save & Exit Match"))
     {
         state->currentScreen = APP_SCREEN_MAIN_MENU;
     }
 
-    DrawDragNDropOverlay(match, cellSize);
+    DrawDragNDropOverlay(match, layout.activeRackRect, layout.tileSize, layout.tileSpacing);
 }

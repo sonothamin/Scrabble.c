@@ -12,6 +12,6 @@ typedef struct
 } DragNDropState;
 
 void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rackRect, float tileSize, float tileSpacing);
-void DrawDragNDropOverlay(const GameState *match, float tileSize);
+void DrawDragNDropOverlay(const GameState *match, Rectangle rackRect, float tileSize, float tileSpacing);
 
 #endif
