@@ -10,9 +10,10 @@ extern "C" {
 typedef struct AppState AppState;
 
 typedef struct SettingsState {
-    float musicVolume;
-    float sfxVolume;
-    bool  muteAll;
+    float bgmVolume; // 0.00 ~ 1.00
+    float sfxVolume; // 0.00 ~ 1.00
+    bool  sfxEnable;
+    bool  bgmEnable;
     int selectedOption;
 } SettingsState;
 
