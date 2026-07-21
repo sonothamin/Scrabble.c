@@ -25,6 +25,7 @@ typedef struct GameBoard
 {
     LuxuryType cells[BOARD_SIDE][BOARD_SIDE];
     unsigned char luxuryLayout[BOARD_SIDE][BOARD_SIDE];
+    Tile grid[BOARD_SIDE][BOARD_SIDE];
     int sideSize;
 } GameBoard;
 

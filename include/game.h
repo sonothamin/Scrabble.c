@@ -5,6 +5,7 @@
 #include "board.h"
 #include "bag.h"
 #include "player.h"
+#include "drag_drop.h"
 
 #define MAX_PLAYER_TILES 7
 #define MAX_TILE_BAG_SIZE 100
@@ -33,6 +34,7 @@ typedef struct
     int tileBagCount;
     bool isMatchOver;
     int winningPlayerIdx;
+    DragNDropState dragState;
 } GameState;
 
 void GameInit(GameState *state);
