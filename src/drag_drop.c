@@ -1,14 +1,16 @@
 #include "drag_drop.h"
 #include <math.h>
+#include "game.h"
 
 void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rackRect, float tileSize, float tileSpacing)
 {
-    if (!match) return;
+    if (!match)
+        return;
 
     Vector2 mousePos = GetMousePosition();
     int p = match->activePlayerIdx;
     Player *currentPlayer = &match->players[p];
-    
+
     // Calculate uniform alignment layout for tiles inside the rack box
     float tileY = rackRect.y + (rackRect.height - tileSize) / 2.0f;
     float startX = rackRect.x + 15.0f;
@@ -17,8 +19,8 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
     {
         for (int t = 0; t < currentPlayer->rack_count; t++)
         {
-            Rectangle tileBounds = { startX + (t * (tileSize + tileSpacing)), tileY, tileSize, tileSize };
-            
+            Rectangle tileBounds = {startX + (t * (tileSize + tileSpacing)), tileY, tileSize, tileSize};
+
             if (CheckCollisionPointRec(mousePos, tileBounds))
             {
                 match->dragState.isDragging = true;
@@ -66,39 +68,39 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
 
 void DrawDragNDropOverlay(const GameState *match, Rectangle rackRect, float tileSize, float tileSpacing)
 {
-    if (!match || !match->dragState.isDragging) return;
+    if (!match || !match->dragState.isDragging)
+        return;
 
     int p = match->activePlayerIdx;
     int draggedIdx = match->dragState.draggedTileIdx;
-    
+
     // Bounds check to ensure index stability
-    if (draggedIdx < 0 || draggedIdx >= match->players[p].rack_count) return;
+    if (draggedIdx < 0 || draggedIdx >= match->players[p].rack_count)
+        return;
 
     Tile activeTile = match->players[p].rack[draggedIdx];
     Vector2 mousePos = GetMousePosition();
 
     // Center the rendering bounds directly beneath the user's cursor position
-    Rectangle dragBounds = { 
-        mousePos.x - (tileSize / 2.0f), 
-        mousePos.y - (tileSize / 2.0f), 
-        tileSize, 
-        tileSize 
-    };
+    Rectangle dragBounds = {
+        mousePos.x - (tileSize / 2.0f),
+        mousePos.y - (tileSize / 2.0f),
+        tileSize,
+        tileSize};
 
     // Draw the wooden tile container background with smooth transparency overrides
-    DrawRectangleRounded(dragBounds, 0.2f, 4, (Color){ 244, 228, 198, 230 });
-    DrawRectangleRoundedLines(dragBounds, 0.2f, 4, (Color){ 194, 169, 126, 255 });
+    DrawRectangleRounded(dragBounds, 0.2f, 4, (Color){244, 228, 198, 230});
+    DrawRectangleRoundedLines(dragBounds, 0.2f, 4, (Color){194, 169, 126, 255});
 
     // Print character layout details centered inside the tracking square container
-    char letterStr[2] = { activeTile.letter, '\0' };
+    char letterStr[2] = {activeTile.letter, '\0'};
     int fontSize = (int)(tileSize * 0.55f);
     int textWidth = MeasureText(letterStr, fontSize);
-    
+
     DrawText(
-        letterStr, 
-        dragBounds.x + (dragBounds.width - textWidth) / 2.0f, 
-        dragBounds.y + (dragBounds.height - fontSize) / 2.0f, 
-        fontSize, 
-        (Color){ 38, 28, 16, 255 }
-    );
+        letterStr,
+        dragBounds.x + (dragBounds.width - textWidth) / 2.0f,
+        dragBounds.y + (dragBounds.height - fontSize) / 2.0f,
+        fontSize,
+        (Color){38, 28, 16, 255});
 }
