@@ -1,9 +1,10 @@
 #include "raylib.h"
 #include "resource_dir.h"
 #include "app_state.h"
+#include "settings.h"
 #include "error_service.h"
 
-int main()
+int main(void)
 {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
 
@@ -14,11 +15,20 @@ int main()
 
     SearchAndSetResourceDir("resources");
 
-    AppState appState;
+    AppState appState = {0};
     InitAppState(&appState);
 
     appState.shouldClose = false;
-    appState.currentScreen = APP_SCREEN_LOADING;
+
+    // Fixed: Accessed pointer member via '->' with NULL check
+    if (appState.settingsState != NULL && appState.settingsState->showLoadingScreen)
+    {
+        appState.currentScreen = APP_SCREEN_LOADING;
+    }
+    else
+    {
+        appState.currentScreen = APP_SCREEN_MAIN_MENU;
+    }
 
     // Explicitly reset on clean boot
     ClearGlobalError();
@@ -26,7 +36,9 @@ int main()
     while (!WindowShouldClose() && !appState.shouldClose)
     {
         if (IsKeyPressed(KEY_F11))
+        {
             ToggleFullscreen();
+        }
 
         if (!HasGlobalError())
         {
@@ -34,14 +46,10 @@ int main()
         }
 
         BeginDrawing();
-            DrawAppState(&appState);
-            if (HasGlobalError())
-            {
-                if (ShowErrorDialog())
-                {
-                    appState.shouldClose = true;
-                }
-            }
+        DrawAppState(&appState);
+        if (HasGlobalError())
+            if (ShowErrorDialog())
+                appState.shouldClose = true;
         EndDrawing();
     }
 
