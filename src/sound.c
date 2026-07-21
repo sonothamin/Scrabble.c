@@ -20,20 +20,20 @@ void SoundSysInit(void)
 
     InitAudioDevice();
 
-    gSound.music = LoadMusicStream("resources/audio/music/background.ogg");
+    gSound.music = LoadMusicStream("audio/music/background.ogg");
 
-    gSound.sfx[SFX_APP_LAUNCH]        = LoadSound("resources/audio/sfx/app_started.wav");
-    gSound.sfx[SFX_ABOUT]        = LoadSound("resources/audio/sfx/about.wav");
+    gSound.sfx[SFX_APP_LAUNCH]        = LoadSound("audio/sfx/app_started.wav");
+    gSound.sfx[SFX_ABOUT]        = LoadSound("audio/sfx/about.wav");
     //gSound.sfx[SFX_BUTTON]       = LoadSound("resources/audio/sfx/button.wav");
     //gSound.sfx[SFX_TILE_PLACE]   = LoadSound("resources/audio/sfx/place.wav");
-    gSound.sfx[SFX_SCORE]        = LoadSound("resources/audio/sfx/score.wav");
-    gSound.sfx[SFX_INVALID_MOVE] = LoadSound("resources/audio/sfx/invalid_move.wav");
-    gSound.sfx[SFX_GAME_START]   = LoadSound("resources/audio/sfx/game_start.wav");
-    gSound.sfx[SFX_GAME_OVER]    = LoadSound("resources/audio/sfx/game_over.wav");
-    gSound.sfx[SFX_ERROR]    = LoadSound("resources/audio/sfx/err.wav");
-    gSound.sfx[SFX_BACK_NAV]    = LoadSound("resources/audio/sfx/back.wav");
-    gSound.sfx[SFX_SCORE_2W]    = LoadSound("resources/audio/sfx/earn_point_bonus_2W.wav");
-    gSound.sfx[SFX_SCORE_3W]    = LoadSound("resources/audio/sfx/earn_point_bonus_3W.wav");
+    gSound.sfx[SFX_SCORE]        = LoadSound("audio/sfx/score.wav");
+    gSound.sfx[SFX_INVALID_MOVE] = LoadSound("audio/sfx/invalid_move.wav");
+    gSound.sfx[SFX_GAME_START]   = LoadSound("audio/sfx/game_start.wav");
+    gSound.sfx[SFX_GAME_OVER]    = LoadSound("audio/sfx/game_over.wav");
+    gSound.sfx[SFX_ERROR]    = LoadSound("audio/sfx/err.wav");
+    gSound.sfx[SFX_BACK_NAV]    = LoadSound("audio/sfx/back.wav");
+    gSound.sfx[SFX_SCORE_2W]    = LoadSound("audio/sfx/earn_point_bonus_2W.wav");
+    gSound.sfx[SFX_SCORE_3W]    = LoadSound("audio/sfx/earn_point_bonus_3W.wav");
 
     SetMusicVolume(gSound.music, 0.35f);
 
