@@ -1,13 +1,20 @@
 #include "player.h"
 #include "bag.h"
+#include "error_service.h"
 #include <stdio.h>
 
 void init_player(Player *player)
 {
+    if (player == NULL)
+    {
+        ReportCriticalError("Invalid Player State", "NULL Player pointer encountered while initializing Players.");
+        return;
+    }
+    
+    
     player->rack_count = 0;
     player->score = 0;
 
-    // fill each tile with zero to remove garbage value
     for (int i = 0; i < RACK_SIZE; i++)
     {
         player->rack[i].letter = '\0';

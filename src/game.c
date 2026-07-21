@@ -1,12 +1,15 @@
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "game.h"
 #include "ui.h"
 #include "app_state.h"
 #include "raylib.h"
 #include "raygui.h"
 #include "sound.h"
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
+#include "error_service.h"
+#include "bag.h"
+
 
 void GameInit(GameState *match)
 {
@@ -31,7 +34,10 @@ void GameInit(GameState *match)
 void GameUpdate(AppState *state)
 {
     if (!state)
+    {
+        ReportCriticalError("Invalid App State", "NULL AppState pointer encountered while updating Game.");
         return;
+    }
 
     if (IsKeyPressed(KEY_ESCAPE))
     {
@@ -42,7 +48,10 @@ void GameUpdate(AppState *state)
 void GameDraw(AppState *state)
 {
     if (!state)
+    {
+        ReportCriticalError("Invalid App State", "NULL AppState pointer encountered while drawing Game.");
         return;
+    }
 
     if (state->gamestate == NULL)
     {
@@ -175,7 +184,7 @@ void GameDraw(AppState *state)
             int rackTileFontSize = (int)(tileSize * 0.55f);
             DrawText(letterStr, tileBounds.x + (tileSize * 0.15f), tileBounds.y + (tileSize - rackTileFontSize) / 2.0f, rackTileFontSize, (Color){38, 28, 16, 255});
 
-            int scoreValue = GetTileScore(tile.letter);
+            int scoreValue = tile.value;
             const char *scoreStr = TextFormat("%d", scoreValue);
             int scoreFontSize = (int)(tileSize * 0.22f);
             DrawText(scoreStr, tileBounds.x + tileSize - MeasureText(scoreStr, scoreFontSize) - (tileSize * 0.12f), tileBounds.y + tileSize - scoreFontSize - (tileSize * 0.10f), scoreFontSize, (Color){80, 65, 50, 255});

@@ -1,0 +1,50 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # 1. Install raylib system dependencies and modern GCC 14 for C23 support
+    - name: Install Dependencies and GCC 14
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          libasound2-dev \
+          libx11-dev \
+          libxrandr-dev \
+          libxi-dev \
+          libxinerama-dev \
+          libxcursor-dev \
+          libxkbcommon-dev \
+          libgl1-mesa-dev \
+          libglu1-mesa-dev \
+          gcc-14 \
+          g++-14
+        
+        # Configure system alternatives to default to GCC 14
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100
+
+    # 2. Grant execution permissions to the committed premake binary
+    - name: Make Premake Executable
+      run: chmod +x ./build/premake5
+
+    # 3. Generate Makefiles at project root using the configuration script inside ./build
+    - name: Configure Project (Premake)
+      run: ./build/premake5 --file=build/premake5.lua gmake
+
+    # 4. Clean and compile the project at root
+    - name: Build Project
+      run: |
+        make clean
+        make
+

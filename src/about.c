@@ -2,6 +2,7 @@
 #include "ui.h"
 #include "raylib.h"
 #include "raygui.h"
+#include "error_service.h"
 
 static void DrawProceduralHeart(float x, float y, float size, Color color)
 {
@@ -20,7 +21,10 @@ static void DrawProceduralHeart(float x, float y, float size, Color color)
 void AboutInit(AboutState *state)
 {
     if (!state)
+    {
+        ReportCriticalError("Invalid App State", "NULL AboutState pointer encountered while initializing About.");
         return;
+    }
     state->activeTab = ABOUT_TAB_OVERVIEW;
     state->scrollOffset = 0.0f;
 }
@@ -78,7 +82,10 @@ static bool DrawTabButton(const char *text, Rectangle bounds, bool isActive, int
 void AboutDraw(AppState *appState, AboutState *aboutState)
 {
     if (!appState || !aboutState)
+    {
+        ReportCriticalError("Invalid About/App State", "NULL About/AppState pointer encountered while drawing About.");
         return;
+    }
 
     const int screenWidth = GetScreenWidth();
     const int screenHeight = GetScreenHeight();
@@ -93,11 +100,9 @@ void AboutDraw(AppState *appState, AboutState *aboutState)
     const float padding = screenWidth / 25.0f;
     const float headerLineY = padding + (baseFontSize * 1.5f) + 15.0f;
 
-    // --- HEADER SECTION ---
     DrawText("SCRABBLE.C", padding, padding, baseFontSize * 1.7f, WHITE);
     DrawLineEx((Vector2){padding, headerLineY}, (Vector2){screenWidth - padding, headerLineY}, 2, GetColor(GuiGetStyle(DEFAULT, LINE_COLOR)));
 
-    // --- SIDEBAR NAV ---
     float sidebarX = padding;
     float sidebarY = headerLineY + 25.0f;
     float tabWidth = baseFontSize * 10.0f;
@@ -177,7 +182,6 @@ void AboutDraw(AppState *appState, AboutState *aboutState)
         DrawText("The Dev and Friends", contentX, contentY, baseFontSize * 1.1f, GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED)));
         DrawText("> Lead, UI, Menu, AppShell, Docs : Sonoth Amin", contentX, contentY + stepGap, baseFontSize * 0.9f, WHITE);
         DrawText("> Game Logic, Board : Tanvir Ahmed", contentX, contentY + (stepGap * 2), baseFontSize * 0.9f, WHITE);
-        DrawText("> Boshe Boshe Ghum : Imtiaz Alam", contentX, contentY + (stepGap * 3), baseFontSize * 0.9f, WHITE);
         break;
 
     case ABOUT_TAB_TECH:

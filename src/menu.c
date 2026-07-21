@@ -1,5 +1,6 @@
 #include "raylib.h"
 #include "raygui.h"
+#include "error_service.h"
 
 #include "menu.h"
 #include "ui.h"
@@ -24,9 +25,12 @@ static const char* GetMenuScrabbleScore(char c)
 
 void MenuUpdate(AppState* state)
 {
-    if (!state) return;
+    if (!state)
+    {
+            ReportCriticalError("Invalid App State", "NULL AppState pointer encountered while updating Menu.");
+            return;
+    }
 
-    // Combined hotkeys for quick-starting or loading a match
     if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_N) || IsKeyPressed(KEY_L))
     {
         StartNewGame(state);
@@ -53,7 +57,11 @@ void MenuUpdate(AppState* state)
 
 void MenuDraw(AppState* state)
 {
-    if (!state) return;
+    if (!state)
+    {
+            ReportCriticalError("Invalid App State", "NULL AppState pointer encountered while drawing Menu.");
+            return;
+    }
 
     const int screenWidth = GetScreenWidth();
     const int screenHeight = GetScreenHeight();
@@ -82,7 +90,6 @@ void MenuDraw(AppState* state)
     const Color textColor = { 38, 28, 16, 255 };
     const Color scoreColor = { 120, 95, 68, 255 };
     
-    // Render Decorative Header Tiles
     for (int i = 0; i < titleLength; i++)
     {
         float currentX = padding + i * (menuTileSize + menuTileSpacing);
@@ -118,7 +125,7 @@ void MenuDraw(AppState* state)
     float subtitleHeight = baseFontSize * 1.2f;
     GuiLabel((Rectangle){ padding, subtitleY, screenWidth - (2.0f * padding), subtitleHeight }, "Be aware adventurer! Here every letter counts!");
 
-    // Layout Calculations
+
     const float contentTop = subtitleY + subtitleHeight + 45.0f;
     const float optionPanelWidth = (screenWidth / 4 < 260) ? 260.0f : (float)(screenWidth / 4);
     const float mainPanelWidth = screenWidth - (2.0f * padding) - panelGap - optionPanelWidth;
@@ -132,7 +139,6 @@ void MenuDraw(AppState* state)
 
     GuiSetStyle(LABEL, TEXT_ALIGNMENT, 0); 
 
-    // --- MAIN ACTION PANEL ---
     GuiGroupBox((Rectangle){ padding, contentTop, mainPanelWidth, mainPanelHeight }, "START A GAME");
 
     if (GuiButton((Rectangle){ padding + 25.0f, contentTop + rowHeight * 0.8f, btnWidth, targetBtnHeight }, "New Local Game")) {
@@ -154,7 +160,6 @@ void MenuDraw(AppState* state)
     GuiLine((Rectangle){ padding + 25.0f, contentTop + (rowHeight * 4.6f), mainPanelWidth - 50.0f, 8.0f }, NULL);
     GuiLabel((Rectangle){ padding + 25.0f, contentTop + (rowHeight * 4.9f), mainPanelWidth - 50.0f, rowHeight * 0.5f }, "Q: Quit   M: Mute Everything   L: Quick Load   N: Quick Local   F11: Fullscreen");
 
-    // --- SIDE PANEL: CONFIGURATION ---
     float optionPanelX = screenWidth - padding - optionPanelWidth;
     GuiGroupBox((Rectangle){ optionPanelX, contentTop, optionPanelWidth, mainPanelHeight }, "SETTINGS & OPTIONS");
 
@@ -172,7 +177,6 @@ void MenuDraw(AppState* state)
     GuiCheckBox((Rectangle){ optionPanelX + soundGroupMarginX + 15.0f, sfxCheckboxY, checkboxHeight, checkboxHeight }, "Sound Effects (SFX)", &sfxCheckboxChecked);
     GuiCheckBox((Rectangle){ optionPanelX + soundGroupMarginX + 15.0f, bgmCheckboxY, checkboxHeight, checkboxHeight }, "Background Music (BGM)", &bgmCheckboxChecked);
 
-    // Navigation Footers
     float navBtnWidth = (optionPanelWidth - 56.0f) / 2.0f;
     float navBtnY = contentTop + mainPanelHeight - targetBtnHeight - 20.0f;
     

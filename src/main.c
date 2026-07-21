@@ -1,6 +1,7 @@
 #include "raylib.h"
 #include "resource_dir.h"
 #include "app_state.h"
+#include "error_service.h"
 
 int main()
 {
@@ -15,20 +16,32 @@ int main()
 
     AppState appState;
     InitAppState(&appState);
-    
 
-    appState.shouldClose = false; 
+    appState.shouldClose = false;
     appState.currentScreen = APP_SCREEN_LOADING;
+
+    // Explicitly reset on clean boot
+    ClearGlobalError();
 
     while (!WindowShouldClose() && !appState.shouldClose)
     {
         if (IsKeyPressed(KEY_F11))
             ToggleFullscreen();
 
-        UpdateAppState(&appState);
+        if (!HasGlobalError())
+        {
+            UpdateAppState(&appState);
+        }
 
         BeginDrawing();
-           DrawAppState(&appState);
+            DrawAppState(&appState);
+            if (HasGlobalError())
+            {
+                if (ShowErrorDialog())
+                {
+                    appState.shouldClose = true;
+                }
+            }
         EndDrawing();
     }
 
