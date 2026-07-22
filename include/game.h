@@ -5,6 +5,7 @@
 #include "board.h"
 #include "bag.h"
 #include "player.h"
+#include "drag_drop.h"
 
 #define MAX_PLAYER_TILES 7
 #define MAX_TILE_BAG_SIZE 100
@@ -27,7 +28,7 @@ typedef enum
     GAME_SUB_SCREEN_MATCH_OVER
 } GameSubScreen;
 
-typedef struct
+typedef struct GameState
 {
     GameMode mode;
     char dictionaryPath[256];
@@ -42,6 +43,7 @@ typedef struct
     bool isMatchOver;
     int winningPlayerIdx;
     GameSubScreen currentSubScreen;
+    DragNDropState dragState;
 } GameState;
 
 void GameInit(GameState *state);
