@@ -38,6 +38,7 @@ void AboutUpdate(AppState *appState, AboutState *aboutState)
     if (IsKeyPressed(KEY_ESCAPE))
     {
         appState->currentScreen = APP_SCREEN_MAIN_MENU;
+        PlaySoundEffect(SFX_BACK_NAV);
         return;
     }
 
@@ -198,7 +199,7 @@ void AboutDraw(AppState *appState, AboutState *aboutState)
     float footerY = screenHeight - padding;
     DrawAppText("Navigate: [A/D] or Keys [1-3]  |  [ESC] Main Menu", padding, footerY, baseFontSize * 0.75f, GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_DISABLED)));
 
-    if (IsKeyDown(KEY_S))
+    if (IsKeyDown(KEY_SPACE))
     {
         const char *prefix = "Made with ";
         const char *suffix = " by Sonoth Amin";

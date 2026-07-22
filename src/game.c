@@ -46,6 +46,7 @@ void GameUpdate(AppState *state)
     if (IsKeyPressed(KEY_ESCAPE))
     {
         state->currentScreen = APP_SCREEN_MAIN_MENU;
+        PlaySoundEffect(SFX_BACK_NAV);
         return;
     }
 
