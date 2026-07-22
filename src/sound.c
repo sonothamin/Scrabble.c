@@ -79,32 +79,50 @@ void SoundSysShutdown(void)
 void PauseBackgroundMusic(void)
 {
     if (gSound.initialized)
-        PauseMusicStream(gSound.music);
+        {
+            PauseMusicStream(gSound.music);
+            TraceLog(LOG_INFO, "[SOUND] BGM Paused.");
+        }
 }
 
 void ResumeBackgroundMusic(void)
 {
     if (gSound.initialized)
-        ResumeMusicStream(gSound.music);
+        {
+            ResumeMusicStream(gSound.music);
+            TraceLog(LOG_INFO, "[SOUND] BGM Resumed");
+        }
 }
 
 void StopBackgroundMusic(void)
 {
     if (gSound.initialized)
-        StopMusicStream(gSound.music);
+        {
+            StopMusicStream(gSound.music);
+            TraceLog(LOG_INFO, "[SOUND] BGM Stopped.");
+        }
 }
 
 void SetMusicVolumeLevel(float volume)
 {
     if (gSound.initialized)
-        SetMusicVolume(gSound.music, volume);
+        {
+            SetMusicVolume(gSound.music, volume);
+            TraceLog(LOG_INFO, "[SOUND] Music Volume Set to %.2f", volume);
+        }
 }
 
 void SetSfxVolumeLevel(float volume)
 {
     if (!gSound.initialized)
-        return;
+        {
+            TraceLog(LOG_ERROR, "[SOUND] Music Volume was attempted to set to %.2f. But Sound Sub-System Not Initialized", volume);
+            return;
+        }
 
     for (int i = 0; i < SFX_COUNT; i++)
-        SetSoundVolume(gSound.sfx[i], volume);
+        {
+            SetSoundVolume(gSound.sfx[i], volume);
+            TraceLog(LOG_INFO, "[SOUND] SFx Volume [%d] Set to %.2f", i, volume);
+        }
 }
