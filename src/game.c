@@ -332,4 +332,8 @@ void GameDraw(AppState *state)
     {
         state->currentScreen = APP_SCREEN_MAIN_MENU;
     }
+
+    // Draw drag overlay at cursor position
+    Rectangle activeRackRect = {rightSideX, rackSectionY + (match->activePlayerIdx * (rackPanelHeight + (layoutGap * 0.5f))), rightSideWidth, rackPanelHeight};
+    DrawDragNDropOverlay(match, activeRackRect, activeTileSize, activeTileSpacing);
 }

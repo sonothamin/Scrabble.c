@@ -4,7 +4,6 @@
 #include "raylib.h"
 #include <stdbool.h>
 
-
 typedef struct GameState GameState; // Forward Declaration
 
 typedef struct DragNDropState
@@ -13,9 +12,7 @@ typedef struct DragNDropState
     int draggedTileIdx;
 } DragNDropState;
 
-typedef struct GameState GameState;
-
 void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rackRect, float tileSize, float tileSpacing);
 void DrawDragNDropOverlay(const GameState *match, Rectangle rackRect, float tileSize, float tileSpacing);
 
-#endif // DRAG_DROP_H
+#endif

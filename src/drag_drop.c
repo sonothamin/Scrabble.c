@@ -15,6 +15,7 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
     float tileY = rackRect.y + (rackRect.height - tileSize) / 2.0f;
     float startX = rackRect.x + 15.0f;
 
+    // Pick up a tile on left click
     if (!match->dragState.isDragging && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
     {
         for (int t = 0; t < currentPlayer->rack_count; t++)
@@ -30,9 +31,9 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
         }
     }
 
+    // Drop the tile on left click release
     if (match->dragState.isDragging && IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
     {
-        // Check if the drop location is within the centered board frame lines
         if (CheckCollisionPointRec(mousePos, boardBounds))
         {
             float cellSize = boardBounds.width / (float)BOARD_SIDE;
@@ -42,12 +43,12 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
             // Bounds check grid matrix limits
             if (gridX >= 0 && gridX < BOARD_SIDE && gridY >= 0 && gridY < BOARD_SIDE)
             {
-                // Only commit if target board slot is completely empty
+                // Place tile if target board space is empty
                 if (match->board.grid[gridY][gridX].letter == '\0')
                 {
                     int srcIdx = match->dragState.draggedTileIdx;
 
-                    // 1. Commit tile parameters directly to the GameState board matrix
+                    // Copy tile to board
                     match->board.grid[gridY][gridX] = currentPlayer->rack[srcIdx];
 
                     // 2. Remove tile from the player's rack and shift trailing elements left
@@ -60,7 +61,7 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
             }
         }
 
-        // Always terminate transaction context and clear operational flags on mouse release
+        // Reset drag state on mouse release
         match->dragState.isDragging = false;
         match->dragState.draggedTileIdx = -1;
     }
