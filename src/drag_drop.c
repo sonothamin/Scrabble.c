@@ -32,29 +32,29 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
                 return;
             }
         }
-    }
 
-    // Try picking up from BOARD GRID
-    if (CheckCollisionPointRec(mousePos, boardBounds))
-    {
-        float cellSize = boardBounds.width / (float)BOARD_SIDE;
-        int gridX = (int)((mousePos.x - boardBounds.x) / cellSize);
-        int gridY = (int)((mousePos.y - boardBounds.y) / cellSize);
-
-        if (gridX >= 0 && gridX < BOARD_SIDE && gridY >= 0 && gridY < BOARD_SIDE)
+        // Try picking up from BOARD GRID
+        if (CheckCollisionPointRec(mousePos, boardBounds))
         {
-            // Only pick up if there's an existing tile
-            if (match->board.grid[gridY][gridX].letter != '\0')
-            {
-                match->dragState.isDragging = true;
-                match->dragState.isFromRack = false;
-                match->dragState.sourceGridX = gridX;
-                match->dragState.sourceGridY = gridY;
-                match->dragState.draggedTile = match->board.grid[gridY][gridX];
+            float cellSize = boardBounds.width / (float)BOARD_SIDE;
+            int gridX = (int)((mousePos.x - boardBounds.x) / cellSize);
+            int gridY = (int)((mousePos.y - boardBounds.y) / cellSize);
 
-                // Temporarily remove from board matrix while dragging
-                match->board.grid[gridY][gridX] = (Tile){.letter = '\0', .value = 0, .isWildCard = false};
-                return;
+            if (gridX >= 0 && gridX < BOARD_SIDE && gridY >= 0 && gridY < BOARD_SIDE)
+            {
+                // Only pick up if there's an existing tile
+                if (match->board.grid[gridY][gridX].letter != '\0')
+                {
+                    match->dragState.isDragging = true;
+                    match->dragState.isFromRack = false;
+                    match->dragState.sourceGridX = gridX;
+                    match->dragState.sourceGridY = gridY;
+                    match->dragState.draggedTile = match->board.grid[gridY][gridX];
+
+                    // Temporarily remove from board matrix while dragging
+                    match->board.grid[gridY][gridX] = (Tile){.letter = '\0', .value = 0, .isWildCard = false};
+                    return;
+                }
             }
         }
     }
@@ -70,19 +70,27 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
             int gridX = (int)((mousePos.x - boardBounds.x) / cellSize);
             int gridY = (int)((mousePos.y - boardBounds.y) / cellSize);
 
-            // Bounds check grid matrix limits
-            if (gridX >= 0 && gridX < BOARD_SIDE && gridY >= 0 && gridY < BOARD_SIDE)
-            {
-                // Place tile if target board space is empty
-                if (match->board.grid[gridY][gridX].letter == '\0')
-                {
-                    // Copy tile to board
-                    match->board.grid[gridY][gridX] = match->dragState.draggedTile;
+            if (gridX < 0)
+                gridX = 0;
+            if (gridX >= BOARD_SIDE)
+                gridX = BOARD_SIDE - 1;
+            if (gridY < 0)
+                gridY = 0;
+            if (gridY >= BOARD_SIDE)
+                gridY = BOARD_SIDE - 1;
 
-                    // If it came from the rack, remove it from the rack array
-                    if (match->dragState.isFromRack)
+            // Place tile if target board space is empty
+            if (match->board.grid[gridY][gridX].letter == '\0')
+            {
+                // Copy tile to board
+                match->board.grid[gridY][gridX] = match->dragState.draggedTile;
+
+                // If it came from the rack, remove it from the rack array
+                if (match->dragState.isFromRack)
+                {
+                    int srcIdx = match->dragState.draggedTileIdx;
+                    if (srcIdx >= 0 && srcIdx < currentPlayer->rack_count)
                     {
-                        int srcIdx = match->dragState.draggedTileIdx;
                         for (int i = srcIdx; i < currentPlayer->rack_count - 1; i++)
                         {
                             currentPlayer->rack[i] = currentPlayer->rack[i + 1];
@@ -90,9 +98,8 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
                         currentPlayer->rack[currentPlayer->rack_count - 1] = (Tile){.letter = '\0', .value = 0, .isWildCard = false};
                         currentPlayer->rack_count--;
                     }
-
-                    dropSuccessful = true;
                 }
+                dropSuccessful = true;
             }
         }
         // DROPPING BACK TO THE ACTIVE RACK
