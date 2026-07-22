@@ -311,6 +311,7 @@ void GameDraw(AppState *state)
     if (GuiButton(actionBtnRect, "Save & Exit Match"))
     {
         state->currentScreen = APP_SCREEN_MAIN_MENU;
+        PlaySoundEffect(SFX_BACK_NAV);
     }
 
     // Draw drag overlay at cursor position
