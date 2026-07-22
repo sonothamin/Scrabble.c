@@ -1,13 +1,15 @@
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 #include "game.h"
 #include "ui.h"
 #include "app_state.h"
 #include "raylib.h"
 #include "raygui.h"
+#include "sound.h"
 #include "error_service.h"
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
 #include "bag.h"
+
 
 void GameInit(GameState *match)
 {
@@ -26,6 +28,7 @@ void GameInit(GameState *match)
     refill_rack(&match->players[1], &match->tileBag);
     match->activePlayerIdx = 0;
     match->tileBagCount = match->tileBag.tiles_remaining;
+    PlaySoundEffect(SFX_GAME_START);
 }
 
 void GameUpdate(AppState *state)

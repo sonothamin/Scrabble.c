@@ -11,6 +11,8 @@
 #include "raygui.h"
 #include "error_service.h"
 
+#define CONFIG_FILE_PATH "config.dat"
+
 void InitAppState(AppState *state)
 {
     if (state == NULL)
@@ -24,9 +26,24 @@ void InitAppState(AppState *state)
         LoadingInit(state->loadingState);
 
     state->aboutState = (AboutState *)malloc(sizeof(AboutState));
-
     if (state->aboutState != NULL)
         AboutInit(state->aboutState);
+
+    state->settingsState = InitSettingsState();
+
+    if (state->settingsState != NULL && FileExists(CONFIG_FILE_PATH))
+    {
+        if (!LoadSettingsFromFile(state->settingsState, CONFIG_FILE_PATH))
+        {
+            TraceLog(LOG_WARNING, "APP_STATE: Failed to read %s despite file existing. Using defaults.", CONFIG_FILE_PATH);
+            ReportCriticalError("Settings State Error", "Failed to read file despite file existing. Using defaults. See log for path.");
+        }
+    }
+
+    if (state->settingsState != NULL && !state->settingsState->showLoadingScreen)
+    {
+        state->currentScreen = APP_SCREEN_MAIN_MENU;
+    }
 }
 
 void StartNewGame(AppState *state)
@@ -60,7 +77,6 @@ void UpdateAppState(AppState *state)
     case APP_SCREEN_LOADING:
         if (state->loadingState != NULL)
             LoadingUpdate(state, state->loadingState, GetFrameTime());
-
         break;
 
     case APP_SCREEN_MAIN_MENU:
@@ -115,7 +131,7 @@ void DrawAppState(AppState *state)
         break;
 
     case APP_SCREEN_SETTINGS:
-        SettingsDraw();
+        SettingsDraw(state);
         break;
 
     case APP_SCREEN_GAME:
@@ -140,10 +156,13 @@ void CloseAppState(AppState *state)
         ReportCriticalError("Invalid App State", "NULL AppState pointer encountered when closing app state.");
         return;
     }
+
     if (state->loadingState)
         free(state->loadingState);
     if (state->aboutState)
         free(state->aboutState);
     if (state->gamestate)
         free(state->gamestate);
+    if (state->settingsState)
+        FreeSettingsState(state->settingsState);
 }

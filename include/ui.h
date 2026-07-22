@@ -6,6 +6,7 @@ extern "C" {
 
 void DrawScreenBox(const char* title, const char* instructions);
 void ApplyScrabbleTheme(int baseFontSize);
+void ApplyAltTheme(int baseFontSize);
 
 #if defined(__cplusplus)
 }

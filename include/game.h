@@ -35,7 +35,7 @@ typedef struct GameState
     bool isMatchOver;
     int winningPlayerIdx;
     DragNDropState dragState;
-} GameState;
+}GameState;
 
 void GameInit(GameState *state);
 void GameUpdate(AppState *state);
