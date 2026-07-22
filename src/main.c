@@ -4,6 +4,7 @@
 #include "settings.h"
 #include "error_service.h"
 #include "ui.h"
+#include "sound.h"
 
 int main(void)
 {
@@ -18,7 +19,9 @@ int main(void)
     InitAppFont();
 
     AppState appState = {0};
+
     InitAppState(&appState);
+    SoundSysInit();
 
     appState.shouldClose = false;
 
@@ -53,7 +56,8 @@ int main(void)
         }
         EndDrawing();
     }
-
+    
+    SoundSysShutdown();
     CloseAppState(&appState);
     UnloadAppFont();
     CloseWindow();
