@@ -25,15 +25,44 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
             if (CheckCollisionPointRec(mousePos, tileBounds))
             {
                 match->dragState.isDragging = true;
+                match->dragState.isFromRack = true;
                 match->dragState.draggedTileIdx = t;
-                break; // Break instantly so we don't grab multiple items
+                match->dragState.draggedTile = currentPlayer->rack[t];
+                return;
+            }
+        }
+    }
+
+    // Try picking up from BOARD GRID
+    if (CheckCollisionPointRec(mousePos, boardBounds))
+    {
+        float cellSize = boardBounds.width / (float)BOARD_SIDE;
+        int gridX = (int)((mousePos.x - boardBounds.x) / cellSize);
+        int gridY = (int)((mousePos.y - boardBounds.y) / cellSize);
+
+        if (gridX >= 0 && gridX < BOARD_SIDE && gridY >= 0 && gridY < BOARD_SIDE)
+        {
+            // Only pick up if there's an existing tile
+            if (match->board.grid[gridY][gridX].letter != '\0')
+            {
+                match->dragState.isDragging = true;
+                match->dragState.isFromRack = false;
+                match->dragState.sourceGridX = gridX;
+                match->dragState.sourceGridY = gridY;
+                match->dragState.draggedTile = match->board.grid[gridY][gridX];
+
+                // Temporarily remove from board matrix while dragging
+                match->board.grid[gridY][gridX] = (Tile){.letter = '\0', .value = 0, .isWildCard = false};
+                return;
             }
         }
     }
 
     // Drop the tile on left click release
-    if (match->dragState.isDragging && IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
+    if ((match->dragState.isDragging) && IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
     {
+        bool dropSuccessful = false;
+
         if (CheckCollisionPointRec(mousePos, boardBounds))
         {
             float cellSize = boardBounds.width / (float)BOARD_SIDE;
@@ -47,22 +76,51 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
                 if (match->board.grid[gridY][gridX].letter == '\0')
                 {
                     int srcIdx = match->dragState.draggedTileIdx;
-
                     // Copy tile to board
                     match->board.grid[gridY][gridX] = currentPlayer->rack[srcIdx];
 
-                    // 2. Remove tile from the player's rack and shift trailing elements left
-                    for (int i = srcIdx; i < currentPlayer->rack_count - 1; i++)
+                    // If it came from the rack, remove it from the rack array
+                    if (match->dragState.isFromRack)
                     {
-                        currentPlayer->rack[i] = currentPlayer->rack[i + 1];
+                        for (int i = srcIdx; i < currentPlayer->rack_count - 1; i++)
+                        {
+                            currentPlayer->rack[i] = currentPlayer->rack[i + 1];
+                        }
+                        currentPlayer->rack_count--;
                     }
-                    currentPlayer->rack_count--;
+
+                    dropSuccessful = true;
                 }
             }
         }
+        // DROPPING BACK TO THE ACTIVE RACK
+        else if (CheckCollisionPointRec(mousePos, rackRect))
+        {
+            if (currentPlayer->rack_count < RACK_SIZE)
+            {
+                // If it came from the board, add it back to the rack
+                if (!match->dragState.isFromRack)
+                {
+                    currentPlayer->rack[currentPlayer->rack_count] = match->dragState.draggedTile;
+                    currentPlayer->rack_count++;
+                }
+                // If it came from rack to rack, no change needed
+                dropSuccessful = true;
+            }
+        }
 
+        // C) CANCEL / REVERT IF DROPPED IN AN INVALID SPOT
+        if (!dropSuccessful)
+        {
+            if (!match->dragState.isFromRack)
+            {
+                // Restore tile back to original board slot
+                match->board.grid[match->dragState.sourceGridY][match->dragState.sourceGridX] = match->dragState.draggedTile;
+            }
+        }
         // Reset drag state on mouse release
         match->dragState.isDragging = false;
+        match->dragState.isFromRack = false;
         match->dragState.draggedTileIdx = -1;
     }
 }
