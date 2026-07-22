@@ -1,4 +1,5 @@
 #include "ui.h"
+#include <math.h>
 
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
@@ -93,4 +94,64 @@ void ApplyAltTheme(int baseFontSize)
 
     GuiSetStyle(STATUSBAR, BASE_COLOR_NORMAL, 0x0F172AFF);
     GuiSetStyle(STATUSBAR, TEXT_COLOR_NORMAL, 0x94A3B8FF);
+}
+
+// ---------------------------------------------------------------------------
+// Font Management
+// ---------------------------------------------------------------------------
+
+#define APP_FONT_BASE_SIZE 64
+
+static Font g_appFont = { 0 };
+static bool g_appFontLoaded = false;
+
+void InitAppFont(void)
+{
+    g_appFont = LoadFontEx("PTSerif-Regular.ttf", APP_FONT_BASE_SIZE, NULL, 0);
+
+    if (g_appFont.texture.id == 0)
+    {
+        TraceLog(LOG_WARNING, "[UI] PTSerif-Regular.ttf could not be loaded. Using default font.");
+        g_appFont = GetFontDefault();
+        g_appFontLoaded = false;
+    }
+    else
+    {
+        SetTextureFilter(g_appFont.texture, TEXTURE_FILTER_BILINEAR);
+        g_appFontLoaded = true;
+        TraceLog(LOG_INFO, "[UI] PTSerif-Regular.ttf loaded successfully (base size: %d).", APP_FONT_BASE_SIZE);
+    }
+
+    GuiSetFont(g_appFont);
+}
+
+void UnloadAppFont(void)
+{
+    if (g_appFontLoaded)
+    {
+        UnloadFont(g_appFont);
+        g_appFontLoaded = false;
+    }
+}
+
+Font GetAppFont(void)
+{
+    return g_appFont;
+}
+
+void DrawAppText(const char *text, float x, float y, float fontSize, Color color)
+{
+    if (text == NULL) return;
+    
+    float spacing = fontSize / 16.0f;
+    DrawTextEx(g_appFont, text, (Vector2){ x, y }, fontSize, spacing, color);
+}
+
+int MeasureAppText(const char *text, float fontSize)
+{
+    if (text == NULL) return 0;
+
+    float spacing = fontSize / 16.0f;
+    Vector2 size = MeasureTextEx(g_appFont, text, fontSize, spacing);
+    return (int)ceilf(size.x);
 }

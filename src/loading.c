@@ -36,7 +36,7 @@ void LoadingUpdate(AppState *state, LoadingState *lState, float deltaTime)
         return;
     }
 
-    // 1. Progress Bar Logic
+    //Progress Bar Logic
     lState->progress += deltaTime * 0.4f;
     if (lState->progress >= 1.0f)
     {
@@ -44,11 +44,11 @@ void LoadingUpdate(AppState *state, LoadingState *lState, float deltaTime)
         state->currentScreen = APP_SCREEN_MAIN_MENU;
     }
 
-    // 2. Continuous Ambient VFX Animation
+    //Continuous Ambient Animation
     lState->vfxRotation += deltaTime * 45.0f;
     lState->particlePulse += deltaTime * 3.0f;
 
-    // 3. Tile Bounce Physics Simulation
+    //Tile Bounce Physics Simulation
     for (int i = 0; i < TILE_COUNT; i++)
     {
         lState->tileTimers[i] += deltaTime;
@@ -129,8 +129,8 @@ void LoadingDraw(AppState *state, LoadingState *lState)
         DrawRectangleRoundedLines(tileRect, 0.2f, 4, (Color){204, 179, 136, 255});
 
         char letterStr[2] = {LOADING_TEXT[i], '\0'};
-        int textWidth = MeasureText(letterStr, baseFontSize * 1.2);
-        DrawText(
+        int textWidth = MeasureAppText(letterStr, baseFontSize * 1.2f);
+        DrawAppText(
             letterStr,
             tileRect.x + (tileSize - textWidth) / 2.0f,
             tileRect.y + (tileSize - (baseFontSize * 1.2f)) / 2.0f - 2.0f,
@@ -138,7 +138,7 @@ void LoadingDraw(AppState *state, LoadingState *lState)
             (Color){44, 34, 20, 255});
 
         const char *score = (LOADING_TEXT[i] == 'G') ? "2" : "1";
-        DrawText(
+        DrawAppText(
             score,
             tileRect.x + tileRect.width - (baseFontSize * 0.45f),
             tileRect.y + tileRect.height - (baseFontSize * 0.55f),
@@ -164,8 +164,8 @@ void LoadingDraw(AppState *state, LoadingState *lState)
 
     int percentValue = (int)(lState->progress * 100.0f);
     const char *percentText = TextFormat("%d%% COMPLETE", percentValue);
-    int pTextWidth = MeasureText(percentText, baseFontSize * 0.6f);
-    DrawText(
+    int pTextWidth = MeasureAppText(percentText, baseFontSize * 0.6f);
+    DrawAppText(
         percentText,
         (screenWidth - pTextWidth) / 2.0f,
         barY + barHeight + 16.0f,

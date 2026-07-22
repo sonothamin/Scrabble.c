@@ -2,6 +2,7 @@
 #include <string.h>
 #include "raylib.h"
 #include "raygui.h"
+#include "ui.h"
 
 static ErrorState g_ErrorState = { .isError = false, .title = "All Systems Go", .message = "No Error. Yaaay!" };
 
@@ -40,7 +41,7 @@ bool ShowErrorDialog(void)
 
     float paddingX = 50.0f;
     int fontSize = GuiGetStyle(DEFAULT, TEXT_SIZE);
-    int textWidth = MeasureText(g_ErrorState.message, fontSize);
+    int textWidth = MeasureAppText(g_ErrorState.message, fontSize);
 
     float msgBoxWidth = textWidth + (paddingX * 2.0f);
     if (msgBoxWidth < 450.0f) msgBoxWidth = 450.0f; 

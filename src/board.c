@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "game.h"
 #include "raylib.h"
+#include "ui.h"
 #include "error_service.h"
 
 void BoardInit(GameBoard *board, const char *filename)
@@ -120,12 +121,12 @@ void DrawTheCellTypes(GameBoard *match, float boardX, float boardY, float boardV
                 DrawRectangleRec((Rectangle){cellBounds.x + 1, cellBounds.y + 1, cellBounds.width - 2, cellBounds.height - 2}, bgStyle);
 
                 int cellFontSize = (int)(cellSize * 0.38f);
-                int textWidth = MeasureText(cellText, cellFontSize);
+                int textWidth = MeasureAppText(cellText, cellFontSize);
 
                 float textX = cellBounds.x + (cellSize - textWidth) / 2.0f;
                 float textY = cellBounds.y + (cellSize - cellFontSize) / 2.0f;
 
-                DrawText(cellText, textX, textY, cellFontSize, textColor);
+                DrawAppText(cellText, textX, textY, cellFontSize, textColor);
             }
         }
     }

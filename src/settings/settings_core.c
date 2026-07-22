@@ -202,7 +202,7 @@ bool DrawSettingsTabButton(const char *text, Rectangle bounds, bool isActive, in
 
     DrawRectangleRec(bounds, bg);
     DrawRectangleLinesEx(bounds, 1.5f, GetColor(GuiGetStyle(DEFAULT, LINE_COLOR)));
-    DrawText(text, bounds.x + 15.0f, bounds.y + (bounds.height - fontSize) / 2.0f, fontSize, textCol);
+    DrawAppText(text, bounds.x + 15.0f, bounds.y + (bounds.height - fontSize) / 2.0f, fontSize, textCol);
 
     return (isHovered && IsMouseButtonPressed(MOUSE_BUTTON_LEFT));
 }
@@ -243,7 +243,7 @@ void SettingsDraw(const AppState *state)
     }
 
     // --- Header ---
-    DrawText("SETTINGS & CONFIGURATION", padding, padding, baseFontSize * 1.7f, WHITE);
+    DrawAppText("SETTINGS & CONFIGURATION", padding, padding, baseFontSize * 1.7f, WHITE);
     DrawLineEx((Vector2){padding, headerLineY}, (Vector2){screenWidth - padding, headerLineY}, 2, GetColor(GuiGetStyle(DEFAULT, LINE_COLOR)));
 
     // --- Sidebar Navigation ---
@@ -327,7 +327,7 @@ void SettingsDraw(const AppState *state)
 
     // --- Footer Controls ---
     float footerY = screenHeight - padding;
-    DrawText("Navigate: [A/D] or Keys [1-4]  |  [B/ESC] Save & Return", padding, footerY, baseFontSize * 0.75f, GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_DISABLED)));
+    DrawAppText("Navigate: [A/D] or Keys [1-4]  |  [B/ESC] Save & Return", padding, footerY, baseFontSize * 0.75f, GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_DISABLED)));
 
     float backBtnWidth = baseFontSize * 10.5f;
     float backBtnHeight = baseFontSize * 1.6f;

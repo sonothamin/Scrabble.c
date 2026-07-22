@@ -110,9 +110,9 @@ void MenuDraw(AppState* state)
         DrawRectangleRoundedLines(tileRect, 0.18f, 4, outerLineColor);
 
         char letterStr[2] = { titleText[i], '\0' };
-        DrawText(
+        DrawAppText(
             letterStr, 
-            tileRect.x + (menuTileSize - MeasureText(letterStr, tileFontSize)) / 2.0f, 
+            tileRect.x + (menuTileSize - MeasureAppText(letterStr, tileFontSize)) / 2.0f, 
             tileRect.y + (menuTileSize - tileFontSize) / 2.0f - 4.0f, 
             tileFontSize, 
             textColor
@@ -120,7 +120,7 @@ void MenuDraw(AppState* state)
 
         if (titleText[i] != '.')
         {
-            DrawText(
+            DrawAppText(
                 GetMenuScrabbleScore(titleText[i]), 
                 tileRect.x + tileRect.width - scoreFontSize - 6.0f, 
                 tileRect.y + tileRect.height - scoreFontSize - 6.0f, 

@@ -3,6 +3,7 @@
 #include "app_state.h"
 #include "settings.h"
 #include "error_service.h"
+#include "ui.h"
 
 int main(void)
 {
@@ -14,6 +15,7 @@ int main(void)
     SetWindowMinSize(1380, 820);
 
     SearchAndSetResourceDir("resources");
+    InitAppFont();
 
     AppState appState = {0};
     InitAppState(&appState);
@@ -29,7 +31,6 @@ int main(void)
         appState.currentScreen = APP_SCREEN_MAIN_MENU;
     }
 
-    // Explicitly reset on clean boot
     ClearGlobalError();
 
     while (!WindowShouldClose() && !appState.shouldClose)
@@ -54,6 +55,7 @@ int main(void)
     }
 
     CloseAppState(&appState);
+    UnloadAppFont();
     CloseWindow();
 
     return 0;

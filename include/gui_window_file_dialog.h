@@ -261,7 +261,7 @@ void GuiWindowFileDialog(GuiWindowFileDialogState *state, char windowTitle[])
         state->windowActive = !GuiWindowBox(state->windowBounds, state->dialogTitle);
 
         // Draw previous directory button + logic
-        if (GuiButton((Rectangle){ state->windowBounds.x + state->windowBounds.width - 48, state->windowBounds.y + 24 + 12, 40, 24 }, "< .."))
+        if (GuiButton((Rectangle){ state->windowBounds.x + state->windowBounds.width - 48 - 25, state->windowBounds.y + 24 + 12, 25 + 40, 24 }, "Back"))
         {
             // Move dir path one level up
             strcpy(state->dirPathText, GetPrevDirectoryPath(state->dirPathText));
@@ -275,7 +275,7 @@ void GuiWindowFileDialog(GuiWindowFileDialogState *state, char windowTitle[])
         }
 
         // Draw current directory text box info + path editing logic
-        if (GuiTextBox((Rectangle){ state->windowBounds.x + 8, state->windowBounds.y + 24 + 12, state->windowBounds.width - 48 - 16, 24 }, state->dirPathText, 1024, state->dirPathEditMode))
+        if (GuiTextBox((Rectangle){ state->windowBounds.x + 8, state->windowBounds.y + 24 + 12, state->windowBounds.width - 48 - 35, 24 }, state->dirPathText, 1024, state->dirPathEditMode))
         {
             if (state->dirPathEditMode)
             {
@@ -335,7 +335,7 @@ void GuiWindowFileDialog(GuiWindowFileDialogState *state, char windowTitle[])
 
         // Draw bottom controls
         //--------------------------------------------------------------------------------------
-        GuiLabel((Rectangle){ state->windowBounds.x + 8, state->windowBounds.y + state->windowBounds.height - 68, 100, 24 }, "File name:");
+        GuiLabel((Rectangle){ state->windowBounds.x + 8, state->windowBounds.y + state->windowBounds.height - 68, 150, 20}, "File name:");
         if (GuiTextBox((Rectangle){ state->windowBounds.x + 150, state->windowBounds.y + state->windowBounds.height - 68, state->windowBounds.width - 280, 24 }, state->fileNameText, 128, state->fileNameEditMode))
         {
             if (*state->fileNameText)
