@@ -21,7 +21,7 @@ typedef enum
     GAME_MODE_ONLINE_MATCH
 } GameMode;
 
-typedef struct
+typedef struct GameState
 {
     GameMode mode;
     char dictionaryPath[256];
