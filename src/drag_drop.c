@@ -60,7 +60,7 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
     }
 
     // Drop the tile on left click release
-    if ((match->dragState.isDragging) && IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
+    else if ((match->dragState.isDragging) && IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
     {
         bool dropSuccessful = false;
 
