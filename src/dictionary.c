@@ -24,8 +24,10 @@ void Free_Dictionary(Dictionary *dictionary)
 bool Load_Dictionary(Dictionary *dictionary, const char *dictionary_file)
 {
     if (!dictionary || !dictionary_file)
+    {
         ReportCriticalError("Dictionary struct or file is not received", "Failed to receive struct or the dictionary file");
-    return false;
+        return false;
+    }
 
     FILE *file = fopen(dictionary_file, "r");
 
@@ -71,7 +73,7 @@ bool Load_Dictionary(Dictionary *dictionary, const char *dictionary_file)
         }
 
         int wordLength = strlen(line) + 1;
-        dictionary->words[dictionary->size] = malloc((wordLength) * sizeof(char));
+        dictionary->words[dictionary->size] = malloc(wordLength * sizeof(char));
         if (!dictionary->words[dictionary->size])
         {
             ReportCriticalError("System Memory Exhausted", "Failed to allocate memory for a dictionary word");
@@ -80,8 +82,7 @@ bool Load_Dictionary(Dictionary *dictionary, const char *dictionary_file)
             return false;
         }
 
-        memcpy(dictionary->words[dictionary->size], line, wordLength); // aggressivrly copies all the things upto wordLength
-        // don't need to check null character, saves time
+        memcpy(dictionary->words[dictionary->size], line, wordLength);
         dictionary->size++;
     }
 

@@ -53,7 +53,6 @@ void BoardInit(GameBoard *board, const char *filename)
         }
     }
     fclose(file);
-    return;
 }
 
 void BoardReset(GameBoard *board)
@@ -74,32 +73,30 @@ void DrawTheCellTypes(GameBoard *match, float boardX, float boardY, float boardV
     {
         for (int c = 0; c < match->sideSize; c++)
         {
-            // Calculate exact bounding rectangle for this cell coordinates
             Rectangle cellBounds = {
                 boardX + (c * cellSize),
                 boardY + (r * cellSize),
                 cellSize,
                 cellSize};
 
-            Color bgStyle = (Color){00, 00, 00, 255}; // Default normal board color
+            Color bgStyle = (Color){0, 0, 0, 255};
             const char *cellText = "";
             Color textColor = (Color){200, 200, 215, 255};
 
-            // Read the logic type mapping from your game state matrix
             switch (match->cells[r][c])
             {
             case LUXURY_DOUBLE_LETTER:
-                bgStyle = (Color){155, 203, 237, 255}; // Light Blue
+                bgStyle = (Color){155, 203, 237, 255};
                 cellText = "DL";
                 textColor = (Color){25, 45, 65, 255};
                 break;
             case LUXURY_TRIPLE_LETTER:
-                bgStyle = (Color){45, 120, 210, 255}; // Dark Blue
+                bgStyle = (Color){45, 120, 210, 255};
                 cellText = "TL";
                 textColor = (Color){255, 255, 255, 255};
                 break;
             case LUXURY_DOUBLE_WORD:
-                bgStyle = (Color){237, 160, 160, 255}; // Pink / Coral
+                bgStyle = (Color){237, 160, 160, 255};
                 cellText = "DW";
                 textColor = (Color){65, 20, 20, 255};
 
@@ -109,7 +106,7 @@ void DrawTheCellTypes(GameBoard *match, float boardX, float boardY, float boardV
                 }
                 break;
             case LUXURY_TRIPLE_WORD:
-                bgStyle = (Color){220, 55, 55, 255}; // Deep Red
+                bgStyle = (Color){220, 55, 55, 255};
                 cellText = "TW";
                 textColor = (Color){255, 255, 255, 255};
                 break;
@@ -118,10 +115,8 @@ void DrawTheCellTypes(GameBoard *match, float boardX, float boardY, float boardV
                 break;
             }
 
-            // Draw styling if it's a special bonus multiplier square
             if (match->cells[r][c] != LUXURY_NONE)
             {
-                // Inset by 1px so it nests perfectly inside your grid outline lines
                 DrawRectangleRec((Rectangle){cellBounds.x + 1, cellBounds.y + 1, cellBounds.width - 2, cellBounds.height - 2}, bgStyle);
 
                 int cellFontSize = (int)(cellSize * 0.38f);

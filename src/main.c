@@ -20,7 +20,6 @@ int main(void)
 
     appState.shouldClose = false;
 
-    // Fixed: Accessed pointer member via '->' with NULL check
     if (appState.settingsState != NULL && appState.settingsState->showLoadingScreen)
     {
         appState.currentScreen = APP_SCREEN_LOADING;
@@ -47,9 +46,10 @@ int main(void)
 
         BeginDrawing();
         DrawAppState(&appState);
-        if (HasGlobalError())
-            if (ShowErrorDialog())
-                appState.shouldClose = true;
+        if (HasGlobalError() && ShowErrorDialog())
+        {
+            appState.shouldClose = true;
+        }
         EndDrawing();
     }
 

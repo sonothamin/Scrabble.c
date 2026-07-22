@@ -54,15 +54,9 @@ void GameDraw(AppState *state)
     }
 
     if (state->gamestate == NULL)
-    {
-        state->gamestate = (GameState *)malloc(sizeof(GameState));
-        if (state->gamestate != NULL)
-            GameInit(state->gamestate);
-    }
+        return;
 
     GameState *match = state->gamestate;
-    if (!match)
-        return;
     const int screenWidth = GetScreenWidth();
     const int screenHeight = GetScreenHeight();
 
@@ -201,7 +195,6 @@ void GameDraw(AppState *state)
 
     float historySplitWidth = (rightSideWidth - (layoutGap * 1.5f)) / 2.0f;
     float historyInnerY = historySectionY + 25.0f;
-    float ledgerRowH = (historyPanelHeight - 55.0f) / 5.0f;
 
     for (int p = 0; p < 2; p++)
     {
@@ -211,21 +204,6 @@ void GameDraw(AppState *state)
         DrawRectangleLinesEx(subHistoryRect, 1.0f, (Color){54, 68, 82, 255});
         DrawRectangle(subHistoryRect.x, subHistoryRect.y, subHistoryRect.width, 28, (Color){45, 55, 66, 255});
         DrawText(TextFormat("Player %d History", p + 1), subHistoryRect.x + 12, subHistoryRect.y + 7, baseFontSize - 2, (Color){196, 181, 137, 255});
-
-        for (int w = 0; w < 0 && w < 5; w++)
-        {
-            float currentRowY = subHistoryRect.y + 28.0f + (w * ledgerRowH);
-            if (w % 2 == 1)
-            {
-                DrawRectangle(subHistoryRect.x + 1, currentRowY, subHistoryRect.width - 2, ledgerRowH, (Color){36, 46, 56, 255});
-            }
-
-            float textY = currentRowY + (ledgerRowH - (baseFontSize - 2)) / 2.0f;
-            DrawText("", subHistoryRect.x + 15.0f, textY, baseFontSize - 2, (Color){200, 200, 215, 255});
-
-            const char *ptsStr = "+0";
-            DrawText(ptsStr, subHistoryRect.x + subHistoryRect.width - MeasureText(ptsStr, baseFontSize - 2) - 15.0f, textY, baseFontSize - 2, (Color){111, 200, 140, 255});
-        }
     }
 
     // --- FOOTER MANAGEMENT ACTION BAR ---
