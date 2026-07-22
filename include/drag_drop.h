@@ -3,6 +3,7 @@
 
 #include "raylib.h"
 #include <stdbool.h>
+#include "board.h"
 
 typedef struct GameState GameState; // Forward Declaration
 

@@ -1,6 +1,7 @@
 #include "drag_drop.h"
 #include <math.h>
 #include "game.h"
+#include "board.h"
 
 void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rackRect, float tileSize, float tileSpacing)
 {
