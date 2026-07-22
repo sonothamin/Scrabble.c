@@ -99,15 +99,9 @@ void GameDraw(AppState *state)
     }
 
     if (state->gamestate == NULL)
-    {
-        state->gamestate = (GameState *)malloc(sizeof(GameState));
-        if (state->gamestate != NULL)
-            GameInit(state->gamestate);
-    }
+        return;
 
     GameState *match = state->gamestate;
-    if (!match)
-        return;
     const int screenWidth = GetScreenWidth();
     const int screenHeight = GetScreenHeight();
 
@@ -211,8 +205,8 @@ void GameDraw(AppState *state)
     for (int p = 0; p < 2; p++)
     {
         const char *scoreStr = TextFormat("%03d", match->players[p].score);
-        float textX = scoreRect.x + 15.0f + (p * scoreColW) + (scoreColW - MeasureText(scoreStr, massiveFontSize)) / 2.0f;
-        DrawText(scoreStr, textX, scoreTextY, massiveFontSize, neonLime);
+        float textX = scoreRect.x + 15.0f + (p * scoreColW) + (scoreColW - MeasureAppText(scoreStr, massiveFontSize)) / 2.0f;
+        DrawAppText(scoreStr, textX, scoreTextY, massiveFontSize, neonLime);
     }
 
     float horizontalLineY = scoreTextY + massiveFontSize + 12.0f;
@@ -258,12 +252,12 @@ void GameDraw(AppState *state)
 
             char letterStr[2] = {tile.letter, '\0'};
             int rackTileFontSize = (int)(tileSize * 0.55f);
-            DrawText(letterStr, tileBounds.x + (tileSize * 0.15f), tileBounds.y + (tileSize - rackTileFontSize) / 2.0f, rackTileFontSize, (Color){38, 28, 16, 255});
+            DrawAppText(letterStr, tileBounds.x + (tileSize * 0.15f), tileBounds.y + (tileSize - rackTileFontSize) / 2.0f, rackTileFontSize, (Color){38, 28, 16, 255});
 
             int scoreValue = tile.value;
             const char *scoreStr = TextFormat("%d", scoreValue);
             int scoreFontSize = (int)(tileSize * 0.22f);
-            DrawText(scoreStr, tileBounds.x + tileSize - MeasureText(scoreStr, scoreFontSize) - (tileSize * 0.12f), tileBounds.y + tileSize - scoreFontSize - (tileSize * 0.10f), scoreFontSize, (Color){80, 65, 50, 255});
+            DrawAppText(scoreStr, tileBounds.x + tileSize - MeasureAppText(scoreStr, scoreFontSize) - (tileSize * 0.12f), tileBounds.y + tileSize - scoreFontSize - (tileSize * 0.10f), scoreFontSize, (Color){80, 65, 50, 255});
         }
     }
 
@@ -277,7 +271,6 @@ void GameDraw(AppState *state)
 
     float historySplitWidth = (rightSideWidth - (layoutGap * 1.5f)) / 2.0f;
     float historyInnerY = historySectionY + 25.0f;
-    float ledgerRowH = (historyPanelHeight - 55.0f) / 5.0f;
 
     for (int p = 0; p < 2; p++)
     {
@@ -286,22 +279,7 @@ void GameDraw(AppState *state)
         DrawRectangleRec(subHistoryRect, (Color){30, 38, 46, 255});
         DrawRectangleLinesEx(subHistoryRect, 1.0f, (Color){54, 68, 82, 255});
         DrawRectangle(subHistoryRect.x, subHistoryRect.y, subHistoryRect.width, 28, (Color){45, 55, 66, 255});
-        DrawText(TextFormat("Player %d History", p + 1), subHistoryRect.x + 12, subHistoryRect.y + 7, baseFontSize - 2, (Color){196, 181, 137, 255});
-
-        for (int w = 0; w < 0 && w < 5; w++)
-        {
-            float currentRowY = subHistoryRect.y + 28.0f + (w * ledgerRowH);
-            if (w % 2 == 1)
-            {
-                DrawRectangle(subHistoryRect.x + 1, currentRowY, subHistoryRect.width - 2, ledgerRowH, (Color){36, 46, 56, 255});
-            }
-
-            float textY = currentRowY + (ledgerRowH - (baseFontSize - 2)) / 2.0f;
-            DrawText("", subHistoryRect.x + 15.0f, textY, baseFontSize - 2, (Color){200, 200, 215, 255});
-
-            const char *ptsStr = "+0";
-            DrawText(ptsStr, subHistoryRect.x + subHistoryRect.width - MeasureText(ptsStr, baseFontSize - 2) - 15.0f, textY, baseFontSize - 2, (Color){111, 200, 140, 255});
-        }
+        DrawAppText(TextFormat("Player %d History", p + 1), subHistoryRect.x + 12, subHistoryRect.y + 7, baseFontSize - 2, (Color){196, 181, 137, 255});
     }
 
     // --- FOOTER MANAGEMENT ACTION BAR ---
@@ -324,8 +302,8 @@ void GameDraw(AppState *state)
 
     DrawRectangle(turnRect.x + 2, turnRect.y + 2, 8, turnRect.height - 4, activeAlertColor);
 
-    DrawText("TURN:", turnRect.x + 22.0f, indicatorTextY, turnFontSize, (Color){150, 165, 175, 255});
-    DrawText(activeTurnStr, turnRect.x + 22.0f + MeasureText("TURN: ", turnFontSize), indicatorTextY, turnFontSize, activeAlertColor);
+    DrawAppText("TURN:", turnRect.x + 22.0f, indicatorTextY, turnFontSize, (Color){150, 165, 175, 255});
+    DrawAppText(activeTurnStr, turnRect.x + 22.0f + MeasureAppText("TURN: ", turnFontSize), indicatorTextY, turnFontSize, activeAlertColor);
 
     Rectangle actionBtnRect = {rightSideX + rightSideWidth - actionBtnWidth, elementY, actionBtnWidth, elementH};
     if (GuiButton(actionBtnRect, "Save & Exit Match"))

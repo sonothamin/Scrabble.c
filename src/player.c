@@ -10,8 +10,7 @@ void init_player(Player *player)
         ReportCriticalError("Invalid Player State", "NULL Player pointer encountered while initializing Players.");
         return;
     }
-    
-    
+
     player->rack_count = 0;
     player->score = 0;
 
