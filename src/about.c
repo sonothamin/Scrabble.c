@@ -28,6 +28,7 @@ void AboutInit(AboutState *state)
     }
     state->activeTab = ABOUT_TAB_OVERVIEW;
     state->scrollOffset = 0.0f;
+    state->EasterState = 0;
 }
 
 void AboutUpdate(AppState *appState, AboutState *aboutState)
@@ -133,7 +134,7 @@ void AboutDraw(AppState *appState, AboutState *aboutState)
     float contentHeight = screenHeight - contentTop - padding - 35.0f;
 
     Rectangle contentBox = {contentLeft, contentTop, contentWidth, contentHeight};
-    GuiGroupBox(contentBox, "--< Terminal >--");
+    GuiGroupBox(contentBox, " Terminal ");
 
     float contentX = contentBox.x + 40.0f;
     float stepGap = baseFontSize * 1.6f;
@@ -187,7 +188,7 @@ void AboutDraw(AppState *appState, AboutState *aboutState)
         break;
 
     case ABOUT_TAB_TECH:
-        DrawAppText("SYSTEM TELEMETRY", contentX, contentY, baseFontSize * 1.1f, GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED)));
+        DrawAppText("Tech and Stack", contentX, contentY, baseFontSize * 1.1f, GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED)));
         DrawAppText("> Graphics Library : Raylib", contentX, contentY + stepGap, baseFontSize * 0.9f, WHITE);
         DrawAppText("> UI Library : RayGUI", contentX, contentY + (stepGap * 2), baseFontSize * 0.9f, WHITE);
         DrawAppText("> Written in C and somehow we are still sane. SEND HELP!!", contentX, contentY + (stepGap * 3), baseFontSize * 0.9f, WHITE);
@@ -197,9 +198,15 @@ void AboutDraw(AppState *appState, AboutState *aboutState)
     EndScissorMode();
 
     float footerY = screenHeight - padding;
-    DrawAppText("Navigate: [A/D] or Keys [1-3]  |  [ESC] Main Menu", padding, footerY, baseFontSize * 0.75f, GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_DISABLED)));
+    DrawAppText("Navigate: [W/S] or Keys [1-3]  |  [ESC] Main Menu", padding, footerY, baseFontSize * 0.75f, GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_DISABLED)));
 
-    if (IsKeyDown(KEY_SPACE))
+    if(IsKeyPressed(KEY_SPACE))
+    {
+        aboutState->EasterState = (aboutState->EasterState ? 0 : 1);
+        if(aboutState->EasterState) PlaySoundEffect(SFX_ABOUT);
+    }
+
+    if (aboutState->EasterState)
     {
         const char *prefix = "Made with ";
         const char *suffix = " by Sonoth Amin";
@@ -210,11 +217,10 @@ void AboutDraw(AppState *appState, AboutState *aboutState)
         DrawAppText(prefix, eggX, footerY - 2.0f, textFontSize, GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED)));
         DrawProceduralHeart(eggX + MeasureAppText(prefix, textFontSize) + 5.0f, (footerY - 2.0f) + 1.0f, textFontSize * 0.85f, RED);
         DrawAppText(suffix, eggX + MeasureAppText(prefix, textFontSize) + (textFontSize * 0.85f) + 10.0f, footerY - 2.0f, textFontSize, GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED)));
-        PlaySoundEffect(SFX_ABOUT);
     }
     else
     {
-        const char *prompt = "[S] SECURE LOG";
+        const char *prompt = "[Space] Try?";
         DrawAppText(prompt, screenWidth - MeasureAppText(prompt, baseFontSize * 0.75f) - padding, footerY, baseFontSize * 0.75f, ColorAlpha(GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_DISABLED)), 0.3f));
     }
 }

@@ -52,6 +52,7 @@ void GameUpdate(AppState *state)
 
     if (state->gamestate == NULL)
     {
+        ReportCriticalError("Invalid Game State", "NULL GameState pointer encountered in AppState while updating Game.");
         return;
     }
     GameState *match = state->gamestate;
@@ -176,7 +177,7 @@ void GameDraw(AppState *state)
     float rowHeight = (topPanelsHeight - 35.0f) / 3.0f;
     const char *keys[3] = {"Mode:", "Special Tiles:", "Tiles Left:"};
 
-    const char *modeStr = (match->mode == GAME_MODE_LOCAL_1V1) ? "Local 1v1" : "AI vs Player";
+    const char *modeStr = (match->mode == GAME_MODE_LOCAL_1V1) ? "Local 1v1" : "Network";
     const char *tilesLeftStr = TextFormat("%d Tiles", match->tileBagCount);
     const char *values[3] = {modeStr, match->specialTilesEnabled ? "Enabled" : "Disabled", tilesLeftStr};
 
