@@ -28,7 +28,6 @@ void AboutInit(AboutState *state)
     }
     state->activeTab = ABOUT_TAB_OVERVIEW;
     state->scrollOffset = 0.0f;
-    PlaySoundEffect(SFX_ABOUT);
 }
 
 void AboutUpdate(AppState *appState, AboutState *aboutState)
@@ -42,12 +41,12 @@ void AboutUpdate(AppState *appState, AboutState *aboutState)
         return;
     }
 
-    if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_D))
+    if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S))
     {
         aboutState->activeTab = (aboutState->activeTab + 1) % 3;
         aboutState->scrollOffset = 0.0f;
     }
-    else if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_A))
+    else if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W))
     {
         aboutState->activeTab = (aboutState->activeTab - 1 + 3) % 3;
         aboutState->scrollOffset = 0.0f;
@@ -204,13 +203,13 @@ void AboutDraw(AppState *appState, AboutState *aboutState)
         const char *prefix = "Made with ";
         const char *suffix = " by Sonoth Amin";
         int textFontSize = baseFontSize * 0.85f;
-
         float totalWidth = MeasureAppText(prefix, textFontSize) + textFontSize + 10.0f + MeasureAppText(suffix, textFontSize);
         float eggX = screenWidth - totalWidth - padding;
 
         DrawAppText(prefix, eggX, footerY - 2.0f, textFontSize, GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED)));
         DrawProceduralHeart(eggX + MeasureAppText(prefix, textFontSize) + 5.0f, (footerY - 2.0f) + 1.0f, textFontSize * 0.85f, RED);
         DrawAppText(suffix, eggX + MeasureAppText(prefix, textFontSize) + (textFontSize * 0.85f) + 10.0f, footerY - 2.0f, textFontSize, GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED)));
+        PlaySoundEffect(SFX_ABOUT);
     }
     else
     {
