@@ -3,6 +3,7 @@
 #include "raylib.h"
 #include "raygui.h"
 #include "error_service.h"
+#include "sound.h"
 
 static void DrawProceduralHeart(float x, float y, float size, Color color)
 {
@@ -27,6 +28,7 @@ void AboutInit(AboutState *state)
     }
     state->activeTab = ABOUT_TAB_OVERVIEW;
     state->scrollOffset = 0.0f;
+    PlaySoundEffect(SFX_ABOUT);
 }
 
 void AboutUpdate(AppState *appState, AboutState *aboutState)

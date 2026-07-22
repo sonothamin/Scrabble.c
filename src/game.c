@@ -9,7 +9,7 @@
 #include "sound.h"
 #include "error_service.h"
 #include "bag.h"
-
+#include "drag_drop.h"
 
 void GameInit(GameState *match)
 {
@@ -28,6 +28,10 @@ void GameInit(GameState *match)
     refill_rack(&match->players[1], &match->tileBag);
     match->activePlayerIdx = 0;
     match->tileBagCount = match->tileBag.tiles_remaining;
+
+    // Reset Drag and Drop state
+    match->dragState.isDragging = false;
+    match->dragState.draggedTileIdx = -1;
     PlaySoundEffect(SFX_GAME_START);
 }
 
@@ -42,7 +46,48 @@ void GameUpdate(AppState *state)
     if (IsKeyPressed(KEY_ESCAPE))
     {
         state->currentScreen = APP_SCREEN_MAIN_MENU;
+        return;
     }
+
+    if (state->gamestate == NULL)
+    {
+        return;
+    }
+    GameState *match = state->gamestate;
+
+    // --- RECALCULATE BOUNDS FOR DRAG & DROP INPUT ---
+    const int screenWidth = GetScreenWidth();
+    const int screenHeight = GetScreenHeight();
+
+    const float padding = screenWidth * 0.03f;
+    const float layoutGap = screenWidth * 0.02f;
+    const float rightSideX = (screenWidth * 0.45f) + padding + layoutGap;
+    const float rightSideWidth = screenWidth - rightSideX - padding;
+
+    // Board Bounds
+    Rectangle boardBoundaries = {padding, padding, screenWidth * 0.45f, screenHeight - (padding * 2.0f)};
+    float groupBoxHeaderHeight = 25.0f;
+    float gridInnerPad = 15.0f;
+    float usableWidth = boardBoundaries.width - (gridInnerPad * 2.0f);
+    float usableHeight = boardBoundaries.height - groupBoxHeaderHeight - (gridInnerPad * 2.0f);
+    float boardVisualSize = fminf(usableWidth, usableHeight);
+    float boardX = boardBoundaries.x + (boardBoundaries.width - boardVisualSize) / 2.0f;
+    float boardY = boardBoundaries.y + groupBoxHeaderHeight + (usableHeight - boardVisualSize) / 2.0f;
+    Rectangle boardBounds = {boardX, boardY, boardVisualSize, boardVisualSize};
+
+    // Active Rack Bounds
+    float topPanelsY = padding;
+    float topPanelsHeight = screenHeight * 0.18f;
+    float rackSectionY = topPanelsY + topPanelsHeight + layoutGap;
+    float rackPanelHeight = screenHeight * 0.10f;
+
+    int p = match->activePlayerIdx;
+    Rectangle activeRackRect = {rightSideX, rackSectionY + (p * (rackPanelHeight + (layoutGap * 0.5f))), rightSideWidth, rackPanelHeight};
+    float tileSize = rackPanelHeight * 0.6f;
+    float tileSpacing = 8.0f;
+
+    // Process drag and drop interactions
+    HandleDragNDropInput(match, boardBounds, activeRackRect, tileSize, tileSpacing);
 }
 
 void GameDraw(AppState *state)
@@ -90,6 +135,31 @@ void GameDraw(AppState *state)
     {
         DrawLineV((Vector2){boardX + (i * cellSize), boardY}, (Vector2){boardX + (i * cellSize), boardY + boardVisualSize}, (Color){54, 68, 82, 100});
         DrawLineV((Vector2){boardX, boardY + (i * cellSize)}, (Vector2){boardX + boardVisualSize, boardY + (i * cellSize)}, (Color){54, 68, 82, 100});
+    }
+
+    // Draw placed tiles on the board grid
+    for (int r = 0; r < match->board.sideSize; r++)
+    {
+        for (int c = 0; c < match->board.sideSize; c++)
+        {
+            Tile placedTile = match->board.grid[r][c];
+            if (placedTile.letter != '\0')
+            {
+                Rectangle cellBounds = {boardX + (c * cellSize) + 1, boardY + (r * cellSize) + 1, cellSize - 2, cellSize - 2};
+                DrawRectangleRounded(cellBounds, 0.15f, 3, (Color){244, 228, 198, 255});
+                DrawRectangleRoundedLines(cellBounds, 0.15f, 3, (Color){194, 169, 126, 255});
+
+                char letterStr[2] = {placedTile.letter, '\0'};
+                int tileFontSize = (int)(cellSize * 0.55f);
+                int textW = MeasureText(letterStr, tileFontSize);
+                DrawText(letterStr, cellBounds.x + (cellSize - textW) / 2.0f, cellBounds.y + (cellSize - tileFontSize) / 2.0f, tileFontSize, (Color){38, 28, 16, 255});
+
+                const char *scoreStr = TextFormat("%d", placedTile.value);
+                int scoreFontSize = (int)(cellSize * 0.22f);
+                int scoreW = MeasureText(scoreStr, scoreFontSize);
+                DrawText(scoreStr, cellBounds.x + cellSize - scoreW - (cellSize * 0.08f), cellBounds.y + cellSize - scoreFontSize - (cellSize * 0.06f), scoreFontSize, (Color){80, 65, 50, 255});
+            }
+        }
     }
 
     // --- RIGHT COLUMN: STATISTICS & MANAGEMENT ---
@@ -157,6 +227,8 @@ void GameDraw(AppState *state)
     // Center Section: Tile Racks
     float rackSectionY = topPanelsY + topPanelsHeight + layoutGap;
     float rackPanelHeight = screenHeight * 0.10f;
+    float activeTileSize = rackPanelHeight * 0.6f;
+    float activeTileSpacing = 8.0f;
 
     for (int p = 0; p < 2; p++)
     {
@@ -169,6 +241,10 @@ void GameDraw(AppState *state)
 
         for (int t = 0; t < match->players[p].rack_count; t++)
         {
+            if ((p == match->activePlayerIdx) && (match->dragState.isDragging) && (match->dragState.draggedTileIdx == t))
+            {
+                continue;
+            }
             Tile tile = match->players[p].rack[t];
             Rectangle tileBounds = {rackRect.x + 15.0f + (t * (tileSize + tileSpacing)), tileY, tileSize, tileSize};
             DrawRectangleRounded(tileBounds, 0.2f, 4, (Color){244, 228, 198, 255});
@@ -234,4 +310,8 @@ void GameDraw(AppState *state)
     {
         state->currentScreen = APP_SCREEN_MAIN_MENU;
     }
+
+    // Draw drag overlay at cursor position
+    Rectangle activeRackRect = {rightSideX, rackSectionY + (match->activePlayerIdx * (rackPanelHeight + (layoutGap * 0.5f))), rightSideWidth, rackPanelHeight};
+    DrawDragNDropOverlay(match, activeRackRect, activeTileSize, activeTileSpacing);
 }
