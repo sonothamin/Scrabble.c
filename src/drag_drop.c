@@ -76,17 +76,18 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
                 // Place tile if target board space is empty
                 if (match->board.grid[gridY][gridX].letter == '\0')
                 {
-                    int srcIdx = match->dragState.draggedTileIdx;
                     // Copy tile to board
-                    match->board.grid[gridY][gridX] = currentPlayer->rack[srcIdx];
+                    match->board.grid[gridY][gridX] = match->dragState.draggedTile;
 
                     // If it came from the rack, remove it from the rack array
                     if (match->dragState.isFromRack)
                     {
+                        int srcIdx = match->dragState.draggedTileIdx;
                         for (int i = srcIdx; i < currentPlayer->rack_count - 1; i++)
                         {
                             currentPlayer->rack[i] = currentPlayer->rack[i + 1];
                         }
+                        currentPlayer->rack[currentPlayer->rack_count - 1] = (Tile){.letter = '\0', .value = 0, .isWildCard = false};
                         currentPlayer->rack_count--;
                     }
 
@@ -123,6 +124,7 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
         match->dragState.isDragging = false;
         match->dragState.isFromRack = false;
         match->dragState.draggedTileIdx = -1;
+        match->dragState.draggedTile = (Tile){.letter = '\0', .value = 0, .isWildCard = false};
     }
 }
 
@@ -131,14 +133,7 @@ void DrawDragNDropOverlay(const GameState *match, Rectangle rackRect, float tile
     if (!match || !match->dragState.isDragging)
         return;
 
-    int p = match->activePlayerIdx;
-    int draggedIdx = match->dragState.draggedTileIdx;
-
-    // Bounds check to ensure index stability
-    if (draggedIdx < 0 || draggedIdx >= match->players[p].rack_count)
-        return;
-
-    Tile activeTile = match->players[p].rack[draggedIdx];
+    Tile activeTile = match->dragState.draggedTile;
     Vector2 mousePos = GetMousePosition();
 
     // Center the rendering bounds directly beneath the user's cursor position
