@@ -2,6 +2,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "error_service.h"
+#include "sound.h"
 
 bool Is_Word_In_Dictionary(const char *word, const Dictionary *dictionary)
 {
@@ -238,6 +239,7 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE], Tile previ
     if (!wordFound || charCount < 2)
     {
         ReportGameWarning("Invalid Move", "A valid word must contain at least 2 letters.", 3.0f);
+        PlaySoundEffect(SFX_INVALID_MOVE);
         return 0;
     }
 
@@ -250,6 +252,7 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE], Tile previ
     if (!isFirstMove && !connectsToExisting)
     {
         ReportGameWarning("Invalid Move", "Word must connect to existing tiles on the board.", 3.0f);
+        PlaySoundEffect(SFX_INVALID_MOVE);
         return 0;
     }
     for (int i = 0; wordBuffer[i] != '\0'; i++)
@@ -260,6 +263,7 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE], Tile previ
     if (!Is_Word_In_Dictionary(wordBuffer, dictionary))
     {
         ReportGameWarning("Invalid Word", "The formed word is not in the dictionary.", 3.0f);
+        PlaySoundEffect(SFX_INVALID_MOVE);
         return 0;
     }
 
