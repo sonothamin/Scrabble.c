@@ -2,6 +2,7 @@
 #include <math.h>
 
 #define RAYGUI_IMPLEMENTATION
+#define FONT "PTSerif-Regular.ttf"
 #include "raygui.h"
 
 void DrawScreenBox(const char *title, const char *instructions)
@@ -107,11 +108,11 @@ static bool g_appFontLoaded = false;
 
 void InitAppFont(void)
 {
-    g_appFont = LoadFontEx("PTSerif-Regular.ttf", APP_FONT_BASE_SIZE, NULL, 0);
+    g_appFont = LoadFontEx(FONT, APP_FONT_BASE_SIZE, NULL, 0);
 
     if (g_appFont.texture.id == 0)
     {
-        TraceLog(LOG_WARNING, "[UI] PTSerif-Regular.ttf could not be loaded. Using default font.");
+        TraceLog(LOG_WARNING, "[UI] FONT could not be loaded. Using default font.");
         g_appFont = GetFontDefault();
         g_appFontLoaded = false;
     }
@@ -119,7 +120,7 @@ void InitAppFont(void)
     {
         SetTextureFilter(g_appFont.texture, TEXTURE_FILTER_BILINEAR);
         g_appFontLoaded = true;
-        TraceLog(LOG_INFO, "[UI] PTSerif-Regular.ttf loaded successfully (base size: %d).", APP_FONT_BASE_SIZE);
+        TraceLog(LOG_INFO, "[UI] FONT loaded successfully (base size: %d).", APP_FONT_BASE_SIZE);
     }
 
     GuiSetFont(g_appFont);
