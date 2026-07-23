@@ -1,6 +1,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include "game.h"
 #include "ui.h"
 #include "app_state.h"
