@@ -5,6 +5,7 @@
 #include "raygui.h"
 #include "ui.h"
 
+// // For FATAL errors
 static ErrorState g_ErrorState = {.isError = false, .title = "All Systems Go", .message = "No Error. Yaaay!"};
 
 // For NON-FATAL errors
@@ -114,7 +115,7 @@ void DrawErrorServiceOverlay(void)
     DrawRectangleRounded(bannerRect, 0.25f, 4, (Color){180, 40, 40, 230});
     DrawRectangleRoundedLinesEx(bannerRect, 0.25f, 4, 2.0f, (Color){255, 90, 90, 255});
 
-    int fontSize = 16;
+    int fontSize = 20;
     char fullText[200];
     snprintf(fullText, sizeof(fullText), "%s: %s", g_warningTitle, g_warningMessage);
 
