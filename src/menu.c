@@ -38,7 +38,7 @@ void MenuUpdate(AppState* state)
         PlaySoundEffect(SFX_BUTTON);
         state->currentScreen = APP_SCREEN_SETTINGS;
     }
-    else if (IsKeyPressed(KEY_Q) || IsKeyPressed(KEY_ESCAPE))
+    else if (IsKeyPressed(KEY_Q))
     {
         state->shouldClose = true;
     }
@@ -169,7 +169,7 @@ void MenuDraw(AppState* state)
 
     // Bottom Quick HUD Info
     GuiLine((Rectangle){ padding + 25.0f, contentTop + (rowHeight * 4.6f), mainPanelWidth - 50.0f, 8.0f }, NULL);
-    GuiLabel((Rectangle){ padding + 25.0f, contentTop + (rowHeight * 4.9f), mainPanelWidth - 50.0f, rowHeight * 0.5f }, "Q: Quit   M: Mute Everything   L: Quick Load   N: Quick Local   F11: Fullscreen");
+    GuiLabel((Rectangle){ padding + 25.0f, contentTop + (rowHeight * 4.9f), mainPanelWidth - 50.0f, rowHeight * 0.5f }, "[Q]: Quit   [M]: Mute Everything   [L]: Quick Load   [N]: Quick Local   [F11]: Fullscreen");
 
     float optionPanelX = screenWidth - padding - optionPanelWidth;
     GuiGroupBox((Rectangle){ optionPanelX, contentTop, optionPanelWidth, mainPanelHeight }, "SETTINGS & OPTIONS");
