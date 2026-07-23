@@ -262,7 +262,9 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE], Tile previ
 
     if (!Is_Word_In_Dictionary(wordBuffer, dictionary))
     {
-        ReportGameWarning("Invalid Word", "The formed word is not in the dictionary.", 3.0f);
+        char dictWarningMsg[256];
+        snprintf(dictWarningMsg, sizeof(dictWarningMsg), "%s is not in the dictionary.", wordBuffer);
+        ReportGameWarning("Invalid Word", dictWarningMsg, 3.0f);
         PlaySoundEffect(SFX_INVALID_MOVE);
         return 0;
     }

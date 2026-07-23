@@ -127,17 +127,13 @@ void GameUpdate(AppState *state)
 
             if (scoreGain > 0)
             {
-                PlaySoundEffect(SFX_SCORE);
+          PlaySoundEffect(SFX_SCORE);
                 match->players[match->activePlayerIdx].score += scoreGain;
                 refill_rack(&match->players[match->activePlayerIdx], &match->tileBag);
                 match->tileBagCount = match->tileBag.tiles_remaining;
 
                 memcpy(&match->previousBoard, &match->board, sizeof(GameBoard));
                 match->activePlayerIdx = (match->activePlayerIdx + 1) % 2;
-            }
-            else
-            {
-                PlaySoundEffect(SFX_ERROR);
             }
         }
     }
