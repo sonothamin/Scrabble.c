@@ -127,7 +127,30 @@ void GameUpdate(AppState *state)
 
             if (scoreGain > 0)
             {
-          PlaySoundEffect(SFX_SCORE);
+                // Determine the highest word-multiplier among newly placed tiles
+                bool has3W = false, has2W = false;
+                for (int y = 0; y < BOARD_SIDE; y++)
+                {
+                    for (int x = 0; x < BOARD_SIDE; x++)
+                    {
+                        if (match->board.grid[y][x].letter != '\0' &&
+                            match->previousBoard.grid[y][x].letter == '\0')
+                        {
+                            LuxuryType lux = match->board.cells[y][x];
+                            if (lux == LUXURY_TRIPLE_WORD)
+                                has3W = true;
+                            else if (lux == LUXURY_DOUBLE_WORD)
+                                has2W = true;
+                        }
+                    }
+                }
+
+                if (has3W)
+                    PlaySoundEffect(SFX_SCORE_3W);
+                else if (has2W)
+                    PlaySoundEffect(SFX_SCORE_2W);
+                else
+                    PlaySoundEffect(SFX_SCORE);
                 match->players[match->activePlayerIdx].score += scoreGain;
                 refill_rack(&match->players[match->activePlayerIdx], &match->tileBag);
                 match->tileBagCount = match->tileBag.tiles_remaining;
