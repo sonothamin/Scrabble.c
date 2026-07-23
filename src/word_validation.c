@@ -1,6 +1,7 @@
 #include "word_validation.h"
 #include <string.h>
 #include <ctype.h>
+#include <stdio.h>
 #include "error_service.h"
 #include "sound.h"
 
