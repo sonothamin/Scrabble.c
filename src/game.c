@@ -208,9 +208,9 @@ void GameDraw(AppState *state)
                 DrawAppText(letterStr, cellBounds.x + (cellSize - textW) / 2.0f, cellBounds.y + (cellSize - tileFontSize) / 2.0f, tileFontSize, (Color){38, 28, 16, 255});
 
                 const char *scoreStr = TextFormat("%d", placedTile.value);
-                int scoreFontSize = (int)(cellSize * 0.22f);
+                int scoreFontSize = (int)(cellSize * 0.40f);
                 int scoreW = MeasureText(scoreStr, scoreFontSize);
-                DrawAppText(scoreStr, cellBounds.x + cellSize - scoreW - (cellSize * 0.08f), cellBounds.y + cellSize - scoreFontSize - (cellSize * 0.06f), scoreFontSize, (Color){80, 65, 50, 255});
+                DrawAppText(scoreStr, cellBounds.x + cellSize - scoreW - (cellSize * 0.25f), cellBounds.y + cellSize - scoreFontSize - (cellSize * 0.06f), scoreFontSize, (Color){80, 65, 50, 255});
             }
         }
     }
@@ -309,8 +309,8 @@ void GameDraw(AppState *state)
 
             int scoreValue = tile.value;
             const char *scoreStr = TextFormat("%d", scoreValue);
-            int scoreFontSize = (int)(tileSize * 0.22f);
-            DrawAppText(scoreStr, tileBounds.x + tileSize - MeasureAppText(scoreStr, scoreFontSize) - (tileSize * 0.12f), tileBounds.y + tileSize - scoreFontSize - (tileSize * 0.10f), scoreFontSize, (Color){80, 65, 50, 255});
+            int scoreFontSize = (int)(cellSize * 0.40f);
+            DrawAppText(scoreStr, tileBounds.x + tileSize - MeasureAppText(scoreStr, scoreFontSize) - (tileSize * 0.25f), tileBounds.y + tileSize - scoreFontSize - (tileSize * 0.10f), scoreFontSize, (Color){80, 65, 50, 255});
         }
     }
 
