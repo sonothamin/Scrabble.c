@@ -17,7 +17,6 @@ typedef struct AppState AppState;
 typedef enum
 {
     GAME_MODE_LOCAL_1V1 = 0,
-    GAME_MODE_AI_VS_PLAYER,
     GAME_MODE_ONLINE_MATCH
 } GameMode;
 

@@ -3,6 +3,7 @@
 #include "raylib.h"
 #include "raygui.h"
 #include "error_service.h"
+#include "sound.h"
 
 static void DrawProceduralHeart(float x, float y, float size, Color color)
 {
@@ -27,6 +28,7 @@ void AboutInit(AboutState *state)
     }
     state->activeTab = ABOUT_TAB_OVERVIEW;
     state->scrollOffset = 0.0f;
+    state->EasterState = 0;
 }
 
 void AboutUpdate(AppState *appState, AboutState *aboutState)
@@ -37,15 +39,16 @@ void AboutUpdate(AppState *appState, AboutState *aboutState)
     if (IsKeyPressed(KEY_ESCAPE))
     {
         appState->currentScreen = APP_SCREEN_MAIN_MENU;
+        PlaySoundEffect(SFX_BACK_NAV);
         return;
     }
 
-    if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_D))
+    if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_S))
     {
         aboutState->activeTab = (aboutState->activeTab + 1) % 3;
         aboutState->scrollOffset = 0.0f;
     }
-    else if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_A))
+    else if (IsKeyPressed(KEY_UP) || IsKeyPressed(KEY_W))
     {
         aboutState->activeTab = (aboutState->activeTab - 1 + 3) % 3;
         aboutState->scrollOffset = 0.0f;
@@ -74,7 +77,7 @@ static bool DrawTabButton(const char *text, Rectangle bounds, bool isActive, int
 
     DrawRectangleRec(bounds, bg);
     DrawRectangleLinesEx(bounds, 1.5f, GetColor(GuiGetStyle(DEFAULT, LINE_COLOR)));
-    DrawText(text, bounds.x + 15.0f, bounds.y + (bounds.height - fontSize) / 2.0f, fontSize, textCol);
+    DrawAppText(text, bounds.x + 15.0f, bounds.y + (bounds.height - fontSize) / 2.0f, fontSize, textCol);
 
     return (isHovered && IsMouseButtonPressed(MOUSE_BUTTON_LEFT));
 }
@@ -100,7 +103,7 @@ void AboutDraw(AppState *appState, AboutState *aboutState)
     const float padding = screenWidth / 25.0f;
     const float headerLineY = padding + (baseFontSize * 1.5f) + 15.0f;
 
-    DrawText("SCRABBLE.C", padding, padding, baseFontSize * 1.7f, WHITE);
+    DrawAppText("SCRABBLE.C", padding, padding, baseFontSize * 1.7f, WHITE);
     DrawLineEx((Vector2){padding, headerLineY}, (Vector2){screenWidth - padding, headerLineY}, 2, GetColor(GuiGetStyle(DEFAULT, LINE_COLOR)));
 
     float sidebarX = padding;
@@ -131,7 +134,7 @@ void AboutDraw(AppState *appState, AboutState *aboutState)
     float contentHeight = screenHeight - contentTop - padding - 35.0f;
 
     Rectangle contentBox = {contentLeft, contentTop, contentWidth, contentHeight};
-    GuiGroupBox(contentBox, "--< Terminal >--");
+    GuiGroupBox(contentBox, " Terminal ");
 
     float contentX = contentBox.x + 40.0f;
     float stepGap = baseFontSize * 1.6f;
@@ -172,47 +175,52 @@ void AboutDraw(AppState *appState, AboutState *aboutState)
     switch (aboutState->activeTab)
     {
     case ABOUT_TAB_OVERVIEW:
-        DrawText("This went out of hand quick", contentX, contentY, baseFontSize * 1.1f, GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED)));
-        DrawText("First it was just a simple game of Scrabble.", contentX, contentY + stepGap, baseFontSize * 0.9f, WHITE);
-        DrawText("Then we added animation, sound effects, UI niceties and even Network Play! May God have mercy on us :)", contentX, contentY + (stepGap * 2), baseFontSize * 0.9f, WHITE);
-        DrawText("Version 1.0.0-RC // Still in closed Beta. But we will get there!", contentX, contentY + (stepGap * 3), baseFontSize * 0.76f, GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_DISABLED)));
+        DrawAppText("This went out of hand quick", contentX, contentY, baseFontSize * 1.1f, GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED)));
+        DrawAppText("First it was just a simple game of Scrabble.", contentX, contentY + stepGap, baseFontSize * 0.9f, WHITE);
+        DrawAppText("Then we added animation, sound effects, UI niceties and even Network Play! May God have mercy on us :)", contentX, contentY + (stepGap * 2), baseFontSize * 0.9f, WHITE);
+        DrawAppText("Version 1.0.0-RC // Still in closed Beta. But we will get there!", contentX, contentY + (stepGap * 3), baseFontSize * 0.76f, GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_DISABLED)));
         break;
 
     case ABOUT_TAB_TEAM:
-        DrawText("The Dev and Friends", contentX, contentY, baseFontSize * 1.1f, GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED)));
-        DrawText("> Lead, UI, Menu, AppShell, Docs : Sonoth Amin", contentX, contentY + stepGap, baseFontSize * 0.9f, WHITE);
-        DrawText("> Game Logic, Board : Tanvir Ahmed", contentX, contentY + (stepGap * 2), baseFontSize * 0.9f, WHITE);
+        DrawAppText("The Dev and Friends", contentX, contentY, baseFontSize * 1.1f, GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED)));
+        DrawAppText("> Lead, UI, Menu, AppShell, Docs : Sonoth Amin", contentX, contentY + stepGap, baseFontSize * 0.9f, WHITE);
+        DrawAppText("> Game Logic, Board : Tanvir Ahmed", contentX, contentY + (stepGap * 2), baseFontSize * 0.9f, WHITE);
         break;
 
     case ABOUT_TAB_TECH:
-        DrawText("SYSTEM TELEMETRY", contentX, contentY, baseFontSize * 1.1f, GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED)));
-        DrawText("> Graphics Library : Raylib", contentX, contentY + stepGap, baseFontSize * 0.9f, WHITE);
-        DrawText("> UI Library : RayGUI", contentX, contentY + (stepGap * 2), baseFontSize * 0.9f, WHITE);
-        DrawText("> Written in C and somehow we are still sane. SEND HELP!!", contentX, contentY + (stepGap * 3), baseFontSize * 0.9f, WHITE);
+        DrawAppText("Tech and Stack", contentX, contentY, baseFontSize * 1.1f, GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED)));
+        DrawAppText("> Graphics Library : Raylib", contentX, contentY + stepGap, baseFontSize * 0.9f, WHITE);
+        DrawAppText("> UI Library : RayGUI", contentX, contentY + (stepGap * 2), baseFontSize * 0.9f, WHITE);
+        DrawAppText("> Written in C and somehow we are still sane. SEND HELP!!", contentX, contentY + (stepGap * 3), baseFontSize * 0.9f, WHITE);
         break;
     }
 
     EndScissorMode();
 
     float footerY = screenHeight - padding;
-    DrawText("Navigate: [A/D] or Keys [1-3]  |  [ESC] Main Menu", padding, footerY, baseFontSize * 0.75f, GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_DISABLED)));
+    DrawAppText("Navigate: [W/S] or Keys [1-3]  |  [ESC] Main Menu", padding, footerY, baseFontSize * 0.75f, GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_DISABLED)));
 
-    if (IsKeyDown(KEY_S))
+    if(IsKeyPressed(KEY_SPACE))
+    {
+        aboutState->EasterState = (aboutState->EasterState ? 0 : 1);
+        if(aboutState->EasterState) PlaySoundEffect(SFX_ABOUT);
+    }
+
+    if (aboutState->EasterState)
     {
         const char *prefix = "Made with ";
         const char *suffix = " by Sonoth Amin";
         int textFontSize = baseFontSize * 0.85f;
-
-        float totalWidth = MeasureText(prefix, textFontSize) + textFontSize + 10.0f + MeasureText(suffix, textFontSize);
+        float totalWidth = MeasureAppText(prefix, textFontSize) + textFontSize + 10.0f + MeasureAppText(suffix, textFontSize);
         float eggX = screenWidth - totalWidth - padding;
 
-        DrawText(prefix, eggX, footerY - 2.0f, textFontSize, GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED)));
-        DrawProceduralHeart(eggX + MeasureText(prefix, textFontSize) + 5.0f, (footerY - 2.0f) + 1.0f, textFontSize * 0.85f, RED);
-        DrawText(suffix, eggX + MeasureText(prefix, textFontSize) + (textFontSize * 0.85f) + 10.0f, footerY - 2.0f, textFontSize, GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED)));
+        DrawAppText(prefix, eggX, footerY - 2.0f, textFontSize, GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED)));
+        DrawProceduralHeart(eggX + MeasureAppText(prefix, textFontSize) + 5.0f, (footerY - 2.0f) + 1.0f, textFontSize * 0.85f, RED);
+        DrawAppText(suffix, eggX + MeasureAppText(prefix, textFontSize) + (textFontSize * 0.85f) + 10.0f, footerY - 2.0f, textFontSize, GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED)));
     }
     else
     {
-        const char *prompt = "[S] SECURE LOG";
-        DrawText(prompt, screenWidth - MeasureText(prompt, baseFontSize * 0.75f) - padding, footerY, baseFontSize * 0.75f, ColorAlpha(GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_DISABLED)), 0.3f));
+        const char *prompt = "[Space] Try?";
+        DrawAppText(prompt, screenWidth - MeasureAppText(prompt, baseFontSize * 0.75f) - padding, footerY, baseFontSize * 0.75f, ColorAlpha(GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_DISABLED)), 0.3f));
     }
 }

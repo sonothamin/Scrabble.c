@@ -38,19 +38,15 @@ bool init_bag_from_file(TileBag *bag)
     return true;
 }
 
-// tiles_remaining = 100
-// Fisher-Yates Shuffle algorithm
 void shuffle_tiles_in_bag(TileBag *bag)
 {
-    if (bag->tiles_remaining <= 1)
+    if (!bag || bag->tiles_remaining <= 1)
     {
-        return; // for 1 tile we don't need to shuffle
+        return;
     }
 
-    // continuously change the random number
-    for (int i = bag->tiles_remaining - 1; i > 0; i--) // loop will run for all the remaining tiles
+    for (int i = bag->tiles_remaining - 1; i > 0; i--)
     {
-        // generating a random index between 0 and i
         int j = rand() % (i + 1);
 
         Tile temp = bag->tiles[i];
@@ -59,13 +55,11 @@ void shuffle_tiles_in_bag(TileBag *bag)
     }
 }
 
-// tiles_remaining = 100
-
 Tile taking_out_tile_from_bag(TileBag *bag)
 {
     Tile empty_tile = {'\0', 0};
 
-    if (bag->tiles_remaining <= 0)
+    if (!bag || bag->tiles_remaining <= 0)
     {
         return empty_tile;
     }

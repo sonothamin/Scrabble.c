@@ -5,100 +5,21 @@
 #include "raylib.h"
 #include "raygui.h"
 
-// Define statusbar height fallback required by gui_window_file_dialog.h
-#ifndef RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT
-#define RAYGUI_WINDOWBOX_STATUSBAR_HEIGHT 24
-#endif
+#include "settings.h"
+#include "settings/settings_internal.h"
 
-// Compile file dialog implementation
 #define GUI_WINDOW_FILE_DIALOG_IMPLEMENTATION
 #include "gui_window_file_dialog.h"
-
-#include "settings.h"
+#undef GUI_WINDOW_FILE_DIALOG_IMPLEMENTATION
+#include "settings/settings_io.h"
+#include "settings/settings_game.h"
+#include "settings/settings_audio.h"
+#include "settings/settings_network.h"
+#include "settings/settings_advanced.h"
 #include "sound.h"
 #include "ui.h"
 #include "error_service.h"
 #include "app_state.h"
-
-#define CONFIG_FILE_PATH "config.dat"
-
-typedef enum
-{
-    FILE_PICKER_NONE = 0,
-    FILE_PICKER_DICTIONARY,
-    FILE_PICKER_BOARD_LAYOUT,
-    FILE_PICKER_TILE_MAP
-} FilePickerTarget;
-
-// Extended runtime state holding file dialog instance data
-typedef struct
-{
-    SettingsState base;
-    GuiWindowFileDialogState fileDialogState;
-    FilePickerTarget activeTarget;
-} ExtendedSettingsState;
-
-// =============================================================================
-// PERSISTENCE (FILE I/O)
-// =============================================================================
-
-bool SaveSettingsToFile(const SettingsState *settings, const char *filePath)
-{
-    if (settings == NULL || filePath == NULL)
-    {
-        return false;
-    }
-
-    FILE *file = fopen(filePath, "wb");
-    if (file == NULL)
-    {
-        TraceLog(LOG_WARNING, "SETTINGS: Failed to open %s for writing.", filePath);
-        return false;
-    }
-
-    size_t written = fwrite(settings, sizeof(SettingsState), 1, file);
-    fclose(file);
-
-    if (written == 1)
-    {
-        TraceLog(LOG_INFO, "SETTINGS: Configuration saved successfully to %s", filePath);
-        return true;
-    }
-
-    return false;
-}
-
-bool LoadSettingsFromFile(SettingsState *settings, const char *filePath)
-{
-    if (settings == NULL || filePath == NULL)
-    {
-        return false;
-    }
-
-    FILE *file = fopen(filePath, "rb");
-    if (file == NULL)
-    {
-        TraceLog(LOG_INFO, "SETTINGS: No existing %s found, using defaults.", filePath);
-        return false;
-    }
-
-    size_t readCount = fread(settings, sizeof(SettingsState), 1, file);
-    fclose(file);
-
-    if (readCount == 1)
-    {
-        // Reset transient editing states after loading binary dump
-        settings->dictionaryEditMode = false;
-        settings->boardLayoutEditMode = false;
-        settings->tileMapEditMode = false;
-        settings->selectedOption = SETTINGS_TAB_GAME;
-
-        TraceLog(LOG_INFO, "SETTINGS: Configuration loaded successfully from %s", filePath);
-        return true;
-    }
-
-    return false;
-}
 
 // =============================================================================
 // LIFECYCLE MANAGEMENT
@@ -109,9 +30,7 @@ SettingsState *InitSettingsState(void)
     ExtendedSettingsState *extSettings = (ExtendedSettingsState *)calloc(1, sizeof(ExtendedSettingsState));
     if (extSettings == NULL)
     {
-        ReportCriticalError(
-            "Memory Allocation Failed",
-            "Failed to allocate memory for SettingsState during initialization.");
+        ReportCriticalError("Memory Allocation Failed", "Failed to allocate memory for SettingsState during initialization.");
         return NULL;
     }
 
@@ -124,9 +43,9 @@ SettingsState *InitSettingsState(void)
     settings->bgmEnable = true;
     settings->sfxEnable = true;
 
-    snprintf(settings->dictionaryPath, sizeof(settings->dictionaryPath), "resources/dictionaries/CSW19.txt");
-    snprintf(settings->boardLayoutPath, sizeof(settings->boardLayoutPath), "resources/layouts/standard_15x15.json");
-    snprintf(settings->tileMapPath, sizeof(settings->tileMapPath), "resources/scores/english_classic.csv");
+    snprintf(settings->dictionaryPath, sizeof(settings->dictionaryPath), "resources/dictionary.txt");
+    snprintf(settings->boardLayoutPath, sizeof(settings->boardLayoutPath), "resources/board_layout.txt");
+    snprintf(settings->tileMapPath, sizeof(settings->tileMapPath), "resources/scores/letters.txt");
 
     settings->dictionaryEditMode = false;
     settings->boardLayoutEditMode = false;
@@ -134,21 +53,17 @@ SettingsState *InitSettingsState(void)
     settings->luxuryTilesEnabled = true;
     settings->showLoadingScreen = true;
 
-    // Load from binary disk config if present
     LoadSettingsFromFile(settings, CONFIG_FILE_PATH);
 
-    // Initialize custom modal dialog state
     extSettings->fileDialogState = InitGuiWindowFileDialog(GetWorkingDirectory());
     extSettings->activeTarget = FILE_PICKER_NONE;
 
-    // Expand dialog boundaries for breathing room (default raygui box is too small)
     extSettings->fileDialogState.windowBounds = (Rectangle){
         (GetScreenWidth() - 640.0f) / 2.0f,
         (GetScreenHeight() - 460.0f) / 2.0f,
         640.0f,
         460.0f};
 
-    // Synchronize Sound Mixer
     SetMusicVolumeLevel(settings->bgmEnable ? settings->bgmVolume : 0.0f);
     SetSfxVolumeLevel(settings->sfxEnable ? settings->sfxVolume : 0.0f);
 
@@ -164,17 +79,15 @@ void FreeSettingsState(SettingsState *settings)
 }
 
 // =============================================================================
-// UPDATE LOGIC
+// UPDATE LOGIC & DIALOG HELPERS
 // =============================================================================
 
-static void HandleFileSelection(ExtendedSettingsState *extSettings)
+void HandleFileSelection(ExtendedSettingsState *extSettings)
 {
     if (!extSettings->fileDialogState.SelectFilePressed)
-    {
         return;
-    }
 
-    // Allocate buffer size sufficient for dirPathText (1024) + fileNameText (1024)
+    // Allocate buffer for path string
     char selectedPath[2048] = {0};
     snprintf(selectedPath, sizeof(selectedPath), "%s" PATH_SEPERATOR "%s",
              extSettings->fileDialogState.dirPathText,
@@ -182,7 +95,6 @@ static void HandleFileSelection(ExtendedSettingsState *extSettings)
 
     SettingsState *settings = &extSettings->base;
 
-    // Safely copy string and guarantee null-termination
     switch (extSettings->activeTarget)
     {
     case FILE_PICKER_DICTIONARY:
@@ -277,7 +189,7 @@ void SettingsUpdate(AppState *state)
 // RENDERING LOGIC
 // =============================================================================
 
-static bool DrawSettingsTabButton(const char *text, Rectangle bounds, bool isActive, int fontSize, bool isModalActive)
+bool DrawSettingsTabButton(const char *text, Rectangle bounds, bool isActive, int fontSize, bool isModalActive)
 {
     bool isHovered = CheckCollisionPointRec(GetMousePosition(), bounds) && !isModalActive;
 
@@ -290,7 +202,7 @@ static bool DrawSettingsTabButton(const char *text, Rectangle bounds, bool isAct
 
     DrawRectangleRec(bounds, bg);
     DrawRectangleLinesEx(bounds, 1.5f, GetColor(GuiGetStyle(DEFAULT, LINE_COLOR)));
-    DrawText(text, bounds.x + 15.0f, bounds.y + (bounds.height - fontSize) / 2.0f, fontSize, textCol);
+    DrawAppText(text, bounds.x + 15.0f, bounds.y + (bounds.height - fontSize) / 2.0f, fontSize, textCol);
 
     return (isHovered && IsMouseButtonPressed(MOUSE_BUTTON_LEFT));
 }
@@ -325,14 +237,13 @@ void SettingsDraw(const AppState *state)
     const float headerLineY = padding + (baseFontSize * 1.5f) + 15.0f;
     const bool isDialogOpen = extSettings->fileDialogState.windowActive;
 
-    // --- Modal Lock Guard ---
     if (isDialogOpen)
     {
         GuiLock();
     }
 
     // --- Header ---
-    DrawText("SETTINGS & CONFIGURATION", padding, padding, baseFontSize * 1.7f, WHITE);
+    DrawAppText("SETTINGS & CONFIGURATION", padding, padding, baseFontSize * 1.7f, WHITE);
     DrawLineEx((Vector2){padding, headerLineY}, (Vector2){screenWidth - padding, headerLineY}, 2, GetColor(GuiGetStyle(DEFAULT, LINE_COLOR)));
 
     // --- Sidebar Navigation ---
@@ -394,177 +305,29 @@ void SettingsDraw(const AppState *state)
 
     BeginScissorMode((int)contentBox.x + 5, (int)contentBox.y + 5, (int)contentBox.width - 10, (int)contentBox.height - 10);
 
-    // =========================================================================
-    // TAB 1: FORM CONTROLS FOR GAME ASSETS
-    // =========================================================================
-    if (settings->selectedOption == SETTINGS_TAB_GAME)
+    switch (settings->selectedOption)
     {
-        const float labelWidth = baseFontSize * 7.0f;
-        const float pickerBtnWidth = baseFontSize * 2.8f;
-        const float inputHeight = baseFontSize * 1.5f;
-        const float rowSpacing = baseFontSize * 2.3f;
-        const float inputWidth = contentWidth - labelWidth - pickerBtnWidth - 90.0f;
-
-        float rowY = contentY + 10.0f;
-
-        // --- Row 1: Dictionary ---
-        GuiLabel((Rectangle){contentX, rowY, labelWidth, inputHeight}, "Dictionary");
-
-        GuiTextBox((Rectangle){contentX + labelWidth, rowY, inputWidth, inputHeight}, settings->dictionaryPath, 256, false);
-
-        if (GuiButton((Rectangle){contentX + labelWidth + inputWidth + 10.0f, rowY, pickerBtnWidth, inputHeight}, "#141# Open"))
-        {
-            PlaySoundEffect(SFX_BUTTON);
-            extSettings->activeTarget = FILE_PICKER_DICTIONARY;
-            extSettings->fileDialogState.windowActive = true;
-            snprintf(extSettings->fileDialogState.filterExt, sizeof(extSettings->fileDialogState.filterExt), ".txt");
-        }
-
-        // --- Row 2: Board Layout ---
-        rowY += rowSpacing;
-        GuiLabel((Rectangle){contentX, rowY, labelWidth, inputHeight}, "Board Layout");
-
-        GuiTextBox((Rectangle){contentX + labelWidth, rowY, inputWidth, inputHeight}, settings->boardLayoutPath, 256, false);
-
-        if (GuiButton((Rectangle){contentX + labelWidth + inputWidth + 10.0f, rowY, pickerBtnWidth, inputHeight}, "#141# Open"))
-        {
-            PlaySoundEffect(SFX_BUTTON);
-            extSettings->activeTarget = FILE_PICKER_BOARD_LAYOUT;
-            extSettings->fileDialogState.windowActive = true;
-            snprintf(extSettings->fileDialogState.filterExt, sizeof(extSettings->fileDialogState.filterExt), ".txt");
-        }
-
-        // --- Row 3: Tile Letter Scoring Map ---
-        rowY += rowSpacing;
-        GuiLabel((Rectangle){contentX, rowY, labelWidth, inputHeight}, "Tile Map");
-
-        GuiTextBox((Rectangle){contentX + labelWidth, rowY, inputWidth, inputHeight}, settings->tileMapPath, 256, false);
-
-        if (GuiButton((Rectangle){contentX + labelWidth + inputWidth + 10.0f, rowY, pickerBtnWidth, inputHeight}, "#141# Open"))
-        {
-            PlaySoundEffect(SFX_BUTTON);
-            extSettings->activeTarget = FILE_PICKER_TILE_MAP;
-            extSettings->fileDialogState.windowActive = true;
-            snprintf(extSettings->fileDialogState.filterExt, sizeof(extSettings->fileDialogState.filterExt), ".txt");
-        }
-
-        // --- Divider Line ---
-        rowY += rowSpacing + 5.0f;
-        GuiLine((Rectangle){contentX, rowY, contentWidth - 60.0f, 2.0f}, NULL);
-
-        // --- Row 4: Luxury Tiles Toggle ---
-        rowY += 20.0f;
-        float checkboxSize = inputHeight * 0.85f;
-
-        bool prevLuxury = settings->luxuryTilesEnabled;
-        GuiCheckBox((Rectangle){contentX, rowY, checkboxSize, checkboxSize}, "Enable Luxury Rendered Tiles (High-DPI Textures & Bevels)", &settings->luxuryTilesEnabled);
-
-        if (prevLuxury != settings->luxuryTilesEnabled)
-        {
-            PlaySoundEffect(SFX_BUTTON);
-        }
-    }
-    // =========================================================================
-    // TAB 2: AUDIO MIXER
-    // =========================================================================
-    else if (settings->selectedOption == SETTINGS_TAB_AUDIO)
-    {
-        const float labelWidth = baseFontSize * 7.5f;
-        const float muteBtnWidth = 110.0f;
-        const float gap = 15.0f;
-        const float textPadding = 45.0f;
-
-        float maxAvailableWidth = contentWidth - 70.0f;
-        float sliderWidth = maxAvailableWidth - labelWidth - muteBtnWidth - (gap * 2.0f) - textPadding - 30.0f;
-
-        if (sliderWidth < 100.0f)
-        {
-            sliderWidth = 100.0f;
-        }
-
-        const float controlHeight = baseFontSize * 1.4f;
-        const float rowSpacing = baseFontSize * 2.2f;
-
-        float currentY = contentY + 10.0f;
-        float actionBtnX = contentX + labelWidth + sliderWidth + 30.0f + textPadding + gap;
-
-        // --- Row 1: BGM ---
-        GuiLabel((Rectangle){contentX, currentY + 2.0f, labelWidth, controlHeight}, "BGM");
-
-        char musicText[16];
-        snprintf(musicText, sizeof(musicText), "%d%%", (int)(settings->bgmVolume * 100.0f));
-
-        float oldMusicVol = settings->bgmVolume;
-        GuiSliderBar((Rectangle){contentX + labelWidth + gap, currentY, sliderWidth, controlHeight},
-                     NULL, musicText, &settings->bgmVolume, 0.0f, 1.0f);
-
-        if (oldMusicVol != settings->bgmVolume && settings->bgmEnable)
-        {
-            SetMusicVolumeLevel(settings->bgmVolume);
-        }
-
-        const char *bgmBtnText = settings->bgmEnable ? "Mute" : "Unmute";
-        if (GuiButton((Rectangle){actionBtnX, currentY, muteBtnWidth, controlHeight}, bgmBtnText))
-        {
-            settings->bgmEnable = !settings->bgmEnable;
-            PlaySoundEffect(SFX_BUTTON);
-            SetMusicVolumeLevel(settings->bgmEnable ? settings->bgmVolume : 0.0f);
-        }
-
-        // --- Row 2: SFX ---
-        currentY += rowSpacing;
-        GuiLabel((Rectangle){contentX, currentY + 2.0f, labelWidth, controlHeight}, "Sound Effects");
-
-        char sfxText[16];
-        snprintf(sfxText, sizeof(sfxText), "%d%%", (int)(settings->sfxVolume * 100.0f));
-
-        float oldSfxVol = settings->sfxVolume;
-        GuiSliderBar((Rectangle){contentX + labelWidth + gap, currentY, sliderWidth, controlHeight},
-                     NULL, sfxText, &settings->sfxVolume, 0.0f, 1.0f);
-
-        if (oldSfxVol != settings->sfxVolume && settings->sfxEnable)
-        {
-            SetSfxVolumeLevel(settings->sfxVolume);
-        }
-
-        const char *sfxBtnText = settings->sfxEnable ? "Mute" : "Unmute";
-        if (GuiButton((Rectangle){actionBtnX, currentY, muteBtnWidth, controlHeight}, sfxBtnText))
-        {
-            settings->sfxEnable = !settings->sfxEnable;
-            PlaySoundEffect(SFX_BUTTON);
-            SetSfxVolumeLevel(settings->sfxEnable ? settings->sfxVolume : 0.0f);
-        }
-    }
-    // =========================================================================
-    // TAB 3: NETWORK PLACEHOLDER
-    // =========================================================================
-    else if (settings->selectedOption == SETTINGS_TAB_NETWORK)
-    {
-        DrawText("LAN Settings Coming Soon!!", contentX, contentY, baseFontSize * 1.1f, GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED)));
-    }
-    // =========================================================================
-    // TAB 4: ADVANCED SETTINGS
-    // =========================================================================
-    else if (settings->selectedOption == SETTINGS_TAB_ADVANCED)
-    {
-        const float inputHeight = baseFontSize * 1.5f;
-        float rowY = contentY + 10.0f;
-        float checkboxSize = inputHeight * 0.85f;
-
-        bool prevLoadingScreen = settings->showLoadingScreen;
-        GuiCheckBox((Rectangle){contentX, rowY, checkboxSize, checkboxSize}, "Enable Loading Screen Transitions", &settings->showLoadingScreen);
-
-        if (prevLoadingScreen != settings->showLoadingScreen)
-        {
-            PlaySoundEffect(SFX_BUTTON);
-        }
+    case SETTINGS_TAB_GAME:
+        DrawSettingsGameTab(extSettings, contentX, contentY, contentWidth, baseFontSize);
+        break;
+    case SETTINGS_TAB_AUDIO:
+        DrawSettingsAudioTab(extSettings, contentX, contentY, contentWidth, baseFontSize);
+        break;
+    case SETTINGS_TAB_NETWORK:
+        DrawSettingsNetworkTab(extSettings, contentX, contentY, contentWidth, baseFontSize);
+        break;
+    case SETTINGS_TAB_ADVANCED:
+        DrawSettingsAdvancedTab(extSettings, contentX, contentY, contentWidth, baseFontSize);
+        break;
+    default:
+        break;
     }
 
     EndScissorMode();
 
     // --- Footer Controls ---
     float footerY = screenHeight - padding;
-    DrawText("Navigate: [A/D] or Keys [1-4]  |  [B/ESC] Save & Return", padding, footerY, baseFontSize * 0.75f, GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_DISABLED)));
+    DrawAppText("Navigate: [A/D] or Keys [1-4]  |  [B/ESC] Save & Return", padding, footerY, baseFontSize * 0.75f, GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_DISABLED)));
 
     float backBtnWidth = baseFontSize * 10.5f;
     float backBtnHeight = baseFontSize * 1.6f;

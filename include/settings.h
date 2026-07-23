@@ -9,9 +9,6 @@ extern "C" {
 
 typedef struct AppState AppState;
 
-/**
- * @brief Available sub-tabs within the Settings screen.
- */
 typedef enum SettingsTab
 {
     SETTINGS_TAB_GAME = 0,
@@ -21,9 +18,6 @@ typedef enum SettingsTab
     SETTINGS_TAB_COUNT
 } SettingsTab;
 
-/**
- * @brief Encapsulates the entire settings system runtime state.
- */
 typedef struct SettingsState
 {
     SettingsTab selectedOption;

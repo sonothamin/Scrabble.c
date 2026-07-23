@@ -11,6 +11,7 @@ typedef enum {
 typedef struct AboutState{
     AboutTab activeTab;
     float scrollOffset;
+    int EasterState;
 } AboutState;
 
 void AboutInit(AboutState* state);
