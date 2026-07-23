@@ -154,12 +154,12 @@ void GameDraw(AppState *state)
                 char letterStr[2] = {placedTile.letter, '\0'};
                 int tileFontSize = (int)(cellSize * 0.55f);
                 int textW = MeasureText(letterStr, tileFontSize);
-                DrawText(letterStr, cellBounds.x + (cellSize - textW) / 2.0f, cellBounds.y + (cellSize - tileFontSize) / 2.0f, tileFontSize, (Color){38, 28, 16, 255});
+                DrawAppText(letterStr, cellBounds.x + (cellSize - textW) / 2.0f, cellBounds.y + (cellSize - tileFontSize) / 2.0f, tileFontSize, (Color){38, 28, 16, 255});
 
                 const char *scoreStr = TextFormat("%d", placedTile.value);
                 int scoreFontSize = (int)(cellSize * 0.22f);
                 int scoreW = MeasureText(scoreStr, scoreFontSize);
-                DrawText(scoreStr, cellBounds.x + cellSize - scoreW - (cellSize * 0.08f), cellBounds.y + cellSize - scoreFontSize - (cellSize * 0.06f), scoreFontSize, (Color){80, 65, 50, 255});
+                DrawAppText(scoreStr, cellBounds.x + cellSize - scoreW - (cellSize * 0.08f), cellBounds.y + cellSize - scoreFontSize - (cellSize * 0.06f), scoreFontSize, (Color){80, 65, 50, 255});
             }
         }
     }

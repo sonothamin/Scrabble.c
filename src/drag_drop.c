@@ -2,6 +2,7 @@
 #include <math.h>
 #include "game.h"
 #include "board.h"
+#include "ui.h"
 
 void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rackRect, float tileSize, float tileSpacing)
 {
@@ -159,7 +160,7 @@ void DrawDragNDropOverlay(const GameState *match, Rectangle rackRect, float tile
     int fontSize = (int)(tileSize * 0.55f);
     int textWidth = MeasureText(letterStr, fontSize);
 
-    DrawText(
+    DrawAppText(
         letterStr,
         dragBounds.x + (dragBounds.width - textWidth) / 2.0f,
         dragBounds.y + (dragBounds.height - fontSize) / 2.0f,
@@ -170,7 +171,7 @@ void DrawDragNDropOverlay(const GameState *match, Rectangle rackRect, float tile
     int scoreFontSize = (int)(tileSize * 0.22f);
     int scoreWidth = MeasureText(scoreStr, scoreFontSize);
 
-    DrawText(
+    DrawAppText(
         scoreStr,
         dragBounds.x + tileSize - scoreWidth - (tileSize * 0.10f),
         dragBounds.y + tileSize - scoreFontSize - (tileSize * 0.08f),
