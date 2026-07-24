@@ -10,6 +10,7 @@
 #include "error_service.h"
 #include "bag.h"
 #include "drag_drop.h"
+#include "word_validation.h"
 
 void GameInit(GameState *match)
 {
@@ -35,6 +36,14 @@ void GameInit(GameState *match)
     PlaySoundEffect(SFX_GAME_START);
 }
 
+void GameCleanUp(GameState *match)
+{
+    if (match == NULL)
+    {
+        return;
+    }
+    Free_Dictionary(&match->dictionary);
+}
 void GameUpdate(AppState *state)
 {
     if (!state)
@@ -100,6 +109,32 @@ void GameUpdate(AppState *state)
     float submitBtnWidth = rightSideWidth * 0.30f;
 
     Rectangle submitBtnRect = {rightSideX + rightSideWidth - actionBtnWidth - submitBtnWidth - (layoutGap * 0.5f), elementY, submitBtnWidth, elementH};
+
+    Vector2 mousePos = GetMousePosition();
+    if (CheckCollisionPointRec(mousePos, submitBtnRect))
+    {
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+        {
+            PlaySoundEffect(SFX_TILE_PLACE);
+
+            int scoreGain = Scan_And_Validate_Move(match->board.grid, match->previousBoard.grid, &match->dictionary);
+
+            if (scoreGain > 0)
+            {
+                PlaySoundEffect(SFX_SCORE);
+                match->players[match->activePlayerIdx].score += scoreGain;
+                refill_rack(&match->players[match->activePlayerIdx], &match->tileBag);
+                match->tileBagCount = match->tileBag.tiles_remaining;
+
+                memcpy(&match->previousBoard, &match->board, sizeof(GameBoard));
+                match->activePlayerIdx = (match->activePlayerIdx + 1) % 2;
+            }
+            else
+            {
+                PlaySoundEffect(SFX_ERROR);
+            }
+        }
+    }
 }
 
 void GameDraw(AppState *state)
