@@ -90,6 +90,16 @@ void GameUpdate(AppState *state)
 
     // Process drag and drop interactions
     HandleDragNDropInput(match, boardBounds, activeRackRect, tileSize, tileSpacing);
+
+    float footerY = screenHeight - bottomRowHeight - padding;
+    float elementH = 45.0f;
+    float elementY = footerY + (bottomRowHeight - elementH) / 2.0f;
+
+    float actionBtnWidth = rightSideWidth * 0.28f;
+    float submitBtnWidth = rightSideWidth * 0.30f;
+
+    Rectangle submitBtnRect = {rightSideX + rightSideWidth - actionBtnWidth - submitBtnWidth - (layoutGap * 0.5f), elementY, submitBtnWidth, elementH};\
+    
 }
 
 void GameDraw(AppState *state)
