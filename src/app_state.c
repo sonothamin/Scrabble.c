@@ -53,13 +53,16 @@ void StartNewGame(AppState *state)
 
     if (state->gamestate != NULL)
     {
+        GameCleanUp(state->gamestate);
         free(state->gamestate);
         state->gamestate = NULL;
     }
 
     state->gamestate = (GameState *)malloc(sizeof(GameState));
     if (state->gamestate != NULL)
+    {
         GameInit(state->gamestate);
+    }
 
     state->currentScreen = APP_SCREEN_GAME;
 }
@@ -157,12 +160,25 @@ void CloseAppState(AppState *state)
         return;
     }
 
-    if (state->loadingState)
-        free(state->loadingState);
-    if (state->aboutState)
-        free(state->aboutState);
-    if (state->gamestate)
+    if (state->gamestate != NULL)
+    {
+        GameCleanUp(state->gamestate);
         free(state->gamestate);
+        state->gamestate = NULL;
+    }
+    if (state->loadingState)
+    {
+        free(state->loadingState);
+        state->loadingState = NULL;
+    }
+    if (state->aboutState)
+    {
+        free(state->aboutState);
+        state->aboutState = NULL;
+    }
     if (state->settingsState)
+    {
         FreeSettingsState(state->settingsState);
+        state->settingsState = NULL;
+    }
 }

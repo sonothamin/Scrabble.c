@@ -6,6 +6,7 @@
 #include "bag.h"
 #include "player.h"
 #include "drag_drop.h"
+#include "dictionary.h"
 
 #define MAX_PLAYER_TILES 7
 #define MAX_TILE_BAG_SIZE 100
@@ -26,6 +27,8 @@ typedef struct GameState
     char dictionaryPath[256];
     bool specialTilesEnabled;
     GameBoard board;
+    GameBoard previousBoard;
+    Dictionary dictionary;
     Player players[2];
     int activePlayerIdx;
     unsigned int currentTurnNumber;
@@ -34,10 +37,11 @@ typedef struct GameState
     bool isMatchOver;
     int winningPlayerIdx;
     DragNDropState dragState;
-}GameState;
+} GameState;
 
-void GameInit(GameState *state);
+void GameInit(GameState *match);
 void GameUpdate(AppState *state);
 void GameDraw(AppState *state);
+void GameCleanUp(GameState *match);
 
 #endif // GAME_H
