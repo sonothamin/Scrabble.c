@@ -86,3 +86,27 @@ void ReportGameWarning(const char *title, const char *message, float duration)
 
     g_warningTimer = duration;
 }
+
+void UpdateErrorService(float deltaTime)
+{
+    if (g_warningTimer > 0.0f)
+    {
+        g_warningTimer -= deltaTime;
+        if (g_warningTimer < 0.0f)
+        {
+            g_warningTimer = 0.0f;
+        }
+    }
+}
+
+void DrawErrorServiceOverlay(void)
+{
+    if (g_warningTimer <= 0.0f)
+        return;
+
+    const int screenWidth = GetScreenWidth();
+    float bannerWidth = 420.0f;
+    float bannerHeight = 50.0f;
+
+    Rectangle bannerRect = {(screenWidth - bannerWidth) / 2.0f, 25.0f, bannerWidth, bannerHeight};
+}

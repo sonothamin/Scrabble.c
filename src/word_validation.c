@@ -231,25 +231,25 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE], Tile previ
 
     if (!wordFound || charCount < 2)
     {
-        ReportCriticalError("Invalid Move", "A valid word must contain at least 2 letters.");
+        ReportGameWarning("Invalid Move", "A valid word must contain at least 2 letters.", 3.0f);
         return 0;
     }
 
     if (isFirstMove && !touchesCenter)
     {
-        ReportCriticalError("Invalid Move", "Fiet word must touch the starting square.");
+        ReportGameWarning("Invalid Move", "Fiet word must touch the starting square.", 3.0f);
         return 0;
     }
 
     if (!isFirstMove && !connectsToExisting)
     {
-        ReportCriticalError("Invalid Move", "Word must connect to existing tiles on the board.");
+        ReportGameWarning("Invalid Move", "Word must connect to existing tiles on the board.", 3.0f);
         return 0;
     }
 
     if (!Is_Word_In_Dictionary(wordBuffer, dictionary))
     {
-        ReportCriticalError("Invalid Word", "The formed word is not in the dictionary.");
+        ReportGameWarning("Invalid Word", "The formed word is not in the dictionary.", 3.0f);
         return 0;
     }
 
