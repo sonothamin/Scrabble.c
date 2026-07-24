@@ -3,6 +3,7 @@
 #include "game.h"
 #include "board.h"
 #include "ui.h"
+
 void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rackRect, float tileSize, float tileSpacing)
 {
     if (!match)
