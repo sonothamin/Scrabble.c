@@ -25,7 +25,7 @@ bool Load_Dictionary(Dictionary *dictionary, const char *dictionary_file)
 {
     if (!dictionary || !dictionary_file)
     {
-        ReportCriticalError("Dictionary struct or file is not received", "Failed to receive struct or the dictionary file");
+        ReportGameWarning("Dictionary struct or file is not received", "Failed to receive struct or the dictionary file", 3.0f);
         return false;
     }
 

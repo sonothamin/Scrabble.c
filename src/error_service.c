@@ -1,5 +1,6 @@
 #include "error_service.h"
 #include <string.h>
+#include <stdio.h>
 #include "raylib.h"
 #include "raygui.h"
 #include "ui.h"
@@ -109,4 +110,19 @@ void DrawErrorServiceOverlay(void)
     float bannerHeight = 50.0f;
 
     Rectangle bannerRect = {(screenWidth - bannerWidth) / 2.0f, 25.0f, bannerWidth, bannerHeight};
+
+    DrawRectangleRounded(bannerRect, 0.25f, 4, (Color){180, 40, 40, 230});
+    DrawRectangleRoundedLinesEx(bannerRect, 0.25f, 4, 2.0f, (Color){255, 90, 90, 255});
+
+    int fontSize = 16;
+    char fullText[200];
+    snprintf(fullText, sizeof(fullText), "%s: %s", g_warningTitle, g_warningMessage);
+
+    int textW = MeasureAppText(fullText, fontSize);
+    DrawAppText(
+        fullText,
+        bannerRect.x + (bannerWidth - textW) / 2.0f,
+        bannerRect.y + (bannerHeight - fontSize) / 2.0f,
+        fontSize,
+        (Color){255, 240, 240, 255});
 }

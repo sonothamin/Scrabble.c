@@ -20,6 +20,12 @@ void GameInit(GameState *match)
     memset(match, 0, sizeof(*match));
     match->mode = GAME_MODE_LOCAL_1V1;
     match->specialTilesEnabled = true;
+
+    if (!Load_Dictionary(&match->dictionary, "dictionary.txt"))
+    {
+        TraceLog(LOG_WARNING, "Failed to load dictionary file! Check path.");
+    }
+
     BoardInit(&match->board, "board_layout.txt");
     init_player(&match->players[0]);
     init_player(&match->players[1]);

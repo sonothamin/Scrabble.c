@@ -17,4 +17,4 @@ bool ShowErrorDialog(void);
 // Non fatal errors
 void ReportGameWarning(const char *title, const char *message, float duration);
 void UpdateErrorService(float deltaTime);
-void DrawErrorServiceOverLay(void);
+void DrawErrorServiceOverlay(void);

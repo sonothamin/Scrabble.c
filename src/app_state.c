@@ -153,7 +153,7 @@ void DrawAppState(AppState *state)
         break;
     }
 
-    DrawErrorServiceOverLay();
+    DrawErrorServiceOverlay();
 }
 
 void CloseAppState(AppState *state)
