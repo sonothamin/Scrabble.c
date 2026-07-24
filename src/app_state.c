@@ -69,6 +69,8 @@ void StartNewGame(AppState *state)
 
 void UpdateAppState(AppState *state)
 {
+    UpdateErrorService(GetFrameTime());
+
     if (state == NULL)
     {
         ReportCriticalError("Invalid App State", "NULL AppState pointer encountered while updating app state.");
@@ -150,6 +152,8 @@ void DrawAppState(AppState *state)
         MenuDraw(state);
         break;
     }
+
+    DrawErrorServiceOverlay();
 }
 
 void CloseAppState(AppState *state)
