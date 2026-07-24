@@ -114,25 +114,53 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE], Tile previ
     int charCount = 0;
     bool wordFound = false;
 
+    // Check if it is the very first move
+    bool isFirstMove = true;
+    for (int y = 0; y < BOARD_SIDE && isFirstMove; y++)
+    {
+        for (int x = 0; x < BOARD_SIDE; x++)
+        {
+            if (previous_Grid[y][x].letter != '\0')
+            {
+                isFirstMove = false;
+                break;
+            }
+        }
+    }
+
+    bool touchesCenter = false;
+    bool connectsToExisting = false;
+    int centerPos = BOARD_SIDE / 2;
+
     // Horizontal scan
     for (int y = 0; y < BOARD_SIDE; y++)
     {
         for (int x = 0; x < BOARD_SIDE; x++)
         {
-            if (current_Grid[y][x].letter != '\0' && previous_Grid[y][x].letter == '\0')
+            if ((current_Grid[y][x].letter != '\0') && (previous_Grid[y][x].letter == '\0'))
             {
-                int rightMostX = x;
 
-                while (rightMostX > 0 && current_Grid[y][rightMostX - 1].letter != '\0')
+                int leftMostX = x;
+                while (leftMostX > 0 && current_Grid[y][leftMostX - 1].letter != '\0')
                 {
-                    rightMostX--;
+                    leftMostX--;
                 }
-                int leftMostX = rightMostX;
 
-                while (leftMostX < BOARD_SIDE && current_Grid[y][leftMostX].letter != '\0')
+                int rightMostX = leftMostX;
+                while (rightMostX < BOARD_SIDE && current_Grid[y][rightMostX].letter != '\0')
                 {
-                    wordBuffer[charCount] = current_Grid[y][leftMostX].letter;
-                    placedTilesBuffer[charCount] = current_Grid[y][leftMostX];
+                    if ((y == centerPos) && (rightMostX == centerPos))
+                    {
+                        touchesCenter = true;
+                    }
+
+                    if ((previous_Grid[y][rightMostX].letter != '\0') || (y > 0 && previous_Grid[y - 1][rightMostX].letter != 0) || (y < BOARD_SIDE - 1 && previous_Grid[y + 1][rightMostX].letter != 0))
+                    {
+                        connectsToExisting = true;
+                    }
+
+                    wordBuffer[charCount] = current_Grid[y][rightMostX].letter;
+                    placedTilesBuffer[charCount] = current_Grid[y][rightMostX];
                     charCount++;
                     leftMostX++;
                 }
@@ -149,10 +177,81 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE], Tile previ
             break;
     }
 
-    if (wordFound && Is_Word_In_Dictionary(wordBuffer, dictionary))
+    // Vertical scan if no horizontal word was found
+    if (!wordFound)
     {
-        return Calculate_Word_Score(wordBuffer, placedTilesBuffer, charCount);
+        charCount = 0; // Reset char counter for vertical scan
+        for (int x = 0; x < BOARD_SIDE; x++)
+        {
+            for (int y = 0; y < BOARD_SIDE; y++)
+            {
+                if (current_Grid[y][x].letter != '\0' && previous_Grid[y][x].letter == '\0')
+                {
+                    // Find topmost bound
+                    int topMostY = y;
+                    while (topMostY > 0 && current_Grid[topMostY - 1][x].letter != '\0')
+                    {
+                        topMostY--;
+                    }
+
+                    // Read downward to bottommost bound
+                    int bottomMostY = topMostY;
+                    while (bottomMostY < BOARD_SIDE && current_Grid[bottomMostY][x].letter != '\0')
+                    {
+                        if (bottomMostY == centerPos && x == centerPos)
+                        {
+                            touchesCenter = true;
+                        }
+
+                        if (previous_Grid[bottomMostY][x].letter != '\0' ||
+                            (x > 0 && previous_Grid[bottomMostY][x - 1].letter != '\0') ||
+                            (x < BOARD_SIDE - 1 && previous_Grid[bottomMostY][x + 1].letter != '\0'))
+                        {
+                            connectsToExisting = true;
+                        }
+
+                        wordBuffer[charCount] = current_Grid[bottomMostY][x].letter;
+                        placedTilesBuffer[charCount] = current_Grid[bottomMostY][x];
+                        charCount++;
+                        bottomMostY++;
+                    }
+                    wordBuffer[charCount] = '\0';
+
+                    if (charCount > 1)
+                    {
+                        wordFound = true;
+                        break;
+                    }
+                }
+            }
+            if (wordFound)
+                break;
+        }
     }
 
-    return 0;
+    if (!wordFound || charCount < 2)
+    {
+        ReportCriticalError("Invalid Move", "A valid word must contain at least 2 letters.");
+        return 0;
+    }
+
+    if (isFirstMove && !touchesCenter)
+    {
+        ReportCriticalError("Invalid Move", "Fiet word must touch the starting square.");
+        return 0;
+    }
+
+    if (!isFirstMove && !connectsToExisting)
+    {
+        ReportCriticalError("Invalid Move", "Word must connect to existing tiles on the board.");
+        return 0;
+    }
+
+    if (!Is_Word_In_Dictionary(wordBuffer, dictionary))
+    {
+        ReportCriticalError("Invalid Word", "The formed word is not in the dictionary.");
+        return 0;
+    }
+
+    return Calculate_Word_Score(wordBuffer, placedTilesBuffer, charCount);
 }

@@ -158,7 +158,7 @@ void DrawDragNDropOverlay(const GameState *match, Rectangle rackRect, float tile
     // Print character layout details centered inside the tracking square container
     char letterStr[2] = {activeTile.letter, '\0'};
     int fontSize = (int)(tileSize * 0.55f);
-    int textWidth = MeasureText(letterStr, fontSize);
+    int textWidth = MeasureAppText(letterStr, fontSize);
 
     DrawAppText(
         letterStr,
@@ -169,7 +169,7 @@ void DrawDragNDropOverlay(const GameState *match, Rectangle rackRect, float tile
 
     const char *scoreStr = TextFormat("%d", activeTile.value);
     int scoreFontSize = (int)(tileSize * 0.22f);
-    int scoreWidth = MeasureText(scoreStr, scoreFontSize);
+    int scoreWidth = MeasureAppText(scoreStr, scoreFontSize);
 
     DrawAppText(
         scoreStr,
