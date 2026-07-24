@@ -153,13 +153,13 @@ void GameDraw(AppState *state)
 
                 char letterStr[2] = {placedTile.letter, '\0'};
                 int tileFontSize = (int)(cellSize * 0.55f);
-                int textW = MeasureText(letterStr, tileFontSize);
-                DrawText(letterStr, cellBounds.x + (cellSize - textW) / 2.0f, cellBounds.y + (cellSize - tileFontSize) / 2.0f, tileFontSize, (Color){38, 28, 16, 255});
+                int textW = MeasureAppText(letterStr, tileFontSize);
+                DrawAppText(letterStr, cellBounds.x + (cellSize - textW) / 2.0f, cellBounds.y + (cellSize - tileFontSize) / 2.0f, tileFontSize, (Color){38, 28, 16, 255});
 
                 const char *scoreStr = TextFormat("%d", placedTile.value);
                 int scoreFontSize = (int)(cellSize * 0.22f);
-                int scoreW = MeasureText(scoreStr, scoreFontSize);
-                DrawText(scoreStr, cellBounds.x + cellSize - scoreW - (cellSize * 0.08f), cellBounds.y + cellSize - scoreFontSize - (cellSize * 0.06f), scoreFontSize, (Color){80, 65, 50, 255});
+                int scoreW = MeasureAppText(scoreStr, scoreFontSize);
+                DrawAppText(scoreStr, cellBounds.x + cellSize - scoreW - (cellSize * 0.08f), cellBounds.y + cellSize - scoreFontSize - (cellSize * 0.06f), scoreFontSize, (Color){80, 65, 50, 255});
             }
         }
     }
@@ -289,8 +289,9 @@ void GameDraw(AppState *state)
     float elementH = 45.0f;
     float elementY = footerY + (bottomRowHeight - elementH) / 2.0f;
 
-    float actionBtnWidth = rightSideWidth * 0.35f;
-    float turnIndicatorWidth = rightSideWidth - actionBtnWidth - layoutGap;
+    float actionBtnWidth = rightSideWidth * 0.28f;
+    float submitBtnWidth = rightSideWidth * 0.30f;
+    float turnIndicatorWidth = rightSideWidth - actionBtnWidth - submitBtnWidth - layoutGap;
 
     Rectangle turnRect = {rightSideX, elementY, turnIndicatorWidth, elementH};
     DrawRectangleRec(turnRect, (Color){33, 43, 51, 255});
@@ -306,6 +307,36 @@ void GameDraw(AppState *state)
 
     DrawAppText("TURN:", turnRect.x + 22.0f, indicatorTextY, turnFontSize, (Color){150, 165, 175, 255});
     DrawAppText(activeTurnStr, turnRect.x + 22.0f + MeasureAppText("TURN: ", turnFontSize), indicatorTextY, turnFontSize, activeAlertColor);
+
+    Rectangle submitBtnRect = {rightSideX + rightSideWidth - actionBtnWidth - submitBtnWidth - (layoutGap * 0.5f), elementY, submitBtnWidth, elementH};
+    Vector2 mousePos = GetMousePosition();
+    bool isHovered = CheckCollisionPointRec(mousePos, submitBtnRect);
+
+    // Neon dynamics
+    float pulse = (sinf((float)GetTime() * 4.0f) + 1.0f) * 0.5f;
+    unsigned char outerAlpha = (unsigned char)(40 + pulse * 35);
+    unsigned char fillAlpha = isHovered ? 230 : 200;
+
+    Color neonGreenGlow = (Color){57, 255, 20, outerAlpha};
+    Color neonGreenFill = (Color){20, 120, 40, fillAlpha};
+    Color neonGreenBorder = isHovered ? (Color){120, 255, 90, 255} : (Color){57, 255, 20, 255};
+
+    Rectangle outerGlow1 = {submitBtnRect.x - 3, submitBtnRect.y - 3, submitBtnRect.width + 6, submitBtnRect.height + 6};
+    Rectangle outerGlow2 = {submitBtnRect.x - 1, submitBtnRect.y - 1, submitBtnRect.width + 2, submitBtnRect.height + 2};
+    DrawRectangleRounded(outerGlow1, 0.35f, 6, neonGreenGlow);
+    DrawRectangleRounded(outerGlow2, 0.35f, 6, neonGreenGlow);
+
+    DrawRectangleRounded(submitBtnRect, 0.35f, 6, neonGreenFill);
+    DrawRectangleRoundedLinesEx(submitBtnRect, 0.35f, 6, 2.0f, neonGreenBorder);
+
+    const char *submitText = "SUBMIT";
+    int submitFontSize = (int)(baseFontSize * 1.15f);
+    int submitTextW = MeasureAppText(submitText, submitFontSize);
+    float submitTextX = submitBtnRect.x + (submitBtnRect.width - submitTextW) / 2.0f;
+    float submitTextY = submitBtnRect.y + (submitBtnRect.height - submitFontSize) / 2.0f;
+
+    Color submitTextColor = isHovered ? (Color){255, 255, 255, 255} : (Color){220, 255, 210, 255};
+    DrawAppText(submitText, submitTextX, submitTextY, submitFontSize, submitTextColor);
 
     Rectangle actionBtnRect = {rightSideX + rightSideWidth - actionBtnWidth, elementY, actionBtnWidth, elementH};
     if (GuiButton(actionBtnRect, "Save & Exit Match"))

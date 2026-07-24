@@ -243,13 +243,13 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE], Tile previ
 
     if (!isFirstMove && !connectsToExisting)
     {
-        ReportValidationError("Invalid Move", "Word must connect to existing tiles on the board.");
+        ReportCriticalError("Invalid Move", "Word must connect to existing tiles on the board.");
         return 0;
     }
 
     if (!Is_Word_In_Dictionary(wordBuffer, dictionary))
     {
-        ReportValidationError("Invalid Word", "The formed word is not in the dictionary.");
+        ReportCriticalError("Invalid Word", "The formed word is not in the dictionary.");
         return 0;
     }
 
