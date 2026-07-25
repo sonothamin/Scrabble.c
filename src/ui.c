@@ -157,6 +157,24 @@ int MeasureAppText(const char *text, float fontSize)
     return (int)ceilf(size.x);
 }
 
+bool DrawTabButton(const char *text, Rectangle bounds, bool isActive, int fontSize, bool isModalActive)
+{
+    bool isHovered = CheckCollisionPointRec(GetMousePosition(), bounds) && !isModalActive;
+
+    Color bg = isActive ? GetColor(GuiGetStyle(BUTTON, BASE_COLOR_PRESSED))
+                        : (isHovered ? GetColor(GuiGetStyle(BUTTON, BASE_COLOR_FOCUSED))
+                                     : GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
+    Color textCol = isActive ? GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED))
+                             : (isHovered ? GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_FOCUSED))
+                                          : GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_NORMAL)));
+
+    DrawRectangleRec(bounds, bg);
+    DrawRectangleLinesEx(bounds, 1.5f, GetColor(GuiGetStyle(DEFAULT, LINE_COLOR)));
+    DrawAppText(text, bounds.x + 15.0f, bounds.y + (bounds.height - fontSize) / 2.0f, fontSize, textCol);
+
+    return (isHovered && IsMouseButtonPressed(MOUSE_BUTTON_LEFT));
+}
+
 void DrawHotkeyBar(const HotkeyEntry *entries, int count,
                    float x, float y, float width, float height,
                    float fontSize)

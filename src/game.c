@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "game.h"
+#include "pause.h"
 #include "ui.h"
 #include "app_state.h"
 #include "raylib.h"
@@ -11,6 +12,8 @@
 #include "bag.h"
 #include "drag_drop.h"
 #include "word_validation.h"
+#include "settings.h"
+#include "shuffle.h"
 
 void GameInit(GameState *match)
 {
@@ -27,6 +30,7 @@ void GameInit(GameState *match)
     }
 
     BoardInit(&match->board, "board_layout.txt");
+    memcpy(&match->previousBoard, &match->board, sizeof(GameBoard)); // seed previousBoard so first-turn pass/shuffle doesn't blank the board
     init_player(&match->players[0]);
     init_player(&match->players[1]);
     init_bag_from_file(&match->tileBag);
@@ -35,6 +39,7 @@ void GameInit(GameState *match)
     refill_rack(&match->players[1], &match->tileBag);
     match->activePlayerIdx = 0;
     match->tileBagCount = match->tileBag.tiles_remaining;
+    match->consecutivePassCount = 0;
 
     // Reset Drag and Drop state
     match->dragState.isDragging = false;
@@ -58,7 +63,33 @@ void GameUpdate(AppState *state)
         return;
     }
 
-    if (IsKeyPressed(KEY_ESCAPE))
+    if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_P))
+    {
+        // When the shuffle modal is open, ESC is handled below (after match pointer is resolved)
+        if (state->gamestate == NULL || !state->gamestate->shuffleState.isActive)
+        {
+            if (state->pauseState)
+            {
+                state->pauseState->isPaused = !state->pauseState->isPaused;
+                PlaySoundEffect(SFX_BUTTON);
+            }
+            return;
+        }
+    }
+
+    // [M]ute – toggle BGM
+    if (IsKeyPressed(KEY_M))
+    {
+        if (state->settingsState != NULL)
+        {
+            state->settingsState->bgmEnable = !state->settingsState->bgmEnable;
+            SetMusicVolumeLevel(state->settingsState->bgmEnable ? state->settingsState->bgmVolume : 0.0f);
+            PlaySoundEffect(SFX_BUTTON);
+        }
+    }
+
+    // [Q]uit – back to main menu
+    if (IsKeyPressed(KEY_Q))
     {
         state->currentScreen = APP_SCREEN_MAIN_MENU;
         PlaySoundEffect(SFX_BACK_NAV);
@@ -81,8 +112,10 @@ void GameUpdate(AppState *state)
     const float rightSideX = (screenWidth * 0.45f) + padding + layoutGap;
     const float rightSideWidth = screenWidth - rightSideX - padding;
 
-    // Board Bounds
-    Rectangle boardBoundaries = {padding, padding, screenWidth * 0.45f, screenHeight - (padding * 2.0f)};
+    float hkBarHeight  = (float)fmaxf(15, screenHeight / 42) * 2.2f; // matches baseFontSize * 2.2
+    float hkBarMargin  = padding * 0.5f;
+    float boardGroupH  = screenHeight - (padding * 2.0f) - hkBarMargin - hkBarHeight - hkBarMargin;
+    Rectangle boardBoundaries = {padding, padding, screenWidth * 0.45f, boardGroupH};
     float groupBoxHeaderHeight = 25.0f;
     float gridInnerPad = 15.0f;
     float usableWidth = boardBoundaries.width - (gridInnerPad * 2.0f);
@@ -98,13 +131,94 @@ void GameUpdate(AppState *state)
     float rackSectionY = topPanelsY + topPanelsHeight + layoutGap;
     float rackPanelHeight = screenHeight * 0.10f;
 
-    int p = match->activePlayerIdx;
-    Rectangle activeRackRect = {rightSideX, rackSectionY + (p * (rackPanelHeight + (layoutGap * 0.5f))), rightSideWidth, rackPanelHeight};
+    Rectangle activeRackRect = {rightSideX, rackSectionY, rightSideWidth, rackPanelHeight};
     float tileSize = rackPanelHeight * 0.6f;
     float tileSpacing = 8.0f;
 
-    // Process drag and drop interactions
-    HandleDragNDropInput(match, boardBounds, activeRackRect, tileSize, tileSpacing);
+    // Process drag and drop interactions (blocked while shuffle overlay is open)
+    if (!match->shuffleState.isActive)
+        HandleDragNDropInput(match, boardBounds, activeRackRect, tileSize, tileSpacing);
+
+    // [S] – pass turn (keyboard shortcut, blocked during shuffle overlay)
+    if (!match->shuffleState.isActive && IsKeyPressed(KEY_S))
+    {
+        // Return any staged-but-unsubmitted tiles to the rack first
+        int ap = match->activePlayerIdx;
+        for (int uy = 0; uy < BOARD_SIDE; uy++)
+            for (int ux = 0; ux < BOARD_SIDE; ux++)
+                if (match->board.grid[uy][ux].letter != '\0' &&
+                    match->previousBoard.grid[uy][ux].letter == '\0' &&
+                    match->players[ap].rack_count < RACK_SIZE)
+                {
+                    match->players[ap].rack[match->players[ap].rack_count] = match->board.grid[uy][ux];
+                    match->players[ap].rack_count++;
+                }
+        memcpy(&match->board, &match->previousBoard, sizeof(GameBoard));
+        match->consecutivePassCount++;
+        PlaySoundEffect(SFX_BACK_NAV);
+        if (match->consecutivePassCount >= 6)
+        {
+            match->isMatchOver = true;
+            match->winningPlayerIdx = (match->activePlayerIdx + 1) % 2;
+        }
+        else
+        {
+            match->activePlayerIdx = (match->activePlayerIdx + 1) % 2;
+        }
+    }
+
+    // [Z] – undo turn (return staged tiles to rack, blocked during shuffle)
+    if (!match->shuffleState.isActive && IsKeyPressed(KEY_Z))
+    {
+        int ap = match->activePlayerIdx;
+        bool anyStaged = false;
+        for (int uy = 0; uy < BOARD_SIDE; uy++)
+            for (int ux = 0; ux < BOARD_SIDE; ux++)
+                if (match->board.grid[uy][ux].letter != '\0' &&
+                    match->previousBoard.grid[uy][ux].letter == '\0')
+                {
+                    anyStaged = true;
+                    if (match->players[ap].rack_count < RACK_SIZE)
+                    {
+                        match->players[ap].rack[match->players[ap].rack_count] = match->board.grid[uy][ux];
+                        match->players[ap].rack_count++;
+                    }
+                }
+        if (anyStaged)
+        {
+            memcpy(&match->board, &match->previousBoard, sizeof(GameBoard));
+            PlaySoundEffect(SFX_BACK_NAV);
+        }
+    }
+
+    // Shuffle modal keyboard shortcuts (ESC = cancel, C = confirm)
+    if (match->shuffleState.isActive)
+    {
+        if (IsKeyPressed(KEY_ESCAPE))
+        {
+            ShuffleCancel(&match->shuffleState);
+            return;
+        }
+        if (IsKeyPressed(KEY_C) && match->shuffleState.selectedCount > 0)
+        {
+            if (ShuffleCommit(&match->shuffleState, &match->players[match->activePlayerIdx],
+                              &match->tileBag, &match->tileBagCount))
+            {
+                memcpy(&match->board, &match->previousBoard, sizeof(GameBoard));
+                match->consecutivePassCount++;
+                match->activePlayerIdx = (match->activePlayerIdx + 1) % 2;
+            }
+            return;
+        }
+    }
+
+    // Shuffle modal mouse update (modal handles its own hit-testing)
+    if (match->shuffleState.isActive)
+    {
+        int baseFontSizeUpd = (int)fmaxf(15, screenHeight / 42);
+        ShuffleUpdate(&match->shuffleState, &match->players[match->activePlayerIdx],
+                      screenWidth, screenHeight, baseFontSizeUpd);
+    }
 
     float bottomRowHeight = screenHeight * 0.07f;
     float footerY = screenHeight - bottomRowHeight - padding;
@@ -117,7 +231,7 @@ void GameUpdate(AppState *state)
     Rectangle submitBtnRect = {rightSideX + rightSideWidth - actionBtnWidth - submitBtnWidth - (layoutGap * 0.5f), elementY, submitBtnWidth, elementH};
 
     Vector2 mousePos = GetMousePosition();
-    if (CheckCollisionPointRec(mousePos, submitBtnRect))
+    if (!match->shuffleState.isActive && CheckCollisionPointRec(mousePos, submitBtnRect))
     {
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         {
@@ -154,6 +268,7 @@ void GameUpdate(AppState *state)
                 match->players[match->activePlayerIdx].score += scoreGain;
                 refill_rack(&match->players[match->activePlayerIdx], &match->tileBag);
                 match->tileBagCount = match->tileBag.tiles_remaining;
+                match->consecutivePassCount = 0;
 
                 memcpy(&match->previousBoard, &match->board, sizeof(GameBoard));
                 match->activePlayerIdx = (match->activePlayerIdx + 1) % 2;
@@ -187,7 +302,11 @@ void GameDraw(AppState *state)
     const float rightSideWidth = screenWidth - rightSideX - padding;
 
     // --- LEFT COLUMN: MAIN BOARD PANEL ---
-    Rectangle boardBoundaries = {padding, padding, screenWidth * 0.45f, screenHeight - (padding * 2.0f)};
+    float boardColWidth = screenWidth * 0.45f;
+    float hkBarHeight   = baseFontSize * 2.2f;
+    float hkBarMargin   = padding * 0.5f;
+    float boardGroupH   = screenHeight - (padding * 2.0f) - hkBarMargin - hkBarHeight - hkBarMargin;
+    Rectangle boardBoundaries = {padding, padding, boardColWidth, boardGroupH};
     GuiGroupBox(boardBoundaries, "Game Board");
 
     float groupBoxHeaderHeight = 25.0f;
@@ -234,6 +353,25 @@ void GameDraw(AppState *state)
         }
     }
 
+    // --- HOTKEY BAR ---
+    float hkBarY = padding + boardGroupH + hkBarMargin;
+    
+    bool isMuted = (state->settingsState != NULL && !state->settingsState->bgmEnable);
+    static const HotkeyEntry gameKeys[] = {
+        { "P",   "Pause" },
+        { "S",   "Pass"  },
+        { "Z",   "Undo"  },
+        { "M",   "Mute"  },
+        { "Q",   "Quit"  },
+    };
+    HotkeyEntry liveKeys[5];
+    for (int hki = 0; hki < 5; hki++) liveKeys[hki] = gameKeys[hki];
+    liveKeys[3].label = isMuted ? "Unmute" : "Mute";
+    DrawHotkeyBar(liveKeys, 5,
+                  padding, hkBarY + padding * 0.25,
+                  boardColWidth, hkBarHeight,
+                  baseFontSize);
+
     // --- RIGHT COLUMN: STATISTICS & MANAGEMENT ---
     float topPanelsY = padding;
     float topPanelsHeight = screenHeight * 0.18f;
@@ -245,11 +383,14 @@ void GameDraw(AppState *state)
 
     float tableY = detailsRect.y + 25.0f;
     float rowHeight = (topPanelsHeight - 35.0f) / 3.0f;
-    const char *keys[3] = {"Mode:", "Special Tiles:", "Tiles Left:"};
+    const char *keys[3] = {"Mode:", "P1 Total:", "P2 Total:"};
 
     const char *modeStr = (match->mode == GAME_MODE_LOCAL_1V1) ? "Local 1v1" : "Network";
-    const char *tilesLeftStr = TextFormat("%d Tiles", match->tileBagCount);
-    const char *values[3] = {modeStr, match->specialTilesEnabled ? "Enabled" : "Disabled", tilesLeftStr};
+    int p1TotalTiles = match->players[0].rack_count + match->tileBagCount;
+    int p2TotalTiles = match->players[1].rack_count + match->tileBagCount;
+    const char *p1TotalStr = TextFormat("%d Tiles", p1TotalTiles);
+    const char *p2TotalStr = TextFormat("%d Tiles", p2TotalTiles);
+    const char *values[3] = {modeStr, p1TotalStr, p2TotalStr};
 
     for (int i = 0; i < 3; i++)
     {
@@ -259,9 +400,9 @@ void GameDraw(AppState *state)
             DrawRectangleRec((Rectangle){detailsRect.x + 6.0f, currentRowY, halfRightWidth - 12.0f, rowHeight}, (Color){30, 38, 46, 180});
         }
         GuiSetStyle(LABEL, TEXT_COLOR_NORMAL, 0x8F8FA0FF);
-        GuiLabel((Rectangle){detailsRect.x + 12.0f, currentRowY, halfRightWidth * 0.45f, rowHeight}, keys[i]);
+        GuiLabel((Rectangle){detailsRect.x + 12.0f, currentRowY, halfRightWidth * 0.48f, rowHeight}, keys[i]);
         GuiSetStyle(LABEL, TEXT_COLOR_NORMAL, 0xAACF9BFF);
-        GuiLabel((Rectangle){detailsRect.x + 12.0f + (halfRightWidth * 0.45f), currentRowY, (halfRightWidth * 0.55f) - 18.0f, rowHeight}, values[i]);
+        GuiLabel((Rectangle){detailsRect.x + 12.0f + (halfRightWidth * 0.48f), currentRowY, (halfRightWidth * 0.52f) - 18.0f, rowHeight}, values[i]);
     }
 
     // Block B: Score Panel
@@ -296,45 +437,157 @@ void GameDraw(AppState *state)
     GuiSetStyle(LABEL, TEXT_COLOR_NORMAL, 0xAACF9BFF);
     GuiSetStyle(LABEL, TEXT_ALIGNMENT, 0);
 
-    // Center Section: Tile Racks
+    // Center Section: Tile Rack (Turn / Player Specific) – full width, no action sub-panel
     float rackSectionY = topPanelsY + topPanelsHeight + layoutGap;
     float rackPanelHeight = screenHeight * 0.10f;
     float activeTileSize = rackPanelHeight * 0.6f;
     float activeTileSpacing = 8.0f;
 
-    for (int p = 0; p < 2; p++)
+    int p = match->activePlayerIdx;
+
+    Rectangle rackRect = {rightSideX, rackSectionY, rightSideWidth, rackPanelHeight};
+    GuiGroupBox(rackRect, TextFormat("Player %d Rack (Active Turn)", p + 1));
+
+    // ---- Tiles (full width) ----
+    float tileY = rackRect.y + (rackPanelHeight - activeTileSize) / 2.0f + 4.0f;
+
+    for (int t = 0; t < match->players[p].rack_count; t++)
     {
-        Rectangle rackRect = {rightSideX, rackSectionY + (p * (rackPanelHeight + (layoutGap * 0.5f))), rightSideWidth, rackPanelHeight};
-        GuiGroupBox(rackRect, TextFormat("Player %d Rack", p + 1));
+        if ((match->dragState.isDragging) && (match->dragState.draggedTileIdx == t))
+            continue;
 
-        float tileSize = rackPanelHeight * 0.6f;
-        float tileSpacing = 8.0f;
-        float tileY = rackRect.y + (rackPanelHeight - tileSize) / 2.0f + 4.0f;
+        Tile tile = match->players[p].rack[t];
+        Rectangle tileBounds = {rackRect.x + 15.0f + (t * (activeTileSize + activeTileSpacing)),
+                                 tileY, activeTileSize, activeTileSize};
+        DrawRectangleRounded(tileBounds, 0.2f, 4, (Color){244, 228, 198, 255});
+        DrawRectangleRoundedLines(tileBounds, 0.2f, 4, (Color){194, 169, 126, 255});
 
-        for (int t = 0; t < match->players[p].rack_count; t++)
+        char letterStr[2] = {tile.letter, '\0'};
+        int rackTileFontSize = (int)(activeTileSize * 0.55f);
+        DrawAppText(letterStr, tileBounds.x + (activeTileSize * 0.15f),
+                    tileBounds.y + (activeTileSize - rackTileFontSize) / 2.0f,
+                    rackTileFontSize, (Color){38, 28, 16, 255});
+
+        int scoreValue = tile.value;
+        const char *scoreStr = TextFormat("%d", scoreValue);
+        int scoreFontSize = (int)(cellSize * 0.40f);
+        DrawAppText(scoreStr,
+                    tileBounds.x + activeTileSize - MeasureAppText(scoreStr, scoreFontSize) - (activeTileSize * 0.25f),
+                    tileBounds.y + activeTileSize - scoreFontSize - (activeTileSize * 0.10f),
+                    scoreFontSize, (Color){80, 65, 50, 255});
+    }
+
+    // Muted bag-tile count after last tile
+    float bagTextX = rackRect.x + 15.0f + (match->players[p].rack_count * (activeTileSize + activeTileSpacing)) + 10.0f;
+    if (bagTextX < rackRect.x + rightSideWidth - 8.0f)
+    {
+        const char *mutedBagText = TextFormat("+%d Tiles", match->tileBagCount);
+        int mutedFontSize = (int)(baseFontSize * 0.9f);
+        float mutedTextY  = rackRect.y + (rackPanelHeight - mutedFontSize) / 2.0f + 2.0f;
+        DrawAppText(mutedBagText, bagTextX, mutedTextY, mutedFontSize, (Color){140, 155, 165, 200});
+    }
+
+    // -----------------------------------------------------------------------
+    // Action Bar – strip immediately below the rack
+    // Contains: Pass | Shuffle | Undo Turn | pass counter badge
+    // -----------------------------------------------------------------------
+    float actionBarH = (float)(int)(baseFontSize * 2.0f);  // compact strip height
+    float actionBarY = rackSectionY + rackPanelHeight + (layoutGap * 0.35f);
+    Rectangle actionBarRect = {rightSideX, actionBarY, rightSideWidth, actionBarH};
+
+    DrawRectangleRec(actionBarRect, (Color){22, 30, 36, 220});
+    DrawRectangleLinesEx(actionBarRect, 1.0f, (Color){54, 68, 82, 180});
+
+    float abPad   = 6.0f;
+    float abBtnH  = actionBarH - abPad * 2.0f;
+    float abBtnW  = rightSideWidth * 0.23f;
+    float abGap   = 6.0f;
+
+    // Pass count badge on the right side of the strip
+    int passCount     = match->consecutivePassCount;
+    int badgeFontSize = (int)(baseFontSize * 0.78f);
+    const char *passCountStr  = TextFormat("Passes: %d/6", passCount);
+    int passCountW  = MeasureAppText(passCountStr, badgeFontSize);
+    Color passCountColor = (passCount > 0) ? (Color){255, 80, 70, 255} : (Color){90, 105, 120, 180};
+    DrawAppText(passCountStr,
+                actionBarRect.x + actionBarRect.width - passCountW - abPad - 2.0f,
+                actionBarRect.y + (actionBarH - badgeFontSize) / 2.0f,
+                badgeFontSize, passCountColor);
+
+    // Three action buttons
+    float abBtn1X = actionBarRect.x + abPad;
+    float abBtn2X = abBtn1X + abBtnW + abGap;
+    float abBtn3X = abBtn2X + abBtnW + abGap;
+    float abBtnY  = actionBarRect.y + abPad;
+
+    Rectangle passBtn   = {abBtn1X, abBtnY, abBtnW, abBtnH};
+    Rectangle shuffleBtn = {abBtn2X, abBtnY, abBtnW, abBtnH};
+    Rectangle undoBtn   = {abBtn3X, abBtnY, abBtnW, abBtnH};
+
+    if (GuiButton(passBtn, "Pass"))
+    {
+        if (!match->shuffleState.isActive)
         {
-            if ((p == match->activePlayerIdx) && (match->dragState.isDragging) && (match->dragState.draggedTileIdx == t))
+            memcpy(&match->board, &match->previousBoard, sizeof(GameBoard));
+            match->consecutivePassCount++;
+            PlaySoundEffect(SFX_BACK_NAV);
+            if (match->consecutivePassCount >= 6)
             {
-                continue;
+                match->isMatchOver = true;
+                match->winningPlayerIdx = (match->activePlayerIdx + 1) % 2;
             }
-            Tile tile = match->players[p].rack[t];
-            Rectangle tileBounds = {rackRect.x + 15.0f + (t * (tileSize + tileSpacing)), tileY, tileSize, tileSize};
-            DrawRectangleRounded(tileBounds, 0.2f, 4, (Color){244, 228, 198, 255});
-            DrawRectangleRoundedLines(tileBounds, 0.2f, 4, (Color){194, 169, 126, 255});
-
-            char letterStr[2] = {tile.letter, '\0'};
-            int rackTileFontSize = (int)(tileSize * 0.55f);
-            DrawAppText(letterStr, tileBounds.x + (tileSize * 0.15f), tileBounds.y + (tileSize - rackTileFontSize) / 2.0f, rackTileFontSize, (Color){38, 28, 16, 255});
-
-            int scoreValue = tile.value;
-            const char *scoreStr = TextFormat("%d", scoreValue);
-            int scoreFontSize = (int)(cellSize * 0.40f);
-            DrawAppText(scoreStr, tileBounds.x + tileSize - MeasureAppText(scoreStr, scoreFontSize) - (tileSize * 0.25f), tileBounds.y + tileSize - scoreFontSize - (tileSize * 0.10f), scoreFontSize, (Color){80, 65, 50, 255});
+            else
+            {
+                match->activePlayerIdx = (match->activePlayerIdx + 1) % 2;
+            }
         }
     }
 
-    // Lower Section: History Logs
-    float historySectionY = rackSectionY + (rackPanelHeight * 2.0f) + (layoutGap * 1.5f);
+    if (GuiButton(shuffleBtn, "Shuffle"))
+    {
+        if (!match->shuffleState.isActive)
+        {
+            ShuffleOpen(&match->shuffleState);
+            PlaySoundEffect(SFX_BUTTON);
+        }
+    }
+
+    // Undo Turn: only active when tiles have been placed this turn
+    bool hasStagedTiles = false;
+    for (int uy = 0; uy < BOARD_SIDE && !hasStagedTiles; uy++)
+        for (int ux = 0; ux < BOARD_SIDE && !hasStagedTiles; ux++)
+            if (match->board.grid[uy][ux].letter != '\0' &&
+                match->previousBoard.grid[uy][ux].letter == '\0')
+                hasStagedTiles = true;
+
+    if (!hasStagedTiles) GuiSetState(STATE_DISABLED);
+    if (GuiButton(undoBtn, "Undo Turn") && hasStagedTiles && !match->shuffleState.isActive)
+    {
+        // Return each staged tile back to the active player's rack
+        for (int uy = 0; uy < BOARD_SIDE; uy++)
+        {
+            for (int ux = 0; ux < BOARD_SIDE; ux++)
+            {
+                if (match->board.grid[uy][ux].letter != '\0' &&
+                    match->previousBoard.grid[uy][ux].letter == '\0')
+                {
+                    if (match->players[p].rack_count < RACK_SIZE)
+                    {
+                        match->players[p].rack[match->players[p].rack_count] = match->board.grid[uy][ux];
+                        match->players[p].rack_count++;
+                    }
+                }
+            }
+        }
+        // Restore the board to the pre-turn state
+        memcpy(&match->board, &match->previousBoard, sizeof(GameBoard));
+        PlaySoundEffect(SFX_BACK_NAV);
+    }
+    if (!hasStagedTiles) GuiSetState(STATE_NORMAL);
+
+    // Lower Section: History Logs  (offset by action bar height)
+    float actionBarTotalH = (float)(int)(baseFontSize * 2.0f) + (layoutGap * 0.35f);
+    float historySectionY = rackSectionY + rackPanelHeight + actionBarTotalH + (layoutGap * 0.35f);
     float bottomRowHeight = screenHeight * 0.07f;
     float historyPanelHeight = screenHeight - historySectionY - bottomRowHeight - padding - layoutGap;
 
@@ -344,14 +597,14 @@ void GameDraw(AppState *state)
     float historySplitWidth = (rightSideWidth - (layoutGap * 1.5f)) / 2.0f;
     float historyInnerY = historySectionY + 25.0f;
 
-    for (int p = 0; p < 2; p++)
+    for (int hp = 0; hp < 2; hp++)
     {
-        Rectangle subHistoryRect = {historyOuterRect.x + 12.0f + (p * (historySplitWidth + layoutGap)), historyInnerY, historySplitWidth, historyPanelHeight - 40.0f};
+        Rectangle subHistoryRect = {historyOuterRect.x + 12.0f + (hp * (historySplitWidth + layoutGap)), historyInnerY, historySplitWidth, historyPanelHeight - 40.0f};
 
         DrawRectangleRec(subHistoryRect, (Color){30, 38, 46, 255});
         DrawRectangleLinesEx(subHistoryRect, 1.0f, (Color){54, 68, 82, 255});
         DrawRectangle(subHistoryRect.x, subHistoryRect.y, subHistoryRect.width, 28, (Color){45, 55, 66, 255});
-        DrawAppText(TextFormat("Player %d History", p + 1), subHistoryRect.x + 12, subHistoryRect.y + 7, baseFontSize - 2, (Color){196, 181, 137, 255});
+        DrawAppText(TextFormat("Player %d History", hp + 1), subHistoryRect.x + 12, subHistoryRect.y + 7, baseFontSize - 2, (Color){196, 181, 137, 255});
     }
 
     // --- FOOTER MANAGEMENT ACTION BAR ---
@@ -411,11 +664,36 @@ void GameDraw(AppState *state)
     Rectangle actionBtnRect = {rightSideX + rightSideWidth - actionBtnWidth, elementY, actionBtnWidth, elementH};
     if (GuiButton(actionBtnRect, "Save & Exit Match"))
     {
-        state->currentScreen = APP_SCREEN_MAIN_MENU;
-        PlaySoundEffect(SFX_BACK_NAV);
+        if (!match->shuffleState.isActive)
+        {
+            state->currentScreen = APP_SCREEN_MAIN_MENU;
+            PlaySoundEffect(SFX_BACK_NAV);
+        }
     }
 
-    // Draw drag overlay at cursor position
-    Rectangle activeRackRect = {rightSideX, rackSectionY + (match->activePlayerIdx * (rackPanelHeight + (layoutGap * 0.5f))), rightSideWidth, rackPanelHeight};
+    // Draw drag overlay at cursor position (if dragging)
+    Rectangle activeRackRect = {rightSideX, rackSectionY, rightSideWidth, rackPanelHeight};
     DrawDragNDropOverlay(match, activeRackRect, activeTileSize, activeTileSpacing);
+
+    // --- SHUFFLE MODAL (drawn last so it floats above all game UI) ---
+    if (match->shuffleState.isActive)
+    {
+        int shuffleResult = ShuffleDraw(&match->shuffleState,
+                                        &match->players[match->activePlayerIdx],
+                                        screenWidth, screenHeight, baseFontSize);
+        if (shuffleResult == 1 && match->shuffleState.selectedCount > 0)
+        {
+            if (ShuffleCommit(&match->shuffleState, &match->players[match->activePlayerIdx],
+                              &match->tileBag, &match->tileBagCount))
+            {
+                memcpy(&match->board, &match->previousBoard, sizeof(GameBoard));
+                match->consecutivePassCount++;
+                match->activePlayerIdx = (match->activePlayerIdx + 1) % 2;
+            }
+        }
+        else if (shuffleResult == -1)
+        {
+            ShuffleCancel(&match->shuffleState);
+        }
+    }
 }

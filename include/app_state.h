@@ -13,6 +13,8 @@ extern "C" {
 typedef struct LoadingState LoadingState;
 typedef struct AboutState AboutState;
 typedef struct SettingsState SettingsState;
+typedef struct PauseState PauseState;
+typedef struct GameOverState GameOverState;
 
 typedef enum {
     APP_SCREEN_LOADING = 0,
@@ -29,6 +31,8 @@ typedef struct AppState
     AboutState* aboutState;
     GameState* gamestate;
     SettingsState* settingsState;
+    PauseState* pauseState;
+    GameOverState* gameOverState;
     bool shouldClose;
 } AppState;
 

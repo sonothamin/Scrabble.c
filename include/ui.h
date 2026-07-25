@@ -18,17 +18,13 @@ Font GetAppFont(void);
 void DrawAppText(const char* text, float x, float y, float fontSize, Color color);
 int  MeasureAppText(const char* text, float fontSize);
 
-// ---------------------------------------------------------------------------
-// Hotkey Bar  (professional game-style keycap footer)
-// ---------------------------------------------------------------------------
+bool DrawTabButton(const char *text, Rectangle bounds, bool isActive, int fontSize, bool isModalActive);
 
 typedef struct {
-    const char *key;    // e.g. "Q", "ESC", "F11"
-    const char *label;  // e.g. "Quit", "Fullscreen"
+    const char *key;
+    const char *label;
 } HotkeyEntry;
 
-// Draws a row of keycap badges + labels inside a dark rounded container.
-// x,y,w,h define the bounding rectangle; fontSize is the base size for text.
 void DrawHotkeyBar(const HotkeyEntry *entries, int count,
                    float x, float y, float width, float height,
                    float fontSize);

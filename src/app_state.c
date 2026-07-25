@@ -7,6 +7,8 @@
 #include "game.h"
 #include "loading.h"
 #include "about.h"
+#include "pause.h"
+#include "game_over.h"
 #include "raylib.h"
 #include "raygui.h"
 #include "error_service.h"
@@ -30,6 +32,14 @@ void InitAppState(AppState *state)
         AboutInit(state->aboutState);
 
     state->settingsState = InitSettingsState();
+
+    state->pauseState = (PauseState *)malloc(sizeof(PauseState));
+    if (state->pauseState != NULL)
+        InitPauseState(state->pauseState);
+
+    state->gameOverState = (GameOverState *)malloc(sizeof(GameOverState));
+    if (state->gameOverState != NULL)
+        InitGameOverState(state->gameOverState);
 
     if (state->settingsState != NULL && FileExists(CONFIG_FILE_PATH))
     {
@@ -62,6 +72,15 @@ void StartNewGame(AppState *state)
     if (state->gamestate != NULL)
     {
         GameInit(state->gamestate);
+    }
+
+    if (state->pauseState != NULL)
+    {
+        InitPauseState(state->pauseState);
+    }
+    if (state->gameOverState != NULL)
+    {
+        InitGameOverState(state->gameOverState);
     }
 
     state->currentScreen = APP_SCREEN_GAME;
@@ -100,7 +119,18 @@ void UpdateAppState(AppState *state)
                 GameInit(state->gamestate);
         }
 
-        GameUpdate(state);
+        if (state->pauseState != NULL)
+            UpdatePauseOverlay(state, state->pauseState);
+
+        if (state->gameOverState != NULL)
+            UpdateGameOverOverlay(state, state->gameOverState);
+
+        // Only update game board & interactions if not paused and not game over
+        if ((state->pauseState == NULL || !state->pauseState->isPaused) &&
+            (state->gamestate == NULL || !state->gamestate->isMatchOver))
+        {
+            GameUpdate(state);
+        }
         break;
 
     case APP_SCREEN_ABOUT:
@@ -141,6 +171,15 @@ void DrawAppState(AppState *state)
 
     case APP_SCREEN_GAME:
         GameDraw(state);
+
+        if (state->pauseState != NULL && state->pauseState->isPaused)
+        {
+            DrawPauseOverlay(state, state->pauseState);
+        }
+        else if (state->gamestate != NULL && state->gamestate->isMatchOver && state->gameOverState != NULL)
+        {
+            DrawGameOverOverlay(state, state->gameOverState);
+        }
         break;
 
     case APP_SCREEN_ABOUT:
@@ -184,5 +223,15 @@ void CloseAppState(AppState *state)
     {
         FreeSettingsState(state->settingsState);
         state->settingsState = NULL;
+    }
+    if (state->pauseState)
+    {
+        free(state->pauseState);
+        state->pauseState = NULL;
+    }
+    if (state->gameOverState)
+    {
+        free(state->gameOverState);
+        state->gameOverState = NULL;
     }
 }

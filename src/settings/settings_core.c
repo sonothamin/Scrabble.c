@@ -189,23 +189,7 @@ void SettingsUpdate(AppState *state)
 // RENDERING LOGIC
 // =============================================================================
 
-bool DrawSettingsTabButton(const char *text, Rectangle bounds, bool isActive, int fontSize, bool isModalActive)
-{
-    bool isHovered = CheckCollisionPointRec(GetMousePosition(), bounds) && !isModalActive;
-
-    Color bg = isActive ? GetColor(GuiGetStyle(BUTTON, BASE_COLOR_PRESSED))
-                        : (isHovered ? GetColor(GuiGetStyle(BUTTON, BASE_COLOR_FOCUSED))
-                                     : GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
-    Color textCol = isActive ? GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED))
-                             : (isHovered ? GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_FOCUSED))
-                                          : GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_NORMAL)));
-
-    DrawRectangleRec(bounds, bg);
-    DrawRectangleLinesEx(bounds, 1.5f, GetColor(GuiGetStyle(DEFAULT, LINE_COLOR)));
-    DrawAppText(text, bounds.x + 15.0f, bounds.y + (bounds.height - fontSize) / 2.0f, fontSize, textCol);
-
-    return (isHovered && IsMouseButtonPressed(MOUSE_BUTTON_LEFT));
-}
+// Using globalized DrawTabButton from ui.h
 
 void SettingsDraw(const AppState *state)
 {
@@ -253,22 +237,22 @@ void SettingsDraw(const AppState *state)
     float tabHeight = baseFontSize * 2.2f;
     float tabSpacing = 8.0f;
 
-    if (DrawSettingsTabButton("[1] Game Rules", (Rectangle){sidebarX, sidebarY, tabWidth, tabHeight}, settings->selectedOption == SETTINGS_TAB_GAME, baseFontSize * 0.85f, isDialogOpen))
+    if (DrawTabButton("[1] Game Rules", (Rectangle){sidebarX, sidebarY, tabWidth, tabHeight}, settings->selectedOption == SETTINGS_TAB_GAME, baseFontSize * 0.85f, isDialogOpen))
     {
         settings->selectedOption = SETTINGS_TAB_GAME;
         PlaySoundEffect(SFX_BUTTON);
     }
-    if (DrawSettingsTabButton("[2] Audio Mixer", (Rectangle){sidebarX, sidebarY + tabHeight + tabSpacing, tabWidth, tabHeight}, settings->selectedOption == SETTINGS_TAB_AUDIO, baseFontSize * 0.85f, isDialogOpen))
+    if (DrawTabButton("[2] Audio Mixer", (Rectangle){sidebarX, sidebarY + tabHeight + tabSpacing, tabWidth, tabHeight}, settings->selectedOption == SETTINGS_TAB_AUDIO, baseFontSize * 0.85f, isDialogOpen))
     {
         settings->selectedOption = SETTINGS_TAB_AUDIO;
         PlaySoundEffect(SFX_BUTTON);
     }
-    if (DrawSettingsTabButton("[3] Network & LAN", (Rectangle){sidebarX, sidebarY + (tabHeight + tabSpacing) * 2.0f, tabWidth, tabHeight}, settings->selectedOption == SETTINGS_TAB_NETWORK, baseFontSize * 0.85f, isDialogOpen))
+    if (DrawTabButton("[3] Network & LAN", (Rectangle){sidebarX, sidebarY + (tabHeight + tabSpacing) * 2.0f, tabWidth, tabHeight}, settings->selectedOption == SETTINGS_TAB_NETWORK, baseFontSize * 0.85f, isDialogOpen))
     {
         settings->selectedOption = SETTINGS_TAB_NETWORK;
         PlaySoundEffect(SFX_BUTTON);
     }
-    if (DrawSettingsTabButton("[4] Advanced", (Rectangle){sidebarX, sidebarY + (tabHeight + tabSpacing) * 3.0f, tabWidth, tabHeight}, settings->selectedOption == SETTINGS_TAB_ADVANCED, baseFontSize * 0.85f, isDialogOpen))
+    if (DrawTabButton("[4] Advanced", (Rectangle){sidebarX, sidebarY + (tabHeight + tabSpacing) * 3.0f, tabWidth, tabHeight}, settings->selectedOption == SETTINGS_TAB_ADVANCED, baseFontSize * 0.85f, isDialogOpen))
     {
         settings->selectedOption = SETTINGS_TAB_ADVANCED;
         PlaySoundEffect(SFX_BUTTON);
