@@ -106,21 +106,21 @@ void DrawErrorServiceOverlay(void)
     if (g_warningTimer <= 0.0f)
         return;
 
-    const int screenWidth = GetScreenWidth();
-    float bannerWidth = 420.0f;
-    float bannerHeight = 50.0f;
-
-    Rectangle bannerRect = {(screenWidth - bannerWidth) / 2.0f, 25.0f, bannerWidth, bannerHeight};
-
-    DrawRectangleRounded(bannerRect, 0.25f, 4, (Color){180, 40, 40, 230});
-    DrawRectangleRoundedLinesEx(bannerRect, 0.25f, 4, 2.0f, (Color){255, 90, 90, 255});
-
     int fontSize = 20;
     char fullText[200];
     snprintf(fullText, sizeof(fullText), "%s: %s", g_warningTitle, g_warningMessage);
-
     int textW = MeasureAppText(fullText, fontSize);
-    DrawAppText(
+    
+    const int screenWidth = GetScreenWidth();
+    float bannerWidth = (textW>100.0f)?(textW+20.0f):100.0f;
+    float bannerHeight = 50.0f;
+
+    Rectangle bannerRect = {(screenWidth - bannerWidth) / 2.0f, 25.0f, bannerWidth, bannerHeight};
+    
+    DrawRectangleRounded(bannerRect, 0.25f, 4, (Color){180, 40, 40, 230});
+    DrawRectangleRoundedLinesEx(bannerRect, 0.25f, 4, 2.0f, (Color){255, 90, 90, 255});
+
+     DrawAppText(
         fullText,
         bannerRect.x + (bannerWidth - textW) / 2.0f,
         bannerRect.y + (bannerHeight - fontSize) / 2.0f,
