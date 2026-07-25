@@ -147,25 +147,42 @@ void MenuDraw(AppState* state)
 
     GuiSetStyle(LABEL, TEXT_ALIGNMENT, 0); 
 
+    static Texture2D newImg = { 0 };
+    static Texture2D netImg = { 0 };
+    static Texture2D saveImg = { 0 };
+    static bool texturesLoaded = false;
+
+    if (!texturesLoaded)
+    {
+        newImg = LoadTexture("images/new.png");
+        netImg = LoadTexture("images/network.png");
+        saveImg = LoadTexture("images/saved.png");
+        texturesLoaded = true;
+    }
+
     GuiGroupBox((Rectangle){ padding, contentTop, mainPanelWidth, mainPanelHeight }, "START A GAME");
 
-    if (GuiButton((Rectangle){ padding + 25.0f, contentTop + rowHeight * 0.8f, btnWidth, targetBtnHeight }, "New Local Game")) {
+    float legendBtnX = padding + 45.0f;
+    float legendBtnW = btnWidth - 20.0f;
+
+    if (DrawLegendButton(newImg, "New Local Game", (Rectangle){ legendBtnX, contentTop + rowHeight * 0.8f, legendBtnW, targetBtnHeight }, baseFontSize, false)) {
         PlaySoundEffect(SFX_GAME_START);
         StartNewGame(state);
     }
     GuiLabel((Rectangle){ labelX, contentTop + rowHeight * 0.8f, labelW, targetBtnHeight }, "Play on this device turn-by-turn");
 
-    if (GuiButton((Rectangle){ padding + 25.0f, contentTop + (rowHeight * 1.8f), btnWidth, targetBtnHeight }, "New Network Game")) {
+    if (DrawLegendButton(netImg, "New Network Game", (Rectangle){ legendBtnX, contentTop + (rowHeight * 1.8f), legendBtnW, targetBtnHeight }, baseFontSize, false)) {
         PlaySoundEffect(SFX_GAME_START);
         StartNewGame(state);
     }
     GuiLabel((Rectangle){ labelX, contentTop + (rowHeight * 1.8f), labelW, targetBtnHeight }, "Play with friends within the LAN");
 
-    if (GuiButton((Rectangle){ padding + 25.0f, contentTop + (rowHeight * 2.8f), btnWidth, targetBtnHeight }, "Load Saved Game")) {
+    if (DrawLegendButton(saveImg, "Load Saved Game", (Rectangle){ legendBtnX, contentTop + (rowHeight * 2.8f), legendBtnW, targetBtnHeight }, baseFontSize, false)) {
         PlaySoundEffect(SFX_BUTTON);
         StartNewGame(state);
     }
     GuiLabel((Rectangle){ labelX, contentTop + (rowHeight * 2.8f), labelW, targetBtnHeight }, "Load a previous saved game file");
+
 
     // Bottom Quick HUD Info
     GuiLine((Rectangle){ padding + 25.0f, contentTop + (rowHeight * 4.6f), mainPanelWidth - 50.0f, 8.0f }, NULL);

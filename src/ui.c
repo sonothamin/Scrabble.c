@@ -300,10 +300,10 @@ bool DrawLegendButton(Texture2D image, const char *text, Rectangle bounds, int f
     DrawRectangleLinesEx(bounds, 1.5f, borderColor);
 
     // Draw left image legend (overflows top and bottom bounds)
-    float legendOverflow = bounds.height * 0.15f; // 15% overflow on top and bottom
+    float legendOverflow = bounds.height * 0.18f; // 18% overflow on top and bottom
     float legendH = bounds.height + (legendOverflow * 2.0f);
     float legendW = legendH; // Keep legend square-ish or proportional
-    float legendX = bounds.x - (legendW * 0.2f); // Offset to left edge
+    float legendX = bounds.x + (bounds.height * 0.25f); // Shift right so left edge of button is exposed
     float legendY = bounds.y - legendOverflow;
 
     if (image.id > 0)
@@ -313,13 +313,14 @@ bool DrawLegendButton(Texture2D image, const char *text, Rectangle bounds, int f
         DrawTexturePro(image, srcRec, destRec, (Vector2){ 0, 0 }, 0.0f, WHITE);
     }
 
-    // Draw button text offset to the right of the legend
+    // Draw button text offset further to the right
     if (text != NULL)
     {
-        float textX = bounds.x + legendW * 0.9f;
+        float textX = legendX + legendW + 18.0f;
         float textY = bounds.y + (bounds.height - fontSize) / 2.0f;
         DrawAppText(text, textX, textY, (float)fontSize, textColor);
     }
+
 
     return (isHovered && IsMouseButtonReleased(MOUSE_BUTTON_LEFT));
 }
