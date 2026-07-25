@@ -64,12 +64,16 @@ void GameUpdate(AppState *state)
 
     if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_P))
     {
-        if (state->pauseState)
+        // When the shuffle modal is open, ESC is handled below (after match pointer is resolved)
+        if (state->gamestate == NULL || !state->gamestate->shuffleState.isActive)
         {
-            state->pauseState->isPaused = !state->pauseState->isPaused;
-            PlaySoundEffect(SFX_BUTTON);
+            if (state->pauseState)
+            {
+                state->pauseState->isPaused = !state->pauseState->isPaused;
+                PlaySoundEffect(SFX_BUTTON);
+            }
+            return;
         }
-        return;
     }
 
     // [M]ute – toggle BGM
@@ -151,16 +155,33 @@ void GameUpdate(AppState *state)
         }
     }
 
-    // Shuffle overlay update (tile selection clicks)
+    // Shuffle modal keyboard shortcuts (ESC = cancel, C = confirm)
     if (match->shuffleState.isActive)
     {
-        float rackPanelHeightUpd = screenHeight * 0.10f;
-        float topPanelsHeightUpd = screenHeight * 0.18f;
-        float rackSectionYUpd    = padding + topPanelsHeightUpd + layoutGap;
-        Rectangle shuffleRackRect = {rightSideX, rackSectionYUpd, rightSideWidth, rackPanelHeightUpd};
-        float tileSizeUpd = rackPanelHeightUpd * 0.6f;
+        if (IsKeyPressed(KEY_ESCAPE))
+        {
+            ShuffleCancel(&match->shuffleState);
+            return;
+        }
+        if (IsKeyPressed(KEY_C) && match->shuffleState.selectedCount > 0)
+        {
+            if (ShuffleCommit(&match->shuffleState, &match->players[match->activePlayerIdx],
+                              &match->tileBag, &match->tileBagCount))
+            {
+                memcpy(&match->board, &match->previousBoard, sizeof(GameBoard));
+                match->consecutivePassCount++;
+                match->activePlayerIdx = (match->activePlayerIdx + 1) % 2;
+            }
+            return;
+        }
+    }
+
+    // Shuffle modal mouse update (modal handles its own hit-testing)
+    if (match->shuffleState.isActive)
+    {
+        int baseFontSizeUpd = (int)fmaxf(15, screenHeight / 42);
         ShuffleUpdate(&match->shuffleState, &match->players[match->activePlayerIdx],
-                      shuffleRackRect, tileSizeUpd, 8.0f);
+                      screenWidth, screenHeight, baseFontSizeUpd);
     }
 
     float bottomRowHeight = screenHeight * 0.07f;
@@ -441,6 +462,7 @@ void GameDraw(AppState *state)
                1.0f, (Color){54, 68, 82, 200});
 
     // ---- Right action panel ----
+    // ---- Right action panel ----
     float apX = divX + 6.0f;
     float apW = actionPanelW - 12.0f;
     float apY = rackRect.y + 6.0f;
@@ -457,60 +479,42 @@ void GameDraw(AppState *state)
                 apY + 2.0f,
                 badgeFontSize, passCountColor);
 
-    // Two stacked buttons
+    // Two stacked buttons (Pass/Shuffle when idle, or Confirm/Cancel bounds when in Shuffle mode)
     float counterH  = badgeFontSize + 4.0f;
     float btnGap    = 4.0f;
     float btnH      = (apH - counterH - btnGap * 3.0f) / 2.0f;
     float btn1Y     = apY + counterH + btnGap;
     float btn2Y     = btn1Y + btnH + btnGap;
 
-    Rectangle rackPassBtnRect    = {apX, btn1Y, apW, btnH};
-    Rectangle rackShuffleBtnRect = {apX, btn2Y, apW, btnH};
+    Rectangle actionBtn1Rect = {apX, btn1Y, apW, btnH};
+    Rectangle actionBtn2Rect = {apX, btn2Y, apW, btnH};
 
-    bool canAct = !match->shuffleState.isActive;
-
-    if (canAct && GuiButton(rackPassBtnRect, "Pass"))
+    if (GuiButton(actionBtn1Rect, "Pass"))
     {
-        memcpy(&match->board, &match->previousBoard, sizeof(GameBoard));
-        match->consecutivePassCount++;
-        PlaySoundEffect(SFX_BACK_NAV);
-        if (match->consecutivePassCount >= 6)
+        if (!match->shuffleState.isActive)
         {
-            match->isMatchOver = true;
-            match->winningPlayerIdx = (match->activePlayerIdx + 1) % 2;
+            memcpy(&match->board, &match->previousBoard, sizeof(GameBoard));
+            match->consecutivePassCount++;
+            PlaySoundEffect(SFX_BACK_NAV);
+            if (match->consecutivePassCount >= 6)
+            {
+                match->isMatchOver = true;
+                match->winningPlayerIdx = (match->activePlayerIdx + 1) % 2;
+            }
+            else
+            {
+                match->activePlayerIdx = (match->activePlayerIdx + 1) % 2;
+            }
         }
-        else
-        {
-            match->activePlayerIdx = (match->activePlayerIdx + 1) % 2;
-        }
-    }
-    else if (!canAct)
-    {
-        DrawRectangleRounded(rackPassBtnRect, 0.25f, 4, (Color){30, 38, 46, 120});
-        DrawRectangleRoundedLines(rackPassBtnRect, 0.25f, 4, (Color){54, 68, 82, 100});
-        int pFS = (int)(baseFontSize * 0.75f);
-        int pW  = MeasureAppText("Pass", pFS);
-        DrawAppText("Pass",
-                    rackPassBtnRect.x + (rackPassBtnRect.width  - pW) / 2.0f,
-                    rackPassBtnRect.y + (rackPassBtnRect.height - pFS) / 2.0f,
-                    pFS, (Color){70, 85, 95, 140});
     }
 
-    if (canAct && GuiButton(rackShuffleBtnRect, "Shuffle"))
+    if (GuiButton(actionBtn2Rect, "Shuffle"))
     {
-        ShuffleOpen(&match->shuffleState);
-        PlaySoundEffect(SFX_BUTTON);
-    }
-    else if (!canAct)
-    {
-        DrawRectangleRounded(rackShuffleBtnRect, 0.25f, 4, (Color){30, 38, 46, 120});
-        DrawRectangleRoundedLines(rackShuffleBtnRect, 0.25f, 4, (Color){54, 68, 82, 100});
-        int sFS = (int)(baseFontSize * 0.75f);
-        int sW  = MeasureAppText("Shuffle", sFS);
-        DrawAppText("Shuffle",
-                    rackShuffleBtnRect.x + (rackShuffleBtnRect.width  - sW) / 2.0f,
-                    rackShuffleBtnRect.y + (rackShuffleBtnRect.height - sFS) / 2.0f,
-                    sFS, (Color){70, 85, 95, 140});
+        if (!match->shuffleState.isActive)
+        {
+            ShuffleOpen(&match->shuffleState);
+            PlaySoundEffect(SFX_BUTTON);
+        }
     }
 
     // Lower Section: History Logs
@@ -591,11 +595,36 @@ void GameDraw(AppState *state)
     Rectangle actionBtnRect = {rightSideX + rightSideWidth - actionBtnWidth, elementY, actionBtnWidth, elementH};
     if (GuiButton(actionBtnRect, "Save & Exit Match"))
     {
-        state->currentScreen = APP_SCREEN_MAIN_MENU;
-        PlaySoundEffect(SFX_BACK_NAV);
+        if (!match->shuffleState.isActive)
+        {
+            state->currentScreen = APP_SCREEN_MAIN_MENU;
+            PlaySoundEffect(SFX_BACK_NAV);
+        }
     }
 
-    // Draw drag overlay at cursor position
-    Rectangle activeRackRect = {rightSideX, rackSectionY + (match->activePlayerIdx * (rackPanelHeight + (layoutGap * 0.5f))), rightSideWidth, rackPanelHeight};
+    // Draw drag overlay at cursor position (if dragging)
+    Rectangle activeRackRect = {rightSideX, rackSectionY, rightSideWidth, rackPanelHeight};
     DrawDragNDropOverlay(match, activeRackRect, activeTileSize, activeTileSpacing);
+
+    // --- SHUFFLE MODAL (drawn last so it floats above all game UI) ---
+    if (match->shuffleState.isActive)
+    {
+        int shuffleResult = ShuffleDraw(&match->shuffleState,
+                                        &match->players[match->activePlayerIdx],
+                                        screenWidth, screenHeight, baseFontSize);
+        if (shuffleResult == 1 && match->shuffleState.selectedCount > 0)
+        {
+            if (ShuffleCommit(&match->shuffleState, &match->players[match->activePlayerIdx],
+                              &match->tileBag, &match->tileBagCount))
+            {
+                memcpy(&match->board, &match->previousBoard, sizeof(GameBoard));
+                match->consecutivePassCount++;
+                match->activePlayerIdx = (match->activePlayerIdx + 1) % 2;
+            }
+        }
+        else if (shuffleResult == -1)
+        {
+            ShuffleCancel(&match->shuffleState);
+        }
+    }
 }
