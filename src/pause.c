@@ -9,6 +9,8 @@
 
 #define CONFIG_FILE_PATH "config.dat"
 
+#include "app_state.h"
+
 static void ExitPauseMenu(AppState *state, PauseState *pause)
 {
     pause->isPaused = false;
@@ -28,17 +30,38 @@ void UpdatePauseOverlay(AppState *state, PauseState *pause)
 {
     if (!state || !pause) return;
 
-    if (IsKeyPressed(KEY_P) || (pause->isPaused && IsKeyPressed(KEY_ESCAPE)))
+    if (!pause->isPaused)
     {
-        if (pause->isPaused)
-        {
-            ExitPauseMenu(state, pause);
-        }
-        else
+        if (IsKeyPressed(KEY_P))
         {
             pause->isPaused = true;
+            PlaySoundEffect(SFX_BUTTON);
         }
+        return;
+    }
+
+    // Active pause menu hotkeys
+    if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_P) || IsKeyPressed(KEY_R))
+    {
+        ExitPauseMenu(state, pause);
         PlaySoundEffect(SFX_BUTTON);
+        return;
+    }
+
+    if (IsKeyPressed(KEY_T))
+    {
+        ExitPauseMenu(state, pause);
+        StartNewGame(state);
+        PlaySoundEffect(SFX_GAME_START);
+        return;
+    }
+
+    if (IsKeyPressed(KEY_Q))
+    {
+        ExitPauseMenu(state, pause);
+        state->currentScreen = APP_SCREEN_MAIN_MENU;
+        PlaySoundEffect(SFX_BACK_NAV);
+        return;
     }
 }
 
@@ -55,11 +78,11 @@ void DrawPauseOverlay(AppState *state, PauseState *pause)
     int baseFontSize = fmaxf(16, screenHeight / 38);
     ApplyScrabbleTheme(baseFontSize);
 
-    // Clean, centered modal card with increased width to prevent label truncation
+    // Clean, centered modal card
     float cardW = fminf(screenWidth * 0.55f, 560.0f);
     if (cardW < 420.0f) cardW = 420.0f;
 
-    float cardH = 490.0f;
+    float cardH = 540.0f;
     float cardX = (screenWidth - cardW) / 2.0f;
     float cardY = (screenHeight - cardH) / 2.0f;
 
@@ -139,10 +162,10 @@ void DrawPauseOverlay(AppState *state, PauseState *pause)
     }
 
     // Main Menu Navigation Action Buttons
-    float btnY = soundBoxY + soundBoxH + 20.0f;
+    float btnY = soundBoxY + soundBoxH + 18.0f;
     float btnW = cardW - 60.0f;
-    float btnH = 40.0f;
-    float btnGap = 10.0f;
+    float btnH = 38.0f;
+    float btnGap = 8.0f;
 
     if (GuiButton((Rectangle){ cardX + 30.0f, btnY, btnW, btnH }, "Resume Game"))
     {
@@ -163,4 +186,17 @@ void DrawPauseOverlay(AppState *state, PauseState *pause)
         state->currentScreen = APP_SCREEN_MAIN_MENU;
         PlaySoundEffect(SFX_BACK_NAV);
     }
+
+    // Hotkey bar at bottom of pause menu modal card
+    float hkBarH = (float)(int)(baseFontSize * 0.72f) * 2.0f + 6.0f;
+    float hkBarY = cardY + cardH - 12.0f - hkBarH;
+    float hkBarX = cardX + 30.0f;
+    float hkBarW = cardW - 60.0f;
+
+    static const HotkeyEntry pauseKeys[] = {
+        { "ESC/R", "Resume"  },
+        { "T",     "Restart" },
+        { "Q",     "Quit"    },
+    };
+    DrawHotkeyBar(pauseKeys, 3, hkBarX, hkBarY, hkBarW, hkBarH, (float)baseFontSize);
 }
