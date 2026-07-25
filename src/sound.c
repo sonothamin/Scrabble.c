@@ -25,7 +25,7 @@ void SoundSysInit(void)
     gSound.sfx[SFX_APP_LAUNCH]        = LoadSound("audio/sfx/app_started.wav");
     gSound.sfx[SFX_ABOUT]        = LoadSound("audio/sfx/about.wav");
     gSound.sfx[SFX_BUTTON]       = LoadSound("resources/audio/sfx/button.wav");
-    gSound.sfx[SFX_TILE_PLACE]   = LoadSound("resources/audio/sfx/place.mp3");
+    gSound.sfx[SFX_TILE_PLACE]   = LoadSound("resources/audio/sfx/place.wav");
     gSound.sfx[SFX_SCORE]        = LoadSound("audio/sfx/earn_point.wav");
     gSound.sfx[SFX_INVALID_MOVE] = LoadSound("audio/sfx/invalid_move.wav");
     gSound.sfx[SFX_GAME_START]   = LoadSound("audio/sfx/game_start.wav");
