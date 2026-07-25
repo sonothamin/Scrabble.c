@@ -43,8 +43,9 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
 
             if (gridX >= 0 && gridX < BOARD_SIDE && gridY >= 0 && gridY < BOARD_SIDE)
             {
-                // Only pick up if there's an existing tile
-                if (match->board.grid[gridY][gridX].letter != '\0')
+                // Only pick up if there's an existing tile AND it was not placed in previous turns
+                if (match->board.grid[gridY][gridX].letter != '\0' &&
+                    match->previousBoard.grid[gridY][gridX].letter == '\0')
                 {
                     match->dragState.isDragging = true;
                     match->dragState.isFromRack = false;
