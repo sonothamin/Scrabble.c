@@ -98,8 +98,7 @@ void GameUpdate(AppState *state)
     float rackSectionY = topPanelsY + topPanelsHeight + layoutGap;
     float rackPanelHeight = screenHeight * 0.10f;
 
-    int p = match->activePlayerIdx;
-    Rectangle activeRackRect = {rightSideX, rackSectionY + (p * (rackPanelHeight + (layoutGap * 0.5f))), rightSideWidth, rackPanelHeight};
+    Rectangle activeRackRect = {rightSideX, rackSectionY, rightSideWidth, rackPanelHeight};
     float tileSize = rackPanelHeight * 0.6f;
     float tileSpacing = 8.0f;
 
@@ -296,45 +295,41 @@ void GameDraw(AppState *state)
     GuiSetStyle(LABEL, TEXT_COLOR_NORMAL, 0xAACF9BFF);
     GuiSetStyle(LABEL, TEXT_ALIGNMENT, 0);
 
-    // Center Section: Tile Racks
+    // Center Section: Tile Rack (Turn / Player Specific)
     float rackSectionY = topPanelsY + topPanelsHeight + layoutGap;
     float rackPanelHeight = screenHeight * 0.10f;
     float activeTileSize = rackPanelHeight * 0.6f;
     float activeTileSpacing = 8.0f;
 
-    for (int p = 0; p < 2; p++)
+    int p = match->activePlayerIdx;
+    Rectangle rackRect = {rightSideX, rackSectionY, rightSideWidth, rackPanelHeight};
+    GuiGroupBox(rackRect, TextFormat("Rack : #%d", p + 1));
+
+    float tileY = rackRect.y + (rackPanelHeight - activeTileSize) / 2.0f + 4.0f;
+
+    for (int t = 0; t < match->players[p].rack_count; t++)
     {
-        Rectangle rackRect = {rightSideX, rackSectionY + (p * (rackPanelHeight + (layoutGap * 0.5f))), rightSideWidth, rackPanelHeight};
-        GuiGroupBox(rackRect, TextFormat("Player %d Rack", p + 1));
-
-        float tileSize = rackPanelHeight * 0.6f;
-        float tileSpacing = 8.0f;
-        float tileY = rackRect.y + (rackPanelHeight - tileSize) / 2.0f + 4.0f;
-
-        for (int t = 0; t < match->players[p].rack_count; t++)
+        if ((match->dragState.isDragging) && (match->dragState.draggedTileIdx == t))
         {
-            if ((p == match->activePlayerIdx) && (match->dragState.isDragging) && (match->dragState.draggedTileIdx == t))
-            {
-                continue;
-            }
-            Tile tile = match->players[p].rack[t];
-            Rectangle tileBounds = {rackRect.x + 15.0f + (t * (tileSize + tileSpacing)), tileY, tileSize, tileSize};
-            DrawRectangleRounded(tileBounds, 0.2f, 4, (Color){244, 228, 198, 255});
-            DrawRectangleRoundedLines(tileBounds, 0.2f, 4, (Color){194, 169, 126, 255});
-
-            char letterStr[2] = {tile.letter, '\0'};
-            int rackTileFontSize = (int)(tileSize * 0.55f);
-            DrawAppText(letterStr, tileBounds.x + (tileSize * 0.15f), tileBounds.y + (tileSize - rackTileFontSize) / 2.0f, rackTileFontSize, (Color){38, 28, 16, 255});
-
-            int scoreValue = tile.value;
-            const char *scoreStr = TextFormat("%d", scoreValue);
-            int scoreFontSize = (int)(cellSize * 0.40f);
-            DrawAppText(scoreStr, tileBounds.x + tileSize - MeasureAppText(scoreStr, scoreFontSize) - (tileSize * 0.25f), tileBounds.y + tileSize - scoreFontSize - (tileSize * 0.10f), scoreFontSize, (Color){80, 65, 50, 255});
+            continue;
         }
+        Tile tile = match->players[p].rack[t];
+        Rectangle tileBounds = {rackRect.x + 15.0f + (t * (activeTileSize + activeTileSpacing)), tileY, activeTileSize, activeTileSize};
+        DrawRectangleRounded(tileBounds, 0.2f, 4, (Color){244, 228, 198, 255});
+        DrawRectangleRoundedLines(tileBounds, 0.2f, 4, (Color){194, 169, 126, 255});
+
+        char letterStr[2] = {tile.letter, '\0'};
+        int rackTileFontSize = (int)(activeTileSize * 0.55f);
+        DrawAppText(letterStr, tileBounds.x + (activeTileSize * 0.15f), tileBounds.y + (activeTileSize - rackTileFontSize) / 2.0f, rackTileFontSize, (Color){38, 28, 16, 255});
+
+        int scoreValue = tile.value;
+        const char *scoreStr = TextFormat("%d", scoreValue);
+        int scoreFontSize = (int)(cellSize * 0.40f);
+        DrawAppText(scoreStr, tileBounds.x + activeTileSize - MeasureAppText(scoreStr, scoreFontSize) - (activeTileSize * 0.25f), tileBounds.y + activeTileSize - scoreFontSize - (activeTileSize * 0.10f), scoreFontSize, (Color){80, 65, 50, 255});
     }
 
     // Lower Section: History Logs
-    float historySectionY = rackSectionY + (rackPanelHeight * 2.0f) + (layoutGap * 1.5f);
+    float historySectionY = rackSectionY + rackPanelHeight + layoutGap;
     float bottomRowHeight = screenHeight * 0.07f;
     float historyPanelHeight = screenHeight - historySectionY - bottomRowHeight - padding - layoutGap;
 
@@ -344,14 +339,14 @@ void GameDraw(AppState *state)
     float historySplitWidth = (rightSideWidth - (layoutGap * 1.5f)) / 2.0f;
     float historyInnerY = historySectionY + 25.0f;
 
-    for (int p = 0; p < 2; p++)
+    for (int hp = 0; hp < 2; hp++)
     {
-        Rectangle subHistoryRect = {historyOuterRect.x + 12.0f + (p * (historySplitWidth + layoutGap)), historyInnerY, historySplitWidth, historyPanelHeight - 40.0f};
+        Rectangle subHistoryRect = {historyOuterRect.x + 12.0f + (hp * (historySplitWidth + layoutGap)), historyInnerY, historySplitWidth, historyPanelHeight - 40.0f};
 
         DrawRectangleRec(subHistoryRect, (Color){30, 38, 46, 255});
         DrawRectangleLinesEx(subHistoryRect, 1.0f, (Color){54, 68, 82, 255});
         DrawRectangle(subHistoryRect.x, subHistoryRect.y, subHistoryRect.width, 28, (Color){45, 55, 66, 255});
-        DrawAppText(TextFormat("Player %d History", p + 1), subHistoryRect.x + 12, subHistoryRect.y + 7, baseFontSize - 2, (Color){196, 181, 137, 255});
+        DrawAppText(TextFormat("Player %d History", hp + 1), subHistoryRect.x + 12, subHistoryRect.y + 7, baseFontSize - 2, (Color){196, 181, 137, 255});
     }
 
     // --- FOOTER MANAGEMENT ACTION BAR ---
