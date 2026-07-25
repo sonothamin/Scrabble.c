@@ -38,7 +38,7 @@ SettingsState *InitSettingsState(void)
 
     // Default Fallback Values
     settings->selectedOption = SETTINGS_TAB_GAME;
-    settings->bgmVolume = 0.8f;
+    settings->bgmVolume = 0.3f;
     settings->sfxVolume = 1.0f;
     settings->bgmEnable = true;
     settings->sfxEnable = true;
