@@ -276,3 +276,57 @@ void DrawHotkeyBar(const HotkeyEntry *entries, int count,
         }
     }
 }
+
+bool DrawLegendButton(Texture2D image, const char *text, Rectangle bounds, int fontSize, bool isModalActive)
+{
+    bool isHovered = CheckCollisionPointRec(GetMousePosition(), bounds) && !isModalActive;
+    bool isPressed = isHovered && IsMouseButtonDown(MOUSE_BUTTON_LEFT);
+
+    // Pick colors based on current raygui styles and hover/pressed state
+    Color bgColor = isPressed ? GetColor(GuiGetStyle(BUTTON, BASE_COLOR_PRESSED))
+                   : (isHovered ? GetColor(GuiGetStyle(BUTTON, BASE_COLOR_FOCUSED))
+                                : GetColor(GuiGetStyle(BUTTON, BASE_COLOR_NORMAL)));
+
+    Color borderColor = isPressed ? GetColor(GuiGetStyle(BUTTON, BORDER_COLOR_PRESSED))
+                       : (isHovered ? GetColor(GuiGetStyle(BUTTON, BORDER_COLOR_FOCUSED))
+                                    : GetColor(GuiGetStyle(BUTTON, BORDER_COLOR_NORMAL)));
+
+    Color textColor = isPressed ? GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED))
+                     : (isHovered ? GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_FOCUSED))
+                                  : GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_NORMAL)));
+
+    // Draw main button box
+    DrawRectangleRec(bounds, bgColor);
+    DrawRectangleLinesEx(bounds, 1.5f, borderColor);
+
+    // Draw left image legend (overflows top and bottom bounds)
+    float baseOverflow = bounds.height * 0.18f; // 18% base overflow on top and bottom
+    float hoverScale = isHovered ? 1.15f : 1.0f; // Scale up 15% on hover
+    float legendH = (bounds.height + (baseOverflow * 2.0f)) * hoverScale;
+    float legendW = legendH; // Keep legend square-ish or proportional
+
+    // Center legend vertically relative to button center
+    float centerY = bounds.y + bounds.height / 2.0f;
+    float legendX = bounds.x + (bounds.height * 0.25f) - ((legendW - (bounds.height + baseOverflow * 2.0f)) / 2.0f);
+    float legendY = centerY - (legendH / 2.0f);
+
+    if (image.id > 0)
+    {
+        Rectangle srcRec = { 0, 0, (float)image.width, (float)image.height };
+        Rectangle destRec = { legendX, legendY, legendW, legendH };
+        DrawTexturePro(image, srcRec, destRec, (Vector2){ 0, 0 }, 0.0f, WHITE);
+    }
+
+    // Draw button text offset further to the right
+    if (text != NULL)
+    {
+        float unscaledWidth = bounds.height + (baseOverflow * 2.0f);
+        float textX = (bounds.x + (bounds.height * 0.25f)) + unscaledWidth + 18.0f;
+        float textY = bounds.y + (bounds.height - fontSize) / 2.0f;
+        DrawAppText(text, textX, textY, (float)fontSize, textColor);
+    }
+
+
+
+    return (isHovered && IsMouseButtonReleased(MOUSE_BUTTON_LEFT));
+}

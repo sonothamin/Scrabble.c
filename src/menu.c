@@ -84,10 +84,43 @@ void MenuDraw(AppState* state)
     const float padding = screenWidth / 25.0f;
     const float panelGap = screenWidth / 35.0f;
 
+    static Texture2D bgImg = { 0 };
+    static Texture2D newImg = { 0 };
+    static Texture2D netImg = { 0 };
+    static Texture2D saveImg = { 0 };
+    static bool texturesLoaded = false;
+
+    if (!texturesLoaded)
+    {
+        bgImg = LoadTexture("images/menu_bg.png");
+        newImg = LoadTexture("images/new.png");
+        netImg = LoadTexture("images/network.png");
+        saveImg = LoadTexture("images/saved.png");
+        texturesLoaded = true;
+    }
+
+    const float menuTileSize = baseFontSize * 3.0f;
+    const float subtitleY = padding + menuTileSize + 16.0f;
+    const float subtitleHeight = baseFontSize * 1.2f;
+    const float contentTop = subtitleY + subtitleHeight + 45.0f;
+
+    // Draw bg image & vignette right behind title section
+    Rectangle headerArea = { 0, 0, (float)screenWidth, contentTop - 15.0f };
+    if (bgImg.id > 0)
+    {
+        Rectangle srcRec = { 0, 0, (float)bgImg.width, (float)bgImg.height };
+        DrawTexturePro(bgImg, srcRec, headerArea, (Vector2){ 0, 0 }, 0.0f, Fade(WHITE, 0.35f));
+    }
+
+    // Gradient vignette overlay fading to menu background color (24, 32, 38, 255)
+    Color bgColor = (Color){ 24, 32, 38, 255 };
+    DrawRectangleGradientV(0, (int)(headerArea.height * 0.4f), screenWidth, (int)(headerArea.height * 0.6f), Fade(bgColor, 0.0f), bgColor);
+    DrawRectangleGradientH(0, 0, (int)(screenWidth * 0.15f), (int)headerArea.height, bgColor, Fade(bgColor, 0.0f));
+    DrawRectangleGradientH((int)(screenWidth * 0.85f), 0, (int)(screenWidth * 0.15f), (int)headerArea.height, Fade(bgColor, 0.0f), bgColor);
+
     const char* titleText = "SCRABBLE.C";
     const int titleLength = 10;
     
-    const float menuTileSize = baseFontSize * 3.0f;
     const float menuTileSpacing = menuTileSize * 0.10f;
     const int tileFontSize = (int)(menuTileSize * 0.65f); 
     const int scoreFontSize = (int)(menuTileSize * 0.22f);
@@ -129,12 +162,9 @@ void MenuDraw(AppState* state)
             );
         }
     }
-    
-    float subtitleY = padding + menuTileSize + 16.0f;
-    float subtitleHeight = baseFontSize * 1.2f;
+
     GuiLabel((Rectangle){ padding, subtitleY, screenWidth - (2.0f * padding), subtitleHeight }, "Be aware adventurer! Here every letter counts!");
 
-    const float contentTop = subtitleY + subtitleHeight + 45.0f;
     const float optionPanelWidth = (screenWidth / 4 < 260) ? 260.0f : (float)(screenWidth / 4);
     const float mainPanelWidth = screenWidth - (2.0f * padding) - panelGap - optionPanelWidth;
     const float mainPanelHeight = screenHeight - contentTop - padding;
@@ -142,6 +172,7 @@ void MenuDraw(AppState* state)
     float rowHeight = mainPanelHeight / 6.0f;
     float btnWidth = (mainPanelWidth * 0.38f < 180.0f) ? 180.0f : mainPanelWidth * 0.38f;
     float targetBtnHeight = rowHeight * 0.65f;
+
     float labelX = padding + btnWidth + 40.0f;
     float labelW = mainPanelWidth - btnWidth - 60.0f; 
 
@@ -149,23 +180,28 @@ void MenuDraw(AppState* state)
 
     GuiGroupBox((Rectangle){ padding, contentTop, mainPanelWidth, mainPanelHeight }, "START A GAME");
 
-    if (GuiButton((Rectangle){ padding + 25.0f, contentTop + rowHeight * 0.8f, btnWidth, targetBtnHeight }, "New Local Game")) {
+
+    float legendBtnX = padding + 45.0f;
+    float legendBtnW = btnWidth - 20.0f;
+
+    if (DrawLegendButton(newImg, "New Local Game", (Rectangle){ legendBtnX, contentTop + rowHeight * 0.8f, legendBtnW, targetBtnHeight }, baseFontSize, false)) {
         PlaySoundEffect(SFX_GAME_START);
         StartNewGame(state);
     }
     GuiLabel((Rectangle){ labelX, contentTop + rowHeight * 0.8f, labelW, targetBtnHeight }, "Play on this device turn-by-turn");
 
-    if (GuiButton((Rectangle){ padding + 25.0f, contentTop + (rowHeight * 1.8f), btnWidth, targetBtnHeight }, "New Network Game")) {
+    if (DrawLegendButton(netImg, "New Network Game", (Rectangle){ legendBtnX, contentTop + (rowHeight * 1.8f), legendBtnW, targetBtnHeight }, baseFontSize, false)) {
         PlaySoundEffect(SFX_GAME_START);
         StartNewGame(state);
     }
     GuiLabel((Rectangle){ labelX, contentTop + (rowHeight * 1.8f), labelW, targetBtnHeight }, "Play with friends within the LAN");
 
-    if (GuiButton((Rectangle){ padding + 25.0f, contentTop + (rowHeight * 2.8f), btnWidth, targetBtnHeight }, "Load Saved Game")) {
+    if (DrawLegendButton(saveImg, "Load Saved Game", (Rectangle){ legendBtnX, contentTop + (rowHeight * 2.8f), legendBtnW, targetBtnHeight }, baseFontSize, false)) {
         PlaySoundEffect(SFX_BUTTON);
         StartNewGame(state);
     }
     GuiLabel((Rectangle){ labelX, contentTop + (rowHeight * 2.8f), labelW, targetBtnHeight }, "Load a previous saved game file");
+
 
     // Bottom Quick HUD Info
     GuiLine((Rectangle){ padding + 25.0f, contentTop + (rowHeight * 4.6f), mainPanelWidth - 50.0f, 8.0f }, NULL);
