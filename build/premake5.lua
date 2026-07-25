@@ -196,10 +196,16 @@ if (downloadRaylib) then
             ["Game Resource Files/*"] = {"../resources/**"},
         }
         
+        -- Source C/C++ files
         files {"../src/**.c", "../src/**.cpp", "../src/**.h", "../src/**.hpp", "../include/**.h", "../include/**.hpp"}
         
+        -- Include .rc file for ALL Windows toolchains (MinGW gmake, VS, etc.)
+        filter "system:windows"
+            files {"../src/*.rc"}
+
+        -- Include visual assets only for Visual Studio solutions
         filter {"system:windows", "action:vs*"}
-            files {"../src/*.rc", "../src/*.ico"}
+            files {"../src/*.ico"}
             files {"../resources/**"}
 
         filter{}
