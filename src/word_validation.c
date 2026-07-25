@@ -33,7 +33,6 @@ bool Is_Word_In_Dictionary(const char *word, const Dictionary *dictionary)
     }
     return false;
 }
-
 int Calculate_Word_Score(const char *word, const Tile *placedTiles, int wordLength)
 {
     if (!word || !placedTiles)
@@ -47,59 +46,7 @@ int Calculate_Word_Score(const char *word, const Tile *placedTiles, int wordLeng
             continue;
         }
 
-        char c = word[i];
-        switch (c)
-        {
-        case 'A':
-        case 'E':
-        case 'I':
-        case 'O':
-        case 'U':
-        case 'L':
-        case 'N':
-        case 'R':
-        case 'S':
-        case 'T':
-            totalScore += 1;
-            break;
-
-        case 'D':
-        case 'G':
-            totalScore += 2;
-            break;
-
-        case 'B':
-        case 'C':
-        case 'M':
-        case 'P':
-            totalScore += 3;
-            break;
-
-        case 'F':
-        case 'H':
-        case 'V':
-        case 'W':
-        case 'Y':
-            totalScore += 4;
-            break;
-
-        case 'K':
-            totalScore += 5;
-            break;
-
-        case 'J':
-        case 'X':
-            totalScore += 8;
-            break;
-
-        case 'Q':
-        case 'Z':
-            totalScore += 10;
-            break;
-
-        default:
-            break;
-        }
+        totalScore += placedTiles[i].value;
     }
     return totalScore;
 }
@@ -294,7 +241,6 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE], Tile previ
         }
     }
 
-    // 4. Collect all words formed by newly placed tiles
     FormedWord words[BOARD_SIDE + 1];
     int wordCount = 0;
 
@@ -345,7 +291,6 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE], Tile previ
         }
     }
 
-    // Cross-words check for each newly placed tile
     for (int i = 0; i < newCount; i++)
     {
         int x = newX[i];
@@ -401,7 +346,6 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE], Tile previ
         return 0;
     }
 
-    // 5. Validate each formed word against dictionary & calculate total score
     int totalScore = 0;
     for (int w = 0; w < wordCount; w++)
     {
