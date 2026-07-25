@@ -29,6 +29,9 @@ void DrawHotkeyBar(const HotkeyEntry *entries, int count,
                    float x, float y, float width, float height,
                    float fontSize);
 
+bool DrawLegendButton(Texture2D image, const char *text, Rectangle bounds, int fontSize, bool isModalActive);
+
+
 #if defined(__cplusplus)
 }
 #endif

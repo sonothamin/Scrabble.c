@@ -276,3 +276,50 @@ void DrawHotkeyBar(const HotkeyEntry *entries, int count,
         }
     }
 }
+
+bool DrawLegendButton(Texture2D image, const char *text, Rectangle bounds, int fontSize, bool isModalActive)
+{
+    bool isHovered = CheckCollisionPointRec(GetMousePosition(), bounds) && !isModalActive;
+    bool isPressed = isHovered && IsMouseButtonDown(MOUSE_BUTTON_LEFT);
+
+    // Pick colors based on current raygui styles and hover/pressed state
+    Color bgColor = isPressed ? GetColor(GuiGetStyle(BUTTON, BASE_COLOR_PRESSED))
+                   : (isHovered ? GetColor(GuiGetStyle(BUTTON, BASE_COLOR_FOCUSED))
+                                : GetColor(GuiGetStyle(BUTTON, BASE_COLOR_NORMAL)));
+
+    Color borderColor = isPressed ? GetColor(GuiGetStyle(BUTTON, BORDER_COLOR_PRESSED))
+                       : (isHovered ? GetColor(GuiGetStyle(BUTTON, BORDER_COLOR_FOCUSED))
+                                    : GetColor(GuiGetStyle(BUTTON, BORDER_COLOR_NORMAL)));
+
+    Color textColor = isPressed ? GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED))
+                     : (isHovered ? GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_FOCUSED))
+                                  : GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_NORMAL)));
+
+    // Draw main button box
+    DrawRectangleRec(bounds, bgColor);
+    DrawRectangleLinesEx(bounds, 1.5f, borderColor);
+
+    // Draw left image legend (overflows top and bottom bounds)
+    float legendOverflow = bounds.height * 0.15f; // 15% overflow on top and bottom
+    float legendH = bounds.height + (legendOverflow * 2.0f);
+    float legendW = legendH; // Keep legend square-ish or proportional
+    float legendX = bounds.x - (legendW * 0.2f); // Offset to left edge
+    float legendY = bounds.y - legendOverflow;
+
+    if (image.id > 0)
+    {
+        Rectangle srcRec = { 0, 0, (float)image.width, (float)image.height };
+        Rectangle destRec = { legendX, legendY, legendW, legendH };
+        DrawTexturePro(image, srcRec, destRec, (Vector2){ 0, 0 }, 0.0f, WHITE);
+    }
+
+    // Draw button text offset to the right of the legend
+    if (text != NULL)
+    {
+        float textX = bounds.x + legendW * 0.9f;
+        float textY = bounds.y + (bounds.height - fontSize) / 2.0f;
+        DrawAppText(text, textX, textY, (float)fontSize, textColor);
+    }
+
+    return (isHovered && IsMouseButtonReleased(MOUSE_BUTTON_LEFT));
+}
