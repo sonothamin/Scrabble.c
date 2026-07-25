@@ -142,6 +142,17 @@ void GameUpdate(AppState *state)
     // [S] – pass turn (keyboard shortcut, blocked during shuffle overlay)
     if (!match->shuffleState.isActive && IsKeyPressed(KEY_S))
     {
+        // Return any staged-but-unsubmitted tiles to the rack first
+        int ap = match->activePlayerIdx;
+        for (int uy = 0; uy < BOARD_SIDE; uy++)
+            for (int ux = 0; ux < BOARD_SIDE; ux++)
+                if (match->board.grid[uy][ux].letter != '\0' &&
+                    match->previousBoard.grid[uy][ux].letter == '\0' &&
+                    match->players[ap].rack_count < RACK_SIZE)
+                {
+                    match->players[ap].rack[match->players[ap].rack_count] = match->board.grid[uy][ux];
+                    match->players[ap].rack_count++;
+                }
         memcpy(&match->board, &match->previousBoard, sizeof(GameBoard));
         match->consecutivePassCount++;
         PlaySoundEffect(SFX_BACK_NAV);
@@ -153,6 +164,30 @@ void GameUpdate(AppState *state)
         else
         {
             match->activePlayerIdx = (match->activePlayerIdx + 1) % 2;
+        }
+    }
+
+    // [Z] – undo turn (return staged tiles to rack, blocked during shuffle)
+    if (!match->shuffleState.isActive && IsKeyPressed(KEY_Z))
+    {
+        int ap = match->activePlayerIdx;
+        bool anyStaged = false;
+        for (int uy = 0; uy < BOARD_SIDE; uy++)
+            for (int ux = 0; ux < BOARD_SIDE; ux++)
+                if (match->board.grid[uy][ux].letter != '\0' &&
+                    match->previousBoard.grid[uy][ux].letter == '\0')
+                {
+                    anyStaged = true;
+                    if (match->players[ap].rack_count < RACK_SIZE)
+                    {
+                        match->players[ap].rack[match->players[ap].rack_count] = match->board.grid[uy][ux];
+                        match->players[ap].rack_count++;
+                    }
+                }
+        if (anyStaged)
+        {
+            memcpy(&match->board, &match->previousBoard, sizeof(GameBoard));
+            PlaySoundEffect(SFX_BACK_NAV);
         }
     }
 
@@ -325,13 +360,14 @@ void GameDraw(AppState *state)
     static const HotkeyEntry gameKeys[] = {
         { "P",   "Pause" },
         { "S",   "Pass"  },
+        { "Z",   "Undo"  },
         { "M",   "Mute"  },
         { "Q",   "Quit"  },
     };
-    HotkeyEntry liveKeys[4];
-    for (int hki = 0; hki < 4; hki++) liveKeys[hki] = gameKeys[hki];
-    liveKeys[2].label = isMuted ? "Unmute" : "Mute";
-    DrawHotkeyBar(liveKeys, 4,
+    HotkeyEntry liveKeys[5];
+    for (int hki = 0; hki < 5; hki++) liveKeys[hki] = gameKeys[hki];
+    liveKeys[3].label = isMuted ? "Unmute" : "Mute";
+    DrawHotkeyBar(liveKeys, 5,
                   padding, hkBarY + padding * 0.25,
                   boardColWidth, hkBarHeight,
                   baseFontSize);
@@ -401,7 +437,7 @@ void GameDraw(AppState *state)
     GuiSetStyle(LABEL, TEXT_COLOR_NORMAL, 0xAACF9BFF);
     GuiSetStyle(LABEL, TEXT_ALIGNMENT, 0);
 
-    // Center Section: Tile Rack (Turn / Player Specific)
+    // Center Section: Tile Rack (Turn / Player Specific) – full width, no action sub-panel
     float rackSectionY = topPanelsY + topPanelsHeight + layoutGap;
     float rackPanelHeight = screenHeight * 0.10f;
     float activeTileSize = rackPanelHeight * 0.6f;
@@ -409,14 +445,10 @@ void GameDraw(AppState *state)
 
     int p = match->activePlayerIdx;
 
-    // Right action sub-panel sits inside the right edge of the rack box
-    float actionPanelW = rightSideWidth * 0.28f;
-    float tilesAreaW   = rightSideWidth - actionPanelW;
-
     Rectangle rackRect = {rightSideX, rackSectionY, rightSideWidth, rackPanelHeight};
     GuiGroupBox(rackRect, TextFormat("Player %d Rack (Active Turn)", p + 1));
 
-    // ---- Tiles (left portion) ----
+    // ---- Tiles (full width) ----
     float tileY = rackRect.y + (rackPanelHeight - activeTileSize) / 2.0f + 4.0f;
 
     for (int t = 0; t < match->players[p].rack_count; t++)
@@ -445,10 +477,9 @@ void GameDraw(AppState *state)
                     scoreFontSize, (Color){80, 65, 50, 255});
     }
 
-    // Muted bag-tile count (capped so it doesn't overlap the action panel)
-    float bagTextX    = rackRect.x + 15.0f + (match->players[p].rack_count * (activeTileSize + activeTileSpacing)) + 10.0f;
-    float bagTextXMax = rackRect.x + tilesAreaW - 8.0f;
-    if (bagTextX < bagTextXMax)
+    // Muted bag-tile count after last tile
+    float bagTextX = rackRect.x + 15.0f + (match->players[p].rack_count * (activeTileSize + activeTileSpacing)) + 10.0f;
+    if (bagTextX < rackRect.x + rightSideWidth - 8.0f)
     {
         const char *mutedBagText = TextFormat("+%d Tiles", match->tileBagCount);
         int mutedFontSize = (int)(baseFontSize * 0.9f);
@@ -456,41 +487,44 @@ void GameDraw(AppState *state)
         DrawAppText(mutedBagText, bagTextX, mutedTextY, mutedFontSize, (Color){140, 155, 165, 200});
     }
 
-    // ---- Thin vertical divider ----
-    float divX = rackRect.x + tilesAreaW;
-    DrawLineEx((Vector2){divX, rackRect.y + 6},
-               (Vector2){divX, rackRect.y + rackPanelHeight - 6},
-               1.0f, (Color){54, 68, 82, 200});
+    // -----------------------------------------------------------------------
+    // Action Bar – strip immediately below the rack
+    // Contains: Pass | Shuffle | Undo Turn | pass counter badge
+    // -----------------------------------------------------------------------
+    float actionBarH = (float)(int)(baseFontSize * 2.0f);  // compact strip height
+    float actionBarY = rackSectionY + rackPanelHeight + (layoutGap * 0.35f);
+    Rectangle actionBarRect = {rightSideX, actionBarY, rightSideWidth, actionBarH};
 
-    // ---- Right action panel ----
-    // ---- Right action panel ----
-    float apX = divX + 6.0f;
-    float apW = actionPanelW - 12.0f;
-    float apY = rackRect.y + 6.0f;
-    float apH = rackPanelHeight - 12.0f;
+    DrawRectangleRec(actionBarRect, (Color){22, 30, 36, 220});
+    DrawRectangleLinesEx(actionBarRect, 1.0f, (Color){54, 68, 82, 180});
 
-    // Pass counter badge
-    int passCount = match->consecutivePassCount;
-    int badgeFontSize = (int)(baseFontSize * 0.72f);
-    const char *passCountStr = TextFormat("%d/6", passCount);
-    int passCountW = MeasureAppText(passCountStr, badgeFontSize);
+    float abPad   = 6.0f;
+    float abBtnH  = actionBarH - abPad * 2.0f;
+    float abBtnW  = rightSideWidth * 0.23f;
+    float abGap   = 6.0f;
+
+    // Pass count badge on the right side of the strip
+    int passCount     = match->consecutivePassCount;
+    int badgeFontSize = (int)(baseFontSize * 0.78f);
+    const char *passCountStr  = TextFormat("Passes: %d/6", passCount);
+    int passCountW  = MeasureAppText(passCountStr, badgeFontSize);
     Color passCountColor = (passCount > 0) ? (Color){255, 80, 70, 255} : (Color){90, 105, 120, 180};
     DrawAppText(passCountStr,
-                apX + (apW - passCountW) / 2.0f,
-                apY + 2.0f,
+                actionBarRect.x + actionBarRect.width - passCountW - abPad - 2.0f,
+                actionBarRect.y + (actionBarH - badgeFontSize) / 2.0f,
                 badgeFontSize, passCountColor);
 
-    // Two stacked buttons (Pass/Shuffle when idle, or Confirm/Cancel bounds when in Shuffle mode)
-    float counterH  = badgeFontSize + 4.0f;
-    float btnGap    = 4.0f;
-    float btnH      = (apH - counterH - btnGap * 3.0f) / 2.0f;
-    float btn1Y     = apY + counterH + btnGap;
-    float btn2Y     = btn1Y + btnH + btnGap;
+    // Three action buttons
+    float abBtn1X = actionBarRect.x + abPad;
+    float abBtn2X = abBtn1X + abBtnW + abGap;
+    float abBtn3X = abBtn2X + abBtnW + abGap;
+    float abBtnY  = actionBarRect.y + abPad;
 
-    Rectangle actionBtn1Rect = {apX, btn1Y, apW, btnH};
-    Rectangle actionBtn2Rect = {apX, btn2Y, apW, btnH};
+    Rectangle passBtn   = {abBtn1X, abBtnY, abBtnW, abBtnH};
+    Rectangle shuffleBtn = {abBtn2X, abBtnY, abBtnW, abBtnH};
+    Rectangle undoBtn   = {abBtn3X, abBtnY, abBtnW, abBtnH};
 
-    if (GuiButton(actionBtn1Rect, "Pass"))
+    if (GuiButton(passBtn, "Pass"))
     {
         if (!match->shuffleState.isActive)
         {
@@ -509,7 +543,7 @@ void GameDraw(AppState *state)
         }
     }
 
-    if (GuiButton(actionBtn2Rect, "Shuffle"))
+    if (GuiButton(shuffleBtn, "Shuffle"))
     {
         if (!match->shuffleState.isActive)
         {
@@ -518,8 +552,42 @@ void GameDraw(AppState *state)
         }
     }
 
-    // Lower Section: History Logs
-    float historySectionY = rackSectionY + rackPanelHeight + (layoutGap * 0.5f);
+    // Undo Turn: only active when tiles have been placed this turn
+    bool hasStagedTiles = false;
+    for (int uy = 0; uy < BOARD_SIDE && !hasStagedTiles; uy++)
+        for (int ux = 0; ux < BOARD_SIDE && !hasStagedTiles; ux++)
+            if (match->board.grid[uy][ux].letter != '\0' &&
+                match->previousBoard.grid[uy][ux].letter == '\0')
+                hasStagedTiles = true;
+
+    if (!hasStagedTiles) GuiSetState(STATE_DISABLED);
+    if (GuiButton(undoBtn, "Undo Turn") && hasStagedTiles && !match->shuffleState.isActive)
+    {
+        // Return each staged tile back to the active player's rack
+        for (int uy = 0; uy < BOARD_SIDE; uy++)
+        {
+            for (int ux = 0; ux < BOARD_SIDE; ux++)
+            {
+                if (match->board.grid[uy][ux].letter != '\0' &&
+                    match->previousBoard.grid[uy][ux].letter == '\0')
+                {
+                    if (match->players[p].rack_count < RACK_SIZE)
+                    {
+                        match->players[p].rack[match->players[p].rack_count] = match->board.grid[uy][ux];
+                        match->players[p].rack_count++;
+                    }
+                }
+            }
+        }
+        // Restore the board to the pre-turn state
+        memcpy(&match->board, &match->previousBoard, sizeof(GameBoard));
+        PlaySoundEffect(SFX_BACK_NAV);
+    }
+    if (!hasStagedTiles) GuiSetState(STATE_NORMAL);
+
+    // Lower Section: History Logs  (offset by action bar height)
+    float actionBarTotalH = (float)(int)(baseFontSize * 2.0f) + (layoutGap * 0.35f);
+    float historySectionY = rackSectionY + rackPanelHeight + actionBarTotalH + (layoutGap * 0.35f);
     float bottomRowHeight = screenHeight * 0.07f;
     float historyPanelHeight = screenHeight - historySectionY - bottomRowHeight - padding - layoutGap;
 
