@@ -68,19 +68,7 @@ void AboutUpdate(AppState *appState, AboutState *aboutState)
     }
 }
 
-static bool DrawTabButton(const char *text, Rectangle bounds, bool isActive, int fontSize)
-{
-    bool isHovered = CheckCollisionPointRec(GetMousePosition(), bounds);
-
-    Color bg = isActive ? GetColor(GuiGetStyle(BUTTON, BASE_COLOR_PRESSED)) : (isHovered ? GetColor(GuiGetStyle(BUTTON, BASE_COLOR_FOCUSED)) : GetColor(GuiGetStyle(DEFAULT, BACKGROUND_COLOR)));
-    Color textCol = isActive ? GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED)) : (isHovered ? GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_FOCUSED)) : GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_NORMAL)));
-
-    DrawRectangleRec(bounds, bg);
-    DrawRectangleLinesEx(bounds, 1.5f, GetColor(GuiGetStyle(DEFAULT, LINE_COLOR)));
-    DrawAppText(text, bounds.x + 15.0f, bounds.y + (bounds.height - fontSize) / 2.0f, fontSize, textCol);
-
-    return (isHovered && IsMouseButtonPressed(MOUSE_BUTTON_LEFT));
-}
+// DrawTabButton is globalized in ui.h / ui.c
 
 void AboutDraw(AppState *appState, AboutState *aboutState)
 {
@@ -112,17 +100,17 @@ void AboutDraw(AppState *appState, AboutState *aboutState)
     float tabHeight = baseFontSize * 2.2f;
     float tabSpacing = 8.0f;
 
-    if (DrawTabButton("Overview", (Rectangle){sidebarX, sidebarY, tabWidth, tabHeight}, aboutState->activeTab == ABOUT_TAB_OVERVIEW, baseFontSize * 0.85f))
+    if (DrawTabButton("Overview", (Rectangle){sidebarX, sidebarY, tabWidth, tabHeight}, aboutState->activeTab == ABOUT_TAB_OVERVIEW, baseFontSize * 0.85f, false))
     {
         aboutState->activeTab = ABOUT_TAB_OVERVIEW;
         aboutState->scrollOffset = 0.0f;
     }
-    if (DrawTabButton("Team", (Rectangle){sidebarX, sidebarY + tabHeight + tabSpacing, tabWidth, tabHeight}, aboutState->activeTab == ABOUT_TAB_TEAM, baseFontSize * 0.85f))
+    if (DrawTabButton("Team", (Rectangle){sidebarX, sidebarY + tabHeight + tabSpacing, tabWidth, tabHeight}, aboutState->activeTab == ABOUT_TAB_TEAM, baseFontSize * 0.85f, false))
     {
         aboutState->activeTab = ABOUT_TAB_TEAM;
         aboutState->scrollOffset = 0.0f;
     }
-    if (DrawTabButton("Stack", (Rectangle){sidebarX, sidebarY + (tabHeight + tabSpacing) * 2.0f, tabWidth, tabHeight}, aboutState->activeTab == ABOUT_TAB_TECH, baseFontSize * 0.85f))
+    if (DrawTabButton("Stack", (Rectangle){sidebarX, sidebarY + (tabHeight + tabSpacing) * 2.0f, tabWidth, tabHeight}, aboutState->activeTab == ABOUT_TAB_TECH, baseFontSize * 0.85f, false))
     {
         aboutState->activeTab = ABOUT_TAB_TECH;
         aboutState->scrollOffset = 0.0f;

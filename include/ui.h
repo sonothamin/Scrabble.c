@@ -18,6 +18,8 @@ Font GetAppFont(void);
 void DrawAppText(const char* text, float x, float y, float fontSize, Color color);
 int  MeasureAppText(const char* text, float fontSize);
 
+bool DrawTabButton(const char *text, Rectangle bounds, bool isActive, int fontSize, bool isModalActive);
+
 // ---------------------------------------------------------------------------
 // Hotkey Bar  (professional game-style keycap footer)
 // ---------------------------------------------------------------------------

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "game.h"
+#include "pause.h"
 #include "ui.h"
 #include "app_state.h"
 #include "raylib.h"
@@ -61,8 +62,11 @@ void GameUpdate(AppState *state)
 
     if (IsKeyPressed(KEY_ESCAPE))
     {
-        state->currentScreen = APP_SCREEN_MAIN_MENU;
-        PlaySoundEffect(SFX_BACK_NAV);
+        if (state->pauseState)
+        {
+            state->pauseState->isPaused = !state->pauseState->isPaused;
+            PlaySoundEffect(SFX_BUTTON);
+        }
         return;
     }
 
