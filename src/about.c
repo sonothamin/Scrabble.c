@@ -112,17 +112,17 @@ void AboutDraw(AppState *appState, AboutState *aboutState)
     float tabHeight = baseFontSize * 2.2f;
     float tabSpacing = 8.0f;
 
-    if (DrawTabButton("[1] Overview", (Rectangle){sidebarX, sidebarY, tabWidth, tabHeight}, aboutState->activeTab == ABOUT_TAB_OVERVIEW, baseFontSize * 0.85f))
+    if (DrawTabButton("Overview", (Rectangle){sidebarX, sidebarY, tabWidth, tabHeight}, aboutState->activeTab == ABOUT_TAB_OVERVIEW, baseFontSize * 0.85f))
     {
         aboutState->activeTab = ABOUT_TAB_OVERVIEW;
         aboutState->scrollOffset = 0.0f;
     }
-    if (DrawTabButton("[2] Team", (Rectangle){sidebarX, sidebarY + tabHeight + tabSpacing, tabWidth, tabHeight}, aboutState->activeTab == ABOUT_TAB_TEAM, baseFontSize * 0.85f))
+    if (DrawTabButton("Team", (Rectangle){sidebarX, sidebarY + tabHeight + tabSpacing, tabWidth, tabHeight}, aboutState->activeTab == ABOUT_TAB_TEAM, baseFontSize * 0.85f))
     {
         aboutState->activeTab = ABOUT_TAB_TEAM;
         aboutState->scrollOffset = 0.0f;
     }
-    if (DrawTabButton("[3] Stack", (Rectangle){sidebarX, sidebarY + (tabHeight + tabSpacing) * 2.0f, tabWidth, tabHeight}, aboutState->activeTab == ABOUT_TAB_TECH, baseFontSize * 0.85f))
+    if (DrawTabButton("Stack", (Rectangle){sidebarX, sidebarY + (tabHeight + tabSpacing) * 2.0f, tabWidth, tabHeight}, aboutState->activeTab == ABOUT_TAB_TECH, baseFontSize * 0.85f))
     {
         aboutState->activeTab = ABOUT_TAB_TECH;
         aboutState->scrollOffset = 0.0f;
@@ -223,17 +223,21 @@ void AboutDraw(AppState *appState, AboutState *aboutState)
         const char *suffix = " by Sonoth Amin";
         int textFontSize = baseFontSize * 0.85f;
         float totalWidth = MeasureAppText(prefix, textFontSize) + textFontSize + 10.0f + MeasureAppText(suffix, textFontSize);
-        float eggX = screenWidth - totalWidth - padding;
+        float eggX = screenWidth - totalWidth - padding * 1.75f;
+        float eggY = hkY - textFontSize - 4.0f - padding * 0.25f;
 
-        float eggY = hkY - textFontSize - 4.0f;
         DrawAppText(prefix, eggX, eggY, textFontSize, GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED)));
         DrawProceduralHeart(eggX + MeasureAppText(prefix, textFontSize) + 5.0f, eggY + 1.0f, textFontSize * 0.85f, RED);
         DrawAppText(suffix, eggX + MeasureAppText(prefix, textFontSize) + (textFontSize * 0.85f) + 10.0f, eggY, textFontSize, GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED)));
     }
     else
     {
-        const char *prompt = "[Space] Try?";
-        float promptY = hkY - baseFontSize * 0.75f - 4.0f;
-        DrawAppText(prompt, screenWidth - MeasureAppText(prompt, baseFontSize * 0.75f) - padding, promptY, baseFontSize * 0.75f, ColorAlpha(GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_DISABLED)), 0.3f));
+        const char *prompt = "Be a silly goose and press Space";
+        int textFontSize = baseFontSize * 0.65f;
+        float totalWidth = MeasureAppText(prompt, textFontSize);
+        float promptX = screenWidth - totalWidth - padding * 1.75f;;
+        float promptY = hkY - textFontSize - 4.0f - padding * 0.25f;
+        
+        DrawAppText(prompt, promptX, promptY, baseFontSize * 0.75f, ColorAlpha(GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_DISABLED)), 0.3f));
     }
 }

@@ -285,16 +285,16 @@ void SettingsDraw(const AppState *state)
     switch (settings->selectedOption)
     {
     case SETTINGS_TAB_GAME:
-        GuiGroupBox(contentBox, "--< Board & Asset Configuration >--");
+        GuiGroupBox(contentBox, " Board & Asset Configuration ");
         break;
     case SETTINGS_TAB_AUDIO:
-        GuiGroupBox(contentBox, "--< Audio & Sound Mixer >--");
+        GuiGroupBox(contentBox, " Audio & Sound Mixer ");
         break;
     case SETTINGS_TAB_NETWORK:
-        GuiGroupBox(contentBox, "--< Network & Multiplayer >--");
+        GuiGroupBox(contentBox, " Network & Multiplayer ");
         break;
     case SETTINGS_TAB_ADVANCED:
-        GuiGroupBox(contentBox, "--< Advanced System Options >--");
+        GuiGroupBox(contentBox, " Advanced System Options ");
         break;
     default:
         break;
