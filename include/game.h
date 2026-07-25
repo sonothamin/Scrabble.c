@@ -34,6 +34,7 @@ typedef struct GameState
     unsigned int currentTurnNumber;
     TileBag tileBag;
     int tileBagCount;
+    int consecutivePassCount;
     bool isMatchOver;
     int winningPlayerIdx;
     DragNDropState dragState;

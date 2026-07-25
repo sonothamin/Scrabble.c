@@ -35,6 +35,7 @@ void GameInit(GameState *match)
     refill_rack(&match->players[1], &match->tileBag);
     match->activePlayerIdx = 0;
     match->tileBagCount = match->tileBag.tiles_remaining;
+    match->consecutivePassCount = 0;
 
     // Reset Drag and Drop state
     match->dragState.isDragging = false;
@@ -153,6 +154,7 @@ void GameUpdate(AppState *state)
                 match->players[match->activePlayerIdx].score += scoreGain;
                 refill_rack(&match->players[match->activePlayerIdx], &match->tileBag);
                 match->tileBagCount = match->tileBag.tiles_remaining;
+                match->consecutivePassCount = 0;
 
                 memcpy(&match->previousBoard, &match->board, sizeof(GameBoard));
                 match->activePlayerIdx = (match->activePlayerIdx + 1) % 2;
@@ -244,11 +246,14 @@ void GameDraw(AppState *state)
 
     float tableY = detailsRect.y + 25.0f;
     float rowHeight = (topPanelsHeight - 35.0f) / 3.0f;
-    const char *keys[3] = {"Mode:", "Special Tiles:", "Tiles Left:"};
+    const char *keys[3] = {"Mode:", "P1 Total:", "P2 Total:"};
 
     const char *modeStr = (match->mode == GAME_MODE_LOCAL_1V1) ? "Local 1v1" : "Network";
-    const char *tilesLeftStr = TextFormat("%d Tiles", match->tileBagCount);
-    const char *values[3] = {modeStr, match->specialTilesEnabled ? "Enabled" : "Disabled", tilesLeftStr};
+    int p1TotalTiles = match->players[0].rack_count + match->tileBagCount;
+    int p2TotalTiles = match->players[1].rack_count + match->tileBagCount;
+    const char *p1TotalStr = TextFormat("%d Tiles", p1TotalTiles);
+    const char *p2TotalStr = TextFormat("%d Tiles", p2TotalTiles);
+    const char *values[3] = {modeStr, p1TotalStr, p2TotalStr};
 
     for (int i = 0; i < 3; i++)
     {
@@ -258,9 +263,9 @@ void GameDraw(AppState *state)
             DrawRectangleRec((Rectangle){detailsRect.x + 6.0f, currentRowY, halfRightWidth - 12.0f, rowHeight}, (Color){30, 38, 46, 180});
         }
         GuiSetStyle(LABEL, TEXT_COLOR_NORMAL, 0x8F8FA0FF);
-        GuiLabel((Rectangle){detailsRect.x + 12.0f, currentRowY, halfRightWidth * 0.45f, rowHeight}, keys[i]);
+        GuiLabel((Rectangle){detailsRect.x + 12.0f, currentRowY, halfRightWidth * 0.48f, rowHeight}, keys[i]);
         GuiSetStyle(LABEL, TEXT_COLOR_NORMAL, 0xAACF9BFF);
-        GuiLabel((Rectangle){detailsRect.x + 12.0f + (halfRightWidth * 0.45f), currentRowY, (halfRightWidth * 0.55f) - 18.0f, rowHeight}, values[i]);
+        GuiLabel((Rectangle){detailsRect.x + 12.0f + (halfRightWidth * 0.48f), currentRowY, (halfRightWidth * 0.52f) - 18.0f, rowHeight}, values[i]);
     }
 
     // Block B: Score Panel
@@ -303,7 +308,7 @@ void GameDraw(AppState *state)
 
     int p = match->activePlayerIdx;
     Rectangle rackRect = {rightSideX, rackSectionY, rightSideWidth, rackPanelHeight};
-    GuiGroupBox(rackRect, TextFormat("Rack : #%d", p + 1));
+    GuiGroupBox(rackRect, TextFormat("Player %d Rack (Active Turn)", p + 1));
 
     float tileY = rackRect.y + (rackPanelHeight - activeTileSize) / 2.0f + 4.0f;
 
@@ -328,8 +333,41 @@ void GameDraw(AppState *state)
         DrawAppText(scoreStr, tileBounds.x + activeTileSize - MeasureAppText(scoreStr, scoreFontSize) - (activeTileSize * 0.25f), tileBounds.y + activeTileSize - scoreFontSize - (activeTileSize * 0.10f), scoreFontSize, (Color){80, 65, 50, 255});
     }
 
+    // Render muted text indicating remaining bag tiles (+{count} Tiles) at the end of the rack
+    float bagTextX = rackRect.x + 15.0f + (match->players[p].rack_count * (activeTileSize + activeTileSpacing)) + 10.0f;
+    const char *mutedBagText = TextFormat("+%d Tiles", match->tileBagCount);
+    int mutedFontSize = (int)(baseFontSize * 0.9f);
+    float mutedTextY = rackRect.y + (rackPanelHeight - mutedFontSize) / 2.0f + 2.0f;
+    DrawAppText(mutedBagText, bagTextX, mutedTextY, mutedFontSize, (Color){140, 155, 165, 200});
+
+    // Pass Turn Button below the Rack space
+    float passBtnY = rackSectionY + rackPanelHeight + (layoutGap * 0.4f);
+    float passBtnH = 32.0f;
+    Rectangle passBtnRect = {rightSideX, passBtnY, rightSideWidth, passBtnH};
+
+    const char *passLabel = TextFormat("Pass Turn (%d/6 Passes)", match->consecutivePassCount);
+    if (GuiButton(passBtnRect, passLabel))
+    {
+        // Revert any unsubmitted tiles placed on the board back to previous turn
+        memcpy(&match->board, &match->previousBoard, sizeof(GameBoard));
+
+        match->consecutivePassCount++;
+        PlaySoundEffect(SFX_BACK_NAV);
+
+        if (match->consecutivePassCount >= 6)
+        {
+            match->isMatchOver = true;
+            // The opponent of the current active player wins upon 6th pass
+            match->winningPlayerIdx = (match->activePlayerIdx + 1) % 2;
+        }
+        else
+        {
+            match->activePlayerIdx = (match->activePlayerIdx + 1) % 2;
+        }
+    }
+
     // Lower Section: History Logs
-    float historySectionY = rackSectionY + rackPanelHeight + layoutGap;
+    float historySectionY = passBtnY + passBtnH + (layoutGap * 0.5f);
     float bottomRowHeight = screenHeight * 0.07f;
     float historyPanelHeight = screenHeight - historySectionY - bottomRowHeight - padding - layoutGap;
 
