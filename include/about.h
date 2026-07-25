@@ -12,6 +12,8 @@ typedef struct AboutState{
     AboutTab activeTab;
     float scrollOffset;
     int EasterState;
+    Texture2D logoTexture;
+    bool logoLoaded;
 } AboutState;
 
 void AboutInit(AboutState* state);
