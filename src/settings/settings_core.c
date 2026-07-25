@@ -328,7 +328,7 @@ void SettingsDraw(const AppState *state)
 
     float backBtnWidth = baseFontSize * 10.5f;
     float backBtnHeight = baseFontSize * 1.6f;
-    float backBtnX = screenWidth - padding - backBtnWidth;
+    float backBtnX = screenWidth - padding * 2.00f - backBtnWidth;
     float backBtnY = hkY - backBtnHeight - 8.0f;
 
     if (GuiButton((Rectangle){backBtnX, backBtnY, backBtnWidth, backBtnHeight}, "Save and Back (B)"))
