@@ -325,14 +325,27 @@ void SettingsDraw(const AppState *state)
 
     EndScissorMode();
 
-    // --- Footer Controls ---
-    float footerY = screenHeight - padding;
-    DrawAppText("Navigate: [A/D] or Keys [1-4]  |  [B/ESC] Save & Return", padding, footerY, baseFontSize * 0.75f, GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_DISABLED)));
+    // --- Footer Hotkey Bar ---
+    static const HotkeyEntry settingsKeys[] = {
+        { "1",   "Game Rules"  },
+        { "2",   "Audio"       },
+        { "3",   "Network"     },
+        { "4",   "Advanced"    },
+        { "A/D", "Navigate"    },
+        { "B",   "Save & Back" },
+        { "ESC", "Cancel"      },
+    };
+    float hkH = baseFontSize * 2.50f;
+    float hkY = (float)screenHeight - padding - hkH;
+    DrawHotkeyBar(settingsKeys, 7,
+                  padding, hkY + padding * 0.60f,
+                  screenWidth - padding * 2.0f, hkH,
+                  baseFontSize);
 
     float backBtnWidth = baseFontSize * 10.5f;
     float backBtnHeight = baseFontSize * 1.6f;
     float backBtnX = screenWidth - padding - backBtnWidth;
-    float backBtnY = footerY - (backBtnHeight * 0.3f);
+    float backBtnY = hkY - backBtnHeight - 8.0f;
 
     if (GuiButton((Rectangle){backBtnX, backBtnY, backBtnWidth, backBtnHeight}, "Save and Back (B)"))
     {

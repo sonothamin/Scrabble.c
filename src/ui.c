@@ -156,3 +156,105 @@ int MeasureAppText(const char *text, float fontSize)
     Vector2 size = MeasureTextEx(g_appFont, text, fontSize, spacing);
     return (int)ceilf(size.x);
 }
+
+void DrawHotkeyBar(const HotkeyEntry *entries, int count,
+                   float x, float y, float width, float height,
+                   float fontSize)
+{
+    if (!entries || count <= 0) return;
+
+    // ---- Background container ----
+    const Color bgColor    = { 12, 17, 22, 220 };
+    const Color borderColor= { 70, 85, 100, 180 };
+
+    DrawRectangleRounded((Rectangle){ x, y, width, height }, 0.35f, 6, bgColor);
+    DrawRectangleRoundedLines((Rectangle){ x, y, width, height }, 0.35f, 6, borderColor);
+
+    // ---- Sizing & layout ----
+    float keyFontSize   = fontSize * 0.72f;
+    float labelFontSize = fontSize * 0.72f;
+
+    // Measure all items so we can pack them tightly with equal gaps
+    float itemWidths[32]; // max 32 hotkeys
+    if (count > 32) count = 32;
+
+    float keyPadX  = keyFontSize * 0.55f;  // horizontal padding inside keycap
+    float keyPadY  = keyFontSize * 0.22f;  // vertical padding inside keycap
+    float gapKeyLabel = keyFontSize * 0.50f; // space between keycap and its label
+    float gapBetween  = keyFontSize * 1.10f; // space between entries
+
+    float totalContentWidth = 0.0f;
+    for (int i = 0; i < count; i++)
+    {
+        float kw = MeasureAppText(entries[i].key,   keyFontSize)   + keyPadX * 2.0f;
+        float lw = MeasureAppText(entries[i].label, labelFontSize);
+        itemWidths[i] = kw + gapKeyLabel + lw;
+        totalContentWidth += itemWidths[i];
+        if (i < count - 1) totalContentWidth += gapBetween;
+    }
+
+    // Center the content block inside the bar
+    float startX = x + (width - totalContentWidth) / 2.0f;
+    float centerY = y + height / 2.0f;
+
+    // ---- Colors (adapted to active theme) ----
+    // Keycap face
+    const Color capFace  = { 38,  48,  60, 255 };
+    const Color capTop   = { 72,  92, 112, 200 }; // highlight bevel (top-left)
+    const Color capBot   = {  8,  12,  18, 200 }; // shadow bevel   (bottom-right)
+    const Color capBorder= { 55,  75,  95, 255 };
+    const Color keyText  = {210, 230, 255, 255 };
+    const Color sepColor = { 60,  80, 100, 140 };
+
+    float capRound = 0.30f;
+
+    float curX = startX;
+    for (int i = 0; i < count; i++)
+    {
+        // --- Keycap geometry ---
+        float kw       = MeasureAppText(entries[i].key, keyFontSize) + keyPadX * 2.0f;
+        float kh       = keyFontSize + keyPadY * 2.0f;
+        float capY     = centerY - kh / 2.0f;
+
+        Rectangle capRect = { curX, capY, kw, kh };
+
+        // Shadow offset for the "key press depth" look
+        Rectangle shadowRect = { capRect.x + 1.5f, capRect.y + 2.5f, capRect.width, capRect.height };
+        DrawRectangleRounded(shadowRect, capRound, 4, capBot);
+
+        // Main face
+        DrawRectangleRounded(capRect, capRound, 4, capFace);
+
+        // Top-left highlight sliver (simulated bevel)
+        DrawRectangleRounded((Rectangle){ capRect.x, capRect.y, capRect.width, capRect.height * 0.30f }, capRound, 4, capTop);
+
+        // Border
+        DrawRectangleRoundedLines(capRect, capRound, 4, capBorder);
+
+        // Key letter(s) – horizontally centered inside cap
+        float keyTextW = MeasureAppText(entries[i].key, keyFontSize);
+        float keyTextX = capRect.x + (kw - keyTextW) / 2.0f;
+        float keyTextY = capY + (kh - keyFontSize) / 2.0f;
+        DrawAppText(entries[i].key, keyTextX, keyTextY, keyFontSize, keyText);
+
+        curX += kw + gapKeyLabel;
+
+        // --- Label ---
+        float labelY = centerY - labelFontSize / 2.0f;
+        Color labelColor = GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_NORMAL));
+        DrawAppText(entries[i].label, curX, labelY, labelFontSize, labelColor);
+
+        float lw = MeasureAppText(entries[i].label, labelFontSize);
+        curX += lw;
+
+        // --- Thin separator between entries (not after last) ---
+        if (i < count - 1)
+        {
+            float sepX = curX + gapBetween / 2.0f;
+            float sepH = height * 0.45f;
+            float sepY = centerY - sepH / 2.0f;
+            DrawLineEx((Vector2){ sepX, sepY }, (Vector2){ sepX, sepY + sepH }, 1.0f, sepColor);
+            curX += gapBetween;
+        }
+    }
+}
