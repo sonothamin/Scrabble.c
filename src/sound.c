@@ -20,9 +20,9 @@ void SoundSysInit(void)
 
     InitAudioDevice();
 
-    gSound.music = LoadMusicStream("audio/music/background.ogg");
+    gSound.music = LoadMusicStream("audio/bgm/background_evening.mp3");
 
-    gSound.sfx[SFX_APP_LAUNCH]        = LoadSound("audio/sfx/app_started.wav");
+    gSound.sfx[SFX_APP_LAUNCH]   = LoadSound("audio/sfx/app_started.wav");
     gSound.sfx[SFX_ABOUT]        = LoadSound("audio/sfx/about.wav");
     gSound.sfx[SFX_BUTTON]       = LoadSound("resources/audio/sfx/button.wav");
     gSound.sfx[SFX_TILE_PLACE]   = LoadSound("resources/audio/sfx/place.wav");
