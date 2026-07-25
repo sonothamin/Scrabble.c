@@ -13,6 +13,7 @@
 #include "drag_drop.h"
 #include "word_validation.h"
 #include "settings.h"
+#include "shuffle.h"
 
 void GameInit(GameState *match)
 {
@@ -129,11 +130,12 @@ void GameUpdate(AppState *state)
     float tileSize = rackPanelHeight * 0.6f;
     float tileSpacing = 8.0f;
 
-    // Process drag and drop interactions
-    HandleDragNDropInput(match, boardBounds, activeRackRect, tileSize, tileSpacing);
+    // Process drag and drop interactions (blocked while shuffle overlay is open)
+    if (!match->shuffleState.isActive)
+        HandleDragNDropInput(match, boardBounds, activeRackRect, tileSize, tileSpacing);
 
-    // [S] – pass turn
-    if (IsKeyPressed(KEY_S))
+    // [S] – pass turn (keyboard shortcut, blocked during shuffle overlay)
+    if (!match->shuffleState.isActive && IsKeyPressed(KEY_S))
     {
         memcpy(&match->board, &match->previousBoard, sizeof(GameBoard));
         match->consecutivePassCount++;
@@ -149,6 +151,18 @@ void GameUpdate(AppState *state)
         }
     }
 
+    // Shuffle overlay update (tile selection clicks)
+    if (match->shuffleState.isActive)
+    {
+        float rackPanelHeightUpd = screenHeight * 0.10f;
+        float topPanelsHeightUpd = screenHeight * 0.18f;
+        float rackSectionYUpd    = padding + topPanelsHeightUpd + layoutGap;
+        Rectangle shuffleRackRect = {rightSideX, rackSectionYUpd, rightSideWidth, rackPanelHeightUpd};
+        float tileSizeUpd = rackPanelHeightUpd * 0.6f;
+        ShuffleUpdate(&match->shuffleState, &match->players[match->activePlayerIdx],
+                      shuffleRackRect, tileSizeUpd, 8.0f);
+    }
+
     float bottomRowHeight = screenHeight * 0.07f;
     float footerY = screenHeight - bottomRowHeight - padding;
     float elementH = 45.0f;
@@ -160,7 +174,7 @@ void GameUpdate(AppState *state)
     Rectangle submitBtnRect = {rightSideX + rightSideWidth - actionBtnWidth - submitBtnWidth - (layoutGap * 0.5f), elementY, submitBtnWidth, elementH};
 
     Vector2 mousePos = GetMousePosition();
-    if (CheckCollisionPointRec(mousePos, submitBtnRect))
+    if (!match->shuffleState.isActive && CheckCollisionPointRec(mousePos, submitBtnRect))
     {
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         {
@@ -372,57 +386,97 @@ void GameDraw(AppState *state)
     float activeTileSpacing = 8.0f;
 
     int p = match->activePlayerIdx;
+
+    // Right action sub-panel sits inside the right edge of the rack box
+    float actionPanelW = rightSideWidth * 0.28f;
+    float tilesAreaW   = rightSideWidth - actionPanelW;
+
     Rectangle rackRect = {rightSideX, rackSectionY, rightSideWidth, rackPanelHeight};
     GuiGroupBox(rackRect, TextFormat("Player %d Rack (Active Turn)", p + 1));
 
+    // ---- Tiles (left portion) ----
     float tileY = rackRect.y + (rackPanelHeight - activeTileSize) / 2.0f + 4.0f;
 
     for (int t = 0; t < match->players[p].rack_count; t++)
     {
         if ((match->dragState.isDragging) && (match->dragState.draggedTileIdx == t))
-        {
             continue;
-        }
+
         Tile tile = match->players[p].rack[t];
-        Rectangle tileBounds = {rackRect.x + 15.0f + (t * (activeTileSize + activeTileSpacing)), tileY, activeTileSize, activeTileSize};
+        Rectangle tileBounds = {rackRect.x + 15.0f + (t * (activeTileSize + activeTileSpacing)),
+                                 tileY, activeTileSize, activeTileSize};
         DrawRectangleRounded(tileBounds, 0.2f, 4, (Color){244, 228, 198, 255});
         DrawRectangleRoundedLines(tileBounds, 0.2f, 4, (Color){194, 169, 126, 255});
 
         char letterStr[2] = {tile.letter, '\0'};
         int rackTileFontSize = (int)(activeTileSize * 0.55f);
-        DrawAppText(letterStr, tileBounds.x + (activeTileSize * 0.15f), tileBounds.y + (activeTileSize - rackTileFontSize) / 2.0f, rackTileFontSize, (Color){38, 28, 16, 255});
+        DrawAppText(letterStr, tileBounds.x + (activeTileSize * 0.15f),
+                    tileBounds.y + (activeTileSize - rackTileFontSize) / 2.0f,
+                    rackTileFontSize, (Color){38, 28, 16, 255});
 
         int scoreValue = tile.value;
         const char *scoreStr = TextFormat("%d", scoreValue);
         int scoreFontSize = (int)(cellSize * 0.40f);
-        DrawAppText(scoreStr, tileBounds.x + activeTileSize - MeasureAppText(scoreStr, scoreFontSize) - (activeTileSize * 0.25f), tileBounds.y + activeTileSize - scoreFontSize - (activeTileSize * 0.10f), scoreFontSize, (Color){80, 65, 50, 255});
+        DrawAppText(scoreStr,
+                    tileBounds.x + activeTileSize - MeasureAppText(scoreStr, scoreFontSize) - (activeTileSize * 0.25f),
+                    tileBounds.y + activeTileSize - scoreFontSize - (activeTileSize * 0.10f),
+                    scoreFontSize, (Color){80, 65, 50, 255});
     }
 
-    // Render muted text indicating remaining bag tiles (+{count} Tiles) at the end of the rack
-    float bagTextX = rackRect.x + 15.0f + (match->players[p].rack_count * (activeTileSize + activeTileSpacing)) + 10.0f;
-    const char *mutedBagText = TextFormat("+%d Tiles", match->tileBagCount);
-    int mutedFontSize = (int)(baseFontSize * 0.9f);
-    float mutedTextY = rackRect.y + (rackPanelHeight - mutedFontSize) / 2.0f + 2.0f;
-    DrawAppText(mutedBagText, bagTextX, mutedTextY, mutedFontSize, (Color){140, 155, 165, 200});
-
-    // Pass Turn Button below the Rack space
-    float passBtnY = rackSectionY + rackPanelHeight + (layoutGap * 0.4f);
-    float passBtnH = 32.0f;
-    Rectangle passBtnRect = {rightSideX, passBtnY, rightSideWidth, passBtnH};
-
-    const char *passLabel = TextFormat("Pass Turn (%d/6 Passes)", match->consecutivePassCount);
-    if (GuiButton(passBtnRect, passLabel))
+    // Muted bag-tile count (capped so it doesn't overlap the action panel)
+    float bagTextX    = rackRect.x + 15.0f + (match->players[p].rack_count * (activeTileSize + activeTileSpacing)) + 10.0f;
+    float bagTextXMax = rackRect.x + tilesAreaW - 8.0f;
+    if (bagTextX < bagTextXMax)
     {
-        // Revert any unsubmitted tiles placed on the board back to previous turn
-        memcpy(&match->board, &match->previousBoard, sizeof(GameBoard));
+        const char *mutedBagText = TextFormat("+%d Tiles", match->tileBagCount);
+        int mutedFontSize = (int)(baseFontSize * 0.9f);
+        float mutedTextY  = rackRect.y + (rackPanelHeight - mutedFontSize) / 2.0f + 2.0f;
+        DrawAppText(mutedBagText, bagTextX, mutedTextY, mutedFontSize, (Color){140, 155, 165, 200});
+    }
 
+    // ---- Thin vertical divider ----
+    float divX = rackRect.x + tilesAreaW;
+    DrawLineEx((Vector2){divX, rackRect.y + 6},
+               (Vector2){divX, rackRect.y + rackPanelHeight - 6},
+               1.0f, (Color){54, 68, 82, 200});
+
+    // ---- Right action panel ----
+    float apX = divX + 6.0f;
+    float apW = actionPanelW - 12.0f;
+    float apY = rackRect.y + 6.0f;
+    float apH = rackPanelHeight - 12.0f;
+
+    // Pass counter badge
+    int passCount = match->consecutivePassCount;
+    int badgeFontSize = (int)(baseFontSize * 0.72f);
+    const char *passCountStr = TextFormat("%d/6", passCount);
+    int passCountW = MeasureAppText(passCountStr, badgeFontSize);
+    Color passCountColor = (passCount > 0) ? (Color){255, 80, 70, 255} : (Color){90, 105, 120, 180};
+    DrawAppText(passCountStr,
+                apX + (apW - passCountW) / 2.0f,
+                apY + 2.0f,
+                badgeFontSize, passCountColor);
+
+    // Two stacked buttons
+    float counterH  = badgeFontSize + 4.0f;
+    float btnGap    = 4.0f;
+    float btnH      = (apH - counterH - btnGap * 3.0f) / 2.0f;
+    float btn1Y     = apY + counterH + btnGap;
+    float btn2Y     = btn1Y + btnH + btnGap;
+
+    Rectangle rackPassBtnRect    = {apX, btn1Y, apW, btnH};
+    Rectangle rackShuffleBtnRect = {apX, btn2Y, apW, btnH};
+
+    bool canAct = !match->shuffleState.isActive;
+
+    if (canAct && GuiButton(rackPassBtnRect, "Pass"))
+    {
+        memcpy(&match->board, &match->previousBoard, sizeof(GameBoard));
         match->consecutivePassCount++;
         PlaySoundEffect(SFX_BACK_NAV);
-
         if (match->consecutivePassCount >= 6)
         {
             match->isMatchOver = true;
-            // The opponent of the current active player wins upon 6th pass
             match->winningPlayerIdx = (match->activePlayerIdx + 1) % 2;
         }
         else
@@ -430,9 +484,37 @@ void GameDraw(AppState *state)
             match->activePlayerIdx = (match->activePlayerIdx + 1) % 2;
         }
     }
+    else if (!canAct)
+    {
+        DrawRectangleRounded(rackPassBtnRect, 0.25f, 4, (Color){30, 38, 46, 120});
+        DrawRectangleRoundedLines(rackPassBtnRect, 0.25f, 4, (Color){54, 68, 82, 100});
+        int pFS = (int)(baseFontSize * 0.75f);
+        int pW  = MeasureAppText("Pass", pFS);
+        DrawAppText("Pass",
+                    rackPassBtnRect.x + (rackPassBtnRect.width  - pW) / 2.0f,
+                    rackPassBtnRect.y + (rackPassBtnRect.height - pFS) / 2.0f,
+                    pFS, (Color){70, 85, 95, 140});
+    }
+
+    if (canAct && GuiButton(rackShuffleBtnRect, "Shuffle"))
+    {
+        ShuffleOpen(&match->shuffleState);
+        PlaySoundEffect(SFX_BUTTON);
+    }
+    else if (!canAct)
+    {
+        DrawRectangleRounded(rackShuffleBtnRect, 0.25f, 4, (Color){30, 38, 46, 120});
+        DrawRectangleRoundedLines(rackShuffleBtnRect, 0.25f, 4, (Color){54, 68, 82, 100});
+        int sFS = (int)(baseFontSize * 0.75f);
+        int sW  = MeasureAppText("Shuffle", sFS);
+        DrawAppText("Shuffle",
+                    rackShuffleBtnRect.x + (rackShuffleBtnRect.width  - sW) / 2.0f,
+                    rackShuffleBtnRect.y + (rackShuffleBtnRect.height - sFS) / 2.0f,
+                    sFS, (Color){70, 85, 95, 140});
+    }
 
     // Lower Section: History Logs
-    float historySectionY = passBtnY + passBtnH + (layoutGap * 0.5f);
+    float historySectionY = rackSectionY + rackPanelHeight + (layoutGap * 0.5f);
     float bottomRowHeight = screenHeight * 0.07f;
     float historyPanelHeight = screenHeight - historySectionY - bottomRowHeight - padding - layoutGap;
 

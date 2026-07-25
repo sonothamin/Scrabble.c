@@ -6,6 +6,7 @@
 #include "bag.h"
 #include "player.h"
 #include "drag_drop.h"
+#include "shuffle.h"
 #include "dictionary.h"
 
 #define MAX_PLAYER_TILES 7
@@ -38,6 +39,7 @@ typedef struct GameState
     bool isMatchOver;
     int winningPlayerIdx;
     DragNDropState dragState;
+    ShuffleState   shuffleState;
 } GameState;
 
 void GameInit(GameState *match);
