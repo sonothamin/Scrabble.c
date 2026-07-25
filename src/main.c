@@ -38,6 +38,8 @@ int main(void)
 
     while (!WindowShouldClose() && !appState.shouldClose)
     {
+        SoundSysUpdate();
+        
         if (IsKeyPressed(KEY_F11))
         {
             ToggleFullscreen();
