@@ -197,8 +197,19 @@ void AboutDraw(AppState *appState, AboutState *aboutState)
 
     EndScissorMode();
 
-    float footerY = screenHeight - padding;
-    DrawAppText("Navigate: [W/S] or Keys [1-3]  |  [ESC] Main Menu", padding, footerY, baseFontSize * 0.75f, GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_DISABLED)));
+    static const HotkeyEntry aboutKeys[] = {
+        { "1",   "Overview" },
+        { "2",   "Team"     },
+        { "3",   "Stack"    },
+        { "W/S", "Navigate" },
+        { "ESC", "Main Menu"},
+    };
+    float hkH = baseFontSize * 1.35f;
+    float hkY = screenHeight - padding - hkH;
+    DrawHotkeyBar(aboutKeys, 5,
+                  padding, hkY + padding * 0.30f,
+                  screenWidth - padding * 2.0f, hkH + 25,
+                  baseFontSize);
 
     if(IsKeyPressed(KEY_SPACE))
     {
@@ -214,13 +225,15 @@ void AboutDraw(AppState *appState, AboutState *aboutState)
         float totalWidth = MeasureAppText(prefix, textFontSize) + textFontSize + 10.0f + MeasureAppText(suffix, textFontSize);
         float eggX = screenWidth - totalWidth - padding;
 
-        DrawAppText(prefix, eggX, footerY - 2.0f, textFontSize, GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED)));
-        DrawProceduralHeart(eggX + MeasureAppText(prefix, textFontSize) + 5.0f, (footerY - 2.0f) + 1.0f, textFontSize * 0.85f, RED);
-        DrawAppText(suffix, eggX + MeasureAppText(prefix, textFontSize) + (textFontSize * 0.85f) + 10.0f, footerY - 2.0f, textFontSize, GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED)));
+        float eggY = hkY - textFontSize - 4.0f;
+        DrawAppText(prefix, eggX, eggY, textFontSize, GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED)));
+        DrawProceduralHeart(eggX + MeasureAppText(prefix, textFontSize) + 5.0f, eggY + 1.0f, textFontSize * 0.85f, RED);
+        DrawAppText(suffix, eggX + MeasureAppText(prefix, textFontSize) + (textFontSize * 0.85f) + 10.0f, eggY, textFontSize, GetColor(GuiGetStyle(BUTTON, TEXT_COLOR_PRESSED)));
     }
     else
     {
         const char *prompt = "[Space] Try?";
-        DrawAppText(prompt, screenWidth - MeasureAppText(prompt, baseFontSize * 0.75f) - padding, footerY, baseFontSize * 0.75f, ColorAlpha(GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_DISABLED)), 0.3f));
+        float promptY = hkY - baseFontSize * 0.75f - 4.0f;
+        DrawAppText(prompt, screenWidth - MeasureAppText(prompt, baseFontSize * 0.75f) - padding, promptY, baseFontSize * 0.75f, ColorAlpha(GetColor(GuiGetStyle(DEFAULT, TEXT_COLOR_DISABLED)), 0.3f));
     }
 }

@@ -169,7 +169,21 @@ void MenuDraw(AppState* state)
 
     // Bottom Quick HUD Info
     GuiLine((Rectangle){ padding + 25.0f, contentTop + (rowHeight * 4.6f), mainPanelWidth - 50.0f, 8.0f }, NULL);
-    GuiLabel((Rectangle){ padding + 25.0f, contentTop + (rowHeight * 4.9f), mainPanelWidth - 50.0f, rowHeight * 0.5f }, "[Q]: Quit   [M]: Mute Everything   [L]: Quick Load   [N]: Quick Local   [F11]: Fullscreen");
+
+    static const HotkeyEntry menuKeys[] = {
+        { "N",   "New Game"   },
+        { "L",   "Load Saved" },
+        { "M",   "Mute"       },
+        { "S",   "Settings"   },
+        { "F11", "Fullscreen" },
+        { "Q",   "Quit"       },
+    };
+    float hkBarY      = contentTop + (rowHeight * 4.85f);
+    float hkBarHeight = rowHeight * 0.40f;
+    DrawHotkeyBar(menuKeys, 6,
+                  padding + 25.0f, hkBarY,
+                  mainPanelWidth - 50.0f, hkBarHeight,
+                  baseFontSize);
 
     float optionPanelX = screenWidth - padding - optionPanelWidth;
     GuiGroupBox((Rectangle){ optionPanelX, contentTop, optionPanelWidth, mainPanelHeight }, "SETTINGS & OPTIONS");
