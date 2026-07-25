@@ -30,6 +30,7 @@ void GameInit(GameState *match)
     }
 
     BoardInit(&match->board, "board_layout.txt");
+    memcpy(&match->previousBoard, &match->board, sizeof(GameBoard)); // seed previousBoard so first-turn pass/shuffle doesn't blank the board
     init_player(&match->players[0]);
     init_player(&match->players[1]);
     init_bag_from_file(&match->tileBag);
