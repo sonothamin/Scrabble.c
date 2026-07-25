@@ -12,6 +12,7 @@
 #include "bag.h"
 #include "drag_drop.h"
 #include "word_validation.h"
+#include "settings.h"
 
 void GameInit(GameState *match)
 {
@@ -60,13 +61,32 @@ void GameUpdate(AppState *state)
         return;
     }
 
-    if (IsKeyPressed(KEY_ESCAPE))
+    if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_P))
     {
         if (state->pauseState)
         {
             state->pauseState->isPaused = !state->pauseState->isPaused;
             PlaySoundEffect(SFX_BUTTON);
         }
+        return;
+    }
+
+    // [M]ute – toggle BGM
+    if (IsKeyPressed(KEY_M))
+    {
+        if (state->settingsState != NULL)
+        {
+            state->settingsState->bgmEnable = !state->settingsState->bgmEnable;
+            SetMusicVolumeLevel(state->settingsState->bgmEnable ? state->settingsState->bgmVolume : 0.0f);
+            PlaySoundEffect(SFX_BUTTON);
+        }
+    }
+
+    // [Q]uit – back to main menu
+    if (IsKeyPressed(KEY_Q))
+    {
+        state->currentScreen = APP_SCREEN_MAIN_MENU;
+        PlaySoundEffect(SFX_BACK_NAV);
         return;
     }
 
@@ -86,8 +106,10 @@ void GameUpdate(AppState *state)
     const float rightSideX = (screenWidth * 0.45f) + padding + layoutGap;
     const float rightSideWidth = screenWidth - rightSideX - padding;
 
-    // Board Bounds
-    Rectangle boardBoundaries = {padding, padding, screenWidth * 0.45f, screenHeight - (padding * 2.0f)};
+    float hkBarHeight  = (float)fmaxf(15, screenHeight / 42) * 2.2f; // matches baseFontSize * 2.2
+    float hkBarMargin  = padding * 0.5f;
+    float boardGroupH  = screenHeight - (padding * 2.0f) - hkBarMargin - hkBarHeight - hkBarMargin;
+    Rectangle boardBoundaries = {padding, padding, screenWidth * 0.45f, boardGroupH};
     float groupBoxHeaderHeight = 25.0f;
     float gridInnerPad = 15.0f;
     float usableWidth = boardBoundaries.width - (gridInnerPad * 2.0f);
@@ -109,6 +131,23 @@ void GameUpdate(AppState *state)
 
     // Process drag and drop interactions
     HandleDragNDropInput(match, boardBounds, activeRackRect, tileSize, tileSpacing);
+
+    // [S] – pass turn
+    if (IsKeyPressed(KEY_S))
+    {
+        memcpy(&match->board, &match->previousBoard, sizeof(GameBoard));
+        match->consecutivePassCount++;
+        PlaySoundEffect(SFX_BACK_NAV);
+        if (match->consecutivePassCount >= 6)
+        {
+            match->isMatchOver = true;
+            match->winningPlayerIdx = (match->activePlayerIdx + 1) % 2;
+        }
+        else
+        {
+            match->activePlayerIdx = (match->activePlayerIdx + 1) % 2;
+        }
+    }
 
     float bottomRowHeight = screenHeight * 0.07f;
     float footerY = screenHeight - bottomRowHeight - padding;
@@ -192,7 +231,11 @@ void GameDraw(AppState *state)
     const float rightSideWidth = screenWidth - rightSideX - padding;
 
     // --- LEFT COLUMN: MAIN BOARD PANEL ---
-    Rectangle boardBoundaries = {padding, padding, screenWidth * 0.45f, screenHeight - (padding * 2.0f)};
+    float boardColWidth = screenWidth * 0.45f;
+    float hkBarHeight   = baseFontSize * 2.2f;
+    float hkBarMargin   = padding * 0.5f;
+    float boardGroupH   = screenHeight - (padding * 2.0f) - hkBarMargin - hkBarHeight - hkBarMargin;
+    Rectangle boardBoundaries = {padding, padding, boardColWidth, boardGroupH};
     GuiGroupBox(boardBoundaries, "Game Board");
 
     float groupBoxHeaderHeight = 25.0f;
@@ -238,6 +281,24 @@ void GameDraw(AppState *state)
             }
         }
     }
+
+    // --- HOTKEY BAR ---
+    float hkBarY = padding + boardGroupH + hkBarMargin;
+    
+    bool isMuted = (state->settingsState != NULL && !state->settingsState->bgmEnable);
+    static const HotkeyEntry gameKeys[] = {
+        { "P",   "Pause" },
+        { "S",   "Pass"  },
+        { "M",   "Mute"  },
+        { "Q",   "Quit"  },
+    };
+    HotkeyEntry liveKeys[4];
+    for (int hki = 0; hki < 4; hki++) liveKeys[hki] = gameKeys[hki];
+    liveKeys[2].label = isMuted ? "Unmute" : "Mute";
+    DrawHotkeyBar(liveKeys, 4,
+                  padding, hkBarY + padding * 0.25,
+                  boardColWidth, hkBarHeight,
+                  baseFontSize);
 
     // --- RIGHT COLUMN: STATISTICS & MANAGEMENT ---
     float topPanelsY = padding;
