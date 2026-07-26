@@ -15,6 +15,7 @@ int main(void)
     MaximizeWindow();
     SetWindowMinSize(1380, 820);
 
+    ClearGlobalError();
     SearchAndSetResourceDir("resources");
     InitAppFont();
 
@@ -33,8 +34,6 @@ int main(void)
     {
         appState.currentScreen = APP_SCREEN_MAIN_MENU;
     }
-
-    ClearGlobalError();
 
     while (!WindowShouldClose() && !appState.shouldClose)
     {
