@@ -234,4 +234,6 @@ void CloseAppState(AppState *state)
         free(state->gameOverState);
         state->gameOverState = NULL;
     }
+
+    MenuUnloadTextures();
 }

@@ -8,6 +8,7 @@ extern "C" {
 
 void MenuUpdate(AppState* state);
 void MenuDraw(AppState* state);
+void MenuUnloadTextures(void);
 
 #if defined(__cplusplus)
 }
