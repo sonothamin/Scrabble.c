@@ -6,16 +6,50 @@
 #include "ui.h"
 #include "sound.h"
 
+#if defined(_WIN32) //Windows Dark Mode Hack
+    __declspec(dllimport) void* __stdcall LoadLibraryA(const char* lpLibFileName);
+    __declspec(dllimport) void* __stdcall GetProcAddress(void* hModule, const char* lpProcName);
+    __declspec(dllimport) int   __stdcall FreeLibrary(void* hModule);
+
+    typedef long (__stdcall *pfnDwmSetWindowAttribute)(void* hwnd, unsigned long dwAttribute, const void* pvAttribute, unsigned long cbAttribute);
+
+    static void EnableImmersiveDarkMode(void* hwnd) 
+    {
+        void* dwmModule = LoadLibraryA("dwmapi.dll");
+        if (dwmModule) 
+        {
+            pfnDwmSetWindowAttribute setWindowAttribute = 
+                (pfnDwmSetWindowAttribute)GetProcAddress(dwmModule, "DwmSetWindowAttribute");
+            
+            if (setWindowAttribute) 
+            {
+                int darkMode = 1;
+                // DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+                setWindowAttribute(hwnd, 20, &darkMode, sizeof(darkMode));
+            }
+            FreeLibrary(dwmModule);
+        }
+    }
+#endif
+
 int main(void)
 {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
 
     InitWindow(1024, 768, "Scrabble.c");
+
+#if defined(_WIN32)
+    void* hwnd = GetWindowHandle();
+    if (hwnd) 
+    {
+        EnableImmersiveDarkMode(hwnd);
+    }
+#endif
+
     SetExitKey(KEY_F4);
     MaximizeWindow();
     SetWindowMinSize(1380, 820);
 
-    ClearGlobalError();
     SearchAndSetResourceDir("resources");
     InitAppFont();
 
@@ -34,6 +68,8 @@ int main(void)
     {
         appState.currentScreen = APP_SCREEN_MAIN_MENU;
     }
+
+    ClearGlobalError();
 
     while (!WindowShouldClose() && !appState.shouldClose)
     {
