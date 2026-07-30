@@ -10,7 +10,15 @@
 #include "gui_window_file_dialog.h"
 #include "settings.h"
 
-#define CONFIG_FILE_PATH "config.dat"
+#if defined(_WIN32) || defined(_WIN64)
+    #include <windows.h>
+    #include <shlobj.h>
+#endif
+
+#define CONFIG_FILE_NAME "config.dat"
+#define CONFIG_FILE_PATH GetConfigFilePath()
+
+const char *GetConfigFilePath(void);
 
 typedef enum
 {

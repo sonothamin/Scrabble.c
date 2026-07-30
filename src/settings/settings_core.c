@@ -22,6 +22,33 @@
 #include "app_state.h"
 
 // =============================================================================
+// PATH MANAGEMENT
+// =============================================================================
+
+const char *GetConfigFilePath(void)
+{
+    static char path[512] = {0};
+    if (path[0] != '\0')
+    {
+        return path;
+    }
+
+#if defined(_WIN32) || defined(_WIN64)
+    char appDataPath[MAX_PATH];
+    if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_APPDATA, NULL, 0, appDataPath)))
+    {
+        snprintf(path, sizeof(path), "%s\\Scrabble", appDataPath);
+        CreateDirectoryA(path, NULL);
+        snprintf(path, sizeof(path), "%s\\Scrabble\\%s", appDataPath, CONFIG_FILE_NAME);
+        return path;
+    }
+#endif
+
+    snprintf(path, sizeof(path), "%s", CONFIG_FILE_NAME);
+    return path;
+}
+
+// =============================================================================
 // LIFECYCLE MANAGEMENT
 // =============================================================================
 
