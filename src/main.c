@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <time.h>
 #include "raylib.h"
 #include "resource_dir.h"
 #include "app_state.h"
@@ -34,6 +36,7 @@
 
 int main(void)
 {
+    srand((unsigned int)time(NULL));
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
 
     InitWindow(1024, 768, "Scrabble.c");
