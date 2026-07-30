@@ -49,6 +49,9 @@ void GameInit(GameState *match)
     // Reset Save & Exit Overlay state
     SaveAndExitInit(&match->saveExitState);
 
+    // Reset Wildcard Tile Overlay state
+    WildTileInit(&match->wildTileState);
+
     PlaySoundEffect(SFX_GAME_START);
 }
 
@@ -145,6 +148,23 @@ void GameUpdate(AppState *state)
     Rectangle activeRackRect = {rightSideX, rackSectionY, rightSideWidth, rackPanelHeight};
     float tileSize = rackPanelHeight * 0.6f;
     float tileSpacing = 8.0f;
+
+    // Handle Wildcard Overlay input if active
+    if (match->wildTileState.isActive)
+    {
+        WildTileUpdate(&match->wildTileState);
+        if (!match->wildTileState.isActive && match->wildTileState.selectedLetter != '\0')
+        {
+            int gx = match->wildTileState.targetGridX;
+            int gy = match->wildTileState.targetGridY;
+            if (gx >= 0 && gx < BOARD_SIDE && gy >= 0 && gy < BOARD_SIDE)
+            {
+                match->board.grid[gy][gx].letter = match->wildTileState.selectedLetter;
+                match->board.grid[gy][gx].value = 0; // Wildcards score 0 points
+            }
+        }
+        return;
+    }
 
     // Process drag and drop interactions (blocked while shuffle overlay is open)
     if (!match->shuffleState.isActive)
@@ -711,4 +731,7 @@ void GameDraw(AppState *state)
 
     // --- SAVE AND EXIT OVERLAY (drawn on top of all game content) ---
     SaveAndExitDraw(state, match, screenWidth, screenHeight, baseFontSize);
+
+    // --- WILDCARD SELECTION OVERLAY ---
+    WildTileDraw(&match->wildTileState, screenWidth, screenHeight, baseFontSize);
 }

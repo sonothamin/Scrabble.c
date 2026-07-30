@@ -87,6 +87,13 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
                 // Copy tile to board
                 match->board.grid[gridY][gridX] = match->dragState.draggedTile;
 
+                // Check if tile is a wildcard ('?')
+                if (match->dragState.draggedTile.letter == '?' || match->dragState.draggedTile.isWildCard)
+                {
+                    match->board.grid[gridY][gridX].isWildCard = true;
+                    WildTileOpen(&match->wildTileState, gridX, gridY);
+                }
+
                 // If it came from the rack, remove it from the rack array
                 if (match->dragState.isFromRack)
                 {
