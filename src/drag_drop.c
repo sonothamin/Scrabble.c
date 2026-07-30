@@ -51,7 +51,8 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
                     match->dragState.isFromRack = false;
                     match->dragState.sourceGridX = gridX;
                     match->dragState.sourceGridY = gridY;
-                    match->dragState.draggedTile = match->board.grid[gridY][gridX];
+                    // Letter choice is board-only; rack / drag ghost stays '?'
+                    match->dragState.draggedTile = WildTileAsRackTile(match->board.grid[gridY][gridX]);
 
                     // Temporarily remove from board matrix while dragging
                     match->board.grid[gridY][gridX] = (Tile){.letter = '\0', .value = 0, .isWildCard = false};
@@ -119,7 +120,8 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
                 // If it came from the board, add it back to the rack
                 if (!match->dragState.isFromRack)
                 {
-                    currentPlayer->rack[currentPlayer->rack_count] = match->dragState.draggedTile;
+                    currentPlayer->rack[currentPlayer->rack_count] =
+                        WildTileAsRackTile(match->dragState.draggedTile);
                     currentPlayer->rack_count++;
                 }
                 // If it came from rack to rack, no change needed

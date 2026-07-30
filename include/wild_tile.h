@@ -23,6 +23,10 @@ void WildTileOpen(WildTileOverlayState *state, int gridX, int gridY);
 void WildTileCancel(WildTileOverlayState *state);
 void WildTileUpdate(WildTileOverlayState *state);
 void WildTileDraw(WildTileOverlayState *state, int screenWidth, int screenHeight, int baseFontSize);
+/** If overlay just confirmed, write selectedLetter onto the board cell and clear pending state. */
+bool WildTileApplyToBoard(WildTileOverlayState *state, GameBoard *board);
+/** Rack form of a tile: wildcards always return as '?' (letter choice is board-only until submit). */
+Tile WildTileAsRackTile(Tile tile);
 
 #if defined(__cplusplus)
 }

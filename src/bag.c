@@ -31,6 +31,7 @@ bool init_bag_from_file(TileBag *bag)
 
             bag->tiles[bag->tiles_remaining].letter = letter;
             bag->tiles[bag->tiles_remaining].value = value;
+            bag->tiles[bag->tiles_remaining].isWildCard = (letter == '?');
             bag->tiles_remaining++;
         }
     }
