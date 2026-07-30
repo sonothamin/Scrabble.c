@@ -96,7 +96,7 @@ make
 
 ---
 
-### Windows (MinGW / w64devkit — recommended)
+### Windows (MinGW / w64devkit : recommended)
 
 1. Install [w64devkit](https://github.com/skeeto/w64devkit/releases) and add its `bin` folder to your `PATH`.
 2. Open a terminal in the repo root and run:

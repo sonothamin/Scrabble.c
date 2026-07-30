@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scrabble.c : Every letter counts</title>
+  <meta name="description" content="Scrabble.c is a cross-platform C implementation of Scrabble, built with raylib. Local play, wildcards, and network play in progress." />
+  <link rel="icon" href="resources/images/icon.png" type="image/png" />
+  <link rel="stylesheet" href="pages/site.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="brand" href="index.html" aria-current="page">
+        <img class="brand__mark" src="resources/images/icon.png" alt="" width="32" height="32" />
+        SCRABBLE<span class="brand__dot">.</span>c
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu">☰</button>
+      <nav class="nav" id="site-nav" aria-label="Primary">
+        <a href="pages/rulebook.html">Rulebook</a>
+        <a href="pages/about.html">About</a>
+        <a href="pages/downloads.html">Downloads</a>
+        <a href="pages/contact.html">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-label="Scrabble.c">
+      <div class="hero__content">
+        <h1 class="hero__brand" aria-label="Scrabble.c">
+          <span class="tile">S<span class="tile__pts">1</span></span>
+          <span class="tile">C<span class="tile__pts">3</span></span>
+          <span class="tile">R<span class="tile__pts">1</span></span>
+          <span class="tile">A<span class="tile__pts">1</span></span>
+          <span class="tile">B<span class="tile__pts">3</span></span>
+          <span class="tile">B<span class="tile__pts">3</span></span>
+          <span class="tile">L<span class="tile__pts">1</span></span>
+          <span class="tile">E<span class="tile__pts">1</span></span>
+          <span class="tile tile--dot" aria-hidden="true">.c</span>
+        </h1>
+        <p class="hero__headline">Be aware adventurer! Here every letter counts.</p>
+        <p class="hero__lede">A modern C build of the classic word game</p>
+        <div class="cta-row">
+          <a class="btn btn--primary" href="pages/downloads.html">Download</a>
+          <a class="btn btn--ghost" href="pages/rulebook.html">Read the rulebook</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="play-title">
+      <div class="section__head">
+        <p class="section__eyebrow">What you get</p>
+        <h2 class="section__title" id="play-title">Classic board. Native feel.</h2>
+        <p class="section__lede">Built with raylib and RayGUI, no Electron Runtime were hurt in the process.</p>
+      </div>
+      <ul class="feature-list">
+        <li>
+          <span class="feature-list__key">01</span>
+          <div>
+            <h3>Local turn-by-turn</h3>
+            <p>Pass the mouse. Save when you wanna take a break, load from where you left off.</p>
+          </div>
+        </li>
+        <li>
+          <span class="feature-list__key">02</span>
+          <div>
+            <h3>Wildcards &amp; luxury tiles</h3>
+            <p>Blank tiles - lets you pick a letter at your wish. Premium squares, TW, DW, TL, DL.</p>
+          </div>
+        </li>
+        <li>
+          <span class="feature-list__key">03</span>
+          <div>
+            <h3>Sound, settings, saves</h3>
+            <p>SFX and BGM mixers, fullscreen, and local save files so a long match does not vanish on quit.</p>
+          </div>
+        </li>
+        <li>
+          <span class="feature-list__key">04</span>
+          <div>
+            <h3>Network on the way</h3>
+            <p>LAN multiplayer is in progress. The menu already has the seat reserved for friends on the same network.</p>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <section class="section" aria-labelledby="match-title">
+      <div class="section__head">
+        <p class="section__eyebrow">In play</p>
+        <h2 class="section__title" id="match-title">A board that stays out of the way.</h2>
+        <p class="section__lede">Rack, score history, and hotkeys sit beside a full 15×15 grid : built for focus, not Chromium.</p>
+      </div>
+      <figure class="shot">
+        <img src="images/Match.png" alt="Scrabble.c match in progress with board, rack, and score panels" width="1600" height="900" loading="lazy" />
+        <figcaption>Match view : board, rack, and match status.</figcaption>
+      </figure>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <p>Scrabble.c · Rights Reserved · Made by <a href="https://sonothamin.dev">Sonoth Amin</a> and friends.</p>
+      <div class="footer-links">
+        <a href="pages/downloads.html">Downloads</a>
+        <a href="https://github.com/sonothamin/Scrabble.c">GitHub</a>
+        <a href="mailto:contact@sonothamin.dev">contact@sonothamin.dev</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="pages/site.js" defer></script>
+</body>
+</html>

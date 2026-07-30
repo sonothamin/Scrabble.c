@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>About — Scrabble.c</title>
+  <meta name="description" content="About Scrabble.c, the team behind it, and the C + raylib stack." />
+  <link rel="icon" href="../resources/images/icon.png" type="image/png" />
+  <link rel="stylesheet" href="site.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="brand" href="../index.html">
+        <img class="brand__mark" src="../resources/images/icon.png" alt="" width="32" height="32" />
+        SCRABBLE<span class="brand__dot">.</span>c
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu">☰</button>
+      <nav class="nav" id="site-nav" aria-label="Primary">
+        <a href="rulebook.html">Rulebook</a>
+        <a href="about.html" aria-current="page">About</a>
+        <a href="downloads.html">Downloads</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <header class="page-hero">
+      <h1>About</h1>
+      <p>This is what happens when a C programming project goes haywire — and ships a full Scrabble client anyway.</p>
+    </header>
+
+    <article class="prose">
+      <h2>Overview</h2>
+      <p><strong>Scrabble.c</strong> is a cross-platform desktop build of the classic word game, written in C with <a href="https://www.raylib.com/">raylib</a> and RayGUI. Version <strong>1.0.0-RC</strong> (closed beta) covers local turn-by-turn play, audio, settings, saves, wildcards, and luxury board tiles. Network play is underway.</p>
+      <p>More project notes live at <a href="https://sonothamin.dev/Scrabble.c">sonothamin.dev/Scrabble.c</a>. The author site is <a href="https://sonothamin.dev">sonothamin.dev</a>.</p>
+
+      <h2>Team</h2>
+      <div class="team">
+        <div class="team__row">
+          <div class="team__role">Lead</div>
+          <div>
+            <p class="team__name">Sonoth Amin</p>
+            <p class="team__bio">UI, menu, app shell, docs — and the person who refused to let the coursework stay a console printf.</p>
+          </div>
+        </div>
+        <div class="team__row">
+          <div class="team__role">Game logic</div>
+          <div>
+            <p class="team__name">Tanvir Ahmed</p>
+            <p class="team__bio">Board, scoring, and the rules that keep every letter honest.</p>
+          </div>
+        </div>
+      </div>
+
+      <h2>Stack</h2>
+      <ul class="stack-list">
+        <li><span>Language</span><div>C — somehow we are still sane. Send help.</div></li>
+        <li><span>Graphics</span><div>raylib</div></li>
+        <li><span>UI</span><div>RayGUI, custom Scrabble theme</div></li>
+        <li><span>Build</span><div>Premake + make / MSVC / MinGW — see the README</div></li>
+      </ul>
+
+      <div class="cta-row cta-row--spaced">
+        <a class="btn btn--ghost" href="https://sonothamin.dev">Visit sonothamin.dev</a>
+        <a class="btn btn--primary" href="https://github.com/sonothamin/Scrabble.c">View on GitHub</a>
+      </div>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <p>Made with care by Sonoth Amin</p>
+      <div class="footer-links">
+        <a href="../index.html">Home</a>
+        <a href="mailto:contact@sonothamin.dev">contact@sonothamin.dev</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="site.js" defer></script>
+</body>
+</html>
