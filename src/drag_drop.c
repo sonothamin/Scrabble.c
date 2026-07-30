@@ -3,6 +3,7 @@
 #include "game.h"
 #include "board.h"
 #include "ui.h"
+#include "sound.h"
 
 void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rackRect, float tileSize, float tileSpacing)
 {
@@ -93,6 +94,10 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
                 {
                     match->board.grid[gridY][gridX].isWildCard = true;
                     WildTileOpen(&match->wildTileState, gridX, gridY);
+                }
+                else
+                {
+                    PlaySoundEffect(SFX_TILE_PLACE);
                 }
 
                 // If it came from the rack, remove it from the rack array
