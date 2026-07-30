@@ -8,6 +8,8 @@
 #include "drag_drop.h"
 #include "shuffle.h"
 #include "dictionary.h"
+#include "gui_window_file_dialog.h"
+#include "save_and_exit.h"
 
 #define MAX_PLAYER_TILES 7
 #define MAX_TILE_BAG_SIZE 100
@@ -40,6 +42,7 @@ typedef struct GameState
     int winningPlayerIdx;
     DragNDropState dragState;
     ShuffleState   shuffleState;
+    SaveAndExitOverlayState saveExitState;
 } GameState;
 
 void GameInit(GameState *match);

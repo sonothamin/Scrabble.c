@@ -13,6 +13,7 @@
 #include "drag_drop.h"
 #include "word_validation.h"
 #include "settings.h"
+#include "settings/settings_internal.h"
 #include "shuffle.h"
 
 void GameInit(GameState *match)
@@ -44,6 +45,10 @@ void GameInit(GameState *match)
     // Reset Drag and Drop state
     match->dragState.isDragging = false;
     match->dragState.draggedTileIdx = -1;
+
+    // Reset Save & Exit Overlay state
+    SaveAndExitInit(&match->saveExitState);
+
     PlaySoundEffect(SFX_GAME_START);
 }
 
@@ -60,6 +65,12 @@ void GameUpdate(AppState *state)
     if (!state)
     {
         ReportCriticalError("Invalid App State", "NULL AppState pointer encountered while updating Game.");
+        return;
+    }
+
+    if (state->gamestate != NULL && state->gamestate->saveExitState.isActive)
+    {
+        // Handled inside Save & Exit overlay logic
         return;
     }
 
@@ -139,7 +150,7 @@ void GameUpdate(AppState *state)
     if (!match->shuffleState.isActive)
         HandleDragNDropInput(match, boardBounds, activeRackRect, tileSize, tileSpacing);
 
-    // [S] – pass turn (keyboard shortcut, blocked during shuffle overlay)
+    // – pass turn (keyboard shortcut, blocked during shuffle overlay)
     if (!match->shuffleState.isActive && IsKeyPressed(KEY_S))
     {
         // Return any staged-but-unsubmitted tiles to the rack first
@@ -666,8 +677,9 @@ void GameDraw(AppState *state)
     {
         if (!match->shuffleState.isActive)
         {
-            state->currentScreen = APP_SCREEN_MAIN_MENU;
-            PlaySoundEffect(SFX_BACK_NAV);
+            match->saveExitState.isActive = true;
+            match->saveExitState.showFileDialog = false;
+            PlaySoundEffect(SFX_BUTTON);
         }
     }
 
@@ -696,4 +708,7 @@ void GameDraw(AppState *state)
             ShuffleCancel(&match->shuffleState);
         }
     }
+
+    // --- SAVE AND EXIT OVERLAY (drawn on top of all game content) ---
+    SaveAndExitDraw(state, match, screenWidth, screenHeight, baseFontSize);
 }
