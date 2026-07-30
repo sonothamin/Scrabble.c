@@ -12,8 +12,7 @@
 #include "raylib.h"
 #include "raygui.h"
 #include "error_service.h"
-
-#define CONFIG_FILE_PATH "config.dat"
+#include "settings/settings_internal.h"
 
 void InitAppState(AppState *state)
 {

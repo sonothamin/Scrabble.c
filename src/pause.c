@@ -4,10 +4,9 @@
 #include "raygui.h"
 #include "sound.h"
 #include "settings.h"
+#include "settings/settings_internal.h"
 #include "error_service.h"
 #include <math.h>
-
-#define CONFIG_FILE_PATH "config.dat"
 
 #include "app_state.h"
 
