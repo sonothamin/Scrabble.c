@@ -30,10 +30,20 @@ void WildTileCancel(WildTileOverlayState *state)
 {
     if (!state) return;
     state->isActive = false;
-    state->targetGridX = -1;
-    state->targetGridY = -1;
+    // Keep targetGridX/Y so WildTileReturnCancelled can reclaim the board tile
     state->selectedLetter = '\0';
     PlaySoundEffect(SFX_BACK_NAV);
+}
+
+Tile WildTileAsRackTile(Tile tile)
+{
+    if (tile.isWildCard || tile.letter == '?')
+    {
+        tile.letter = '?';
+        tile.value = 0;
+        tile.isWildCard = true;
+    }
+    return tile;
 }
 
 bool WildTileApplyToBoard(WildTileOverlayState *state, GameBoard *board)
@@ -49,6 +59,10 @@ bool WildTileApplyToBoard(WildTileOverlayState *state, GameBoard *board)
         return false;
 
     Tile *cell = &board->grid[gy][gx];
+    // Only assign onto a wild / unassigned blank sitting on the board
+    if (!cell->isWildCard && cell->letter != '?')
+        return false;
+
     cell->letter = state->selectedLetter;
     cell->value = 0; // Wildcards score 0 points
     cell->isWildCard = true;
@@ -59,15 +73,52 @@ bool WildTileApplyToBoard(WildTileOverlayState *state, GameBoard *board)
     return true;
 }
 
-Tile WildTileAsRackTile(Tile tile)
+bool WildTileReturnCancelled(WildTileOverlayState *state, GameBoard *board, Player *player)
 {
-    if (tile.isWildCard || tile.letter == '?')
+    if (!state || !board || !player || state->isActive)
+        return false;
+    // Cancel leaves selectedLetter cleared but target cell set; confirm clears both via Apply
+    if (state->selectedLetter != '\0')
+        return false;
+
+    int gx = state->targetGridX;
+    int gy = state->targetGridY;
+    if (gx < 0 || gx >= BOARD_SIDE || gy < 0 || gy >= BOARD_SIDE)
+        return false;
+
+    Tile *cell = &board->grid[gy][gx];
+    if (cell->isWildCard || cell->letter == '?')
     {
-        tile.letter = '?';
-        tile.value = 0;
-        tile.isWildCard = true;
+        if (player->rack_count < RACK_SIZE)
+        {
+            player->rack[player->rack_count] = WildTileAsRackTile(*cell);
+            player->rack_count++;
+        }
+        *cell = (Tile){.letter = '\0', .value = 0, .isWildCard = false};
     }
-    return tile;
+
+    state->targetGridX = -1;
+    state->targetGridY = -1;
+    return true;
+}
+
+bool WildTileHasUnassignedOnBoard(const GameBoard *board, const GameBoard *previousBoard)
+{
+    if (!board || !previousBoard)
+        return false;
+
+    for (int y = 0; y < BOARD_SIDE; y++)
+    {
+        for (int x = 0; x < BOARD_SIDE; x++)
+        {
+            if (previousBoard->grid[y][x].letter != '\0')
+                continue;
+            const Tile *t = &board->grid[y][x];
+            if (t->letter == '?' || (t->isWildCard && (t->letter < 'A' || t->letter > 'Z')))
+                return true;
+        }
+    }
+    return false;
 }
 
 void WildTileUpdate(WildTileOverlayState *state)

@@ -59,11 +59,12 @@ bool LoadMatchFromFile(GameState *match, const char *filePath)
         TraceLog(LOG_WARNING, "[LOAD] Failed to load dictionary file '%s'", dictPath);
     }
 
-    // Reset runtime drag/drop, shuffle, and save/exit overlay states
+    // Reset runtime drag/drop, shuffle, save/exit, and wild overlay states
     match->dragState.isDragging = false;
     match->dragState.draggedTileIdx = -1;
     match->shuffleState.isActive = false;
     SaveAndExitInit(&match->saveExitState);
+    WildTileInit(&match->wildTileState);
 
     TraceLog(LOG_INFO, "[LOAD] Successfully loaded match state from %s", filePath);
     return true;
