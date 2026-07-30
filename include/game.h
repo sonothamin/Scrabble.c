@@ -10,6 +10,7 @@
 #include "dictionary.h"
 #include "gui_window_file_dialog.h"
 #include "save_and_exit.h"
+#include "wild_tile.h"
 
 #define MAX_PLAYER_TILES 7
 #define MAX_TILE_BAG_SIZE 100
@@ -43,6 +44,7 @@ typedef struct GameState
     DragNDropState dragState;
     ShuffleState   shuffleState;
     SaveAndExitOverlayState saveExitState;
+    WildTileOverlayState wildTileState;
 } GameState;
 
 void GameInit(GameState *match);
