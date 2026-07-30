@@ -33,33 +33,112 @@ bool Is_Word_In_Dictionary(const char *word, const Dictionary *dictionary)
     }
     return false;
 }
-int Calculate_Word_Score(const char *word, const Tile *placedTiles, int wordLength)
+
+static ScoreBonusKind BonusFromLuxury(LuxuryType lux)
 {
-    if (!word || !placedTiles)
+    switch (lux)
+    {
+    case LUXURY_TRIPLE_WORD:   return SCORE_BONUS_3W;
+    case LUXURY_DOUBLE_WORD:   return SCORE_BONUS_2W;
+    case LUXURY_TRIPLE_LETTER: return SCORE_BONUS_3L;
+    case LUXURY_DOUBLE_LETTER: return SCORE_BONUS_2L;
+    default:                   return SCORE_BONUS_NONE;
+    }
+}
+
+static void ConsiderBonus(ScoreBonusKind *inoutBestBonus, ScoreBonusKind candidate)
+{
+    if (inoutBestBonus && candidate > *inoutBestBonus)
+        *inoutBestBonus = candidate;
+}
+
+int Calculate_Word_Score(const Tile *tiles, const int *xs, const int *ys, int wordLength,
+                         const Tile previous_Grid[BOARD_SIDE][BOARD_SIDE],
+                         const LuxuryType cells[BOARD_SIDE][BOARD_SIDE],
+                         bool applyLuxuries, ScoreBonusKind *inoutBestBonus)
+{
+    if (!tiles || !xs || !ys || !previous_Grid || !cells || wordLength <= 0)
         return 0;
 
-    int totalScore = 0;
+    int letterTotal = 0;
+    int wordMult = 1;
+
     for (int i = 0; i < wordLength; i++)
     {
-        if (placedTiles[i].isWildCard)
-        {
+        int x = xs[i];
+        int y = ys[i];
+        if (x < 0 || x >= BOARD_SIDE || y < 0 || y >= BOARD_SIDE)
             continue;
+
+        int letterScore = tiles[i].isWildCard ? 0 : tiles[i].value;
+        bool isNewTile = (previous_Grid[y][x].letter == '\0');
+
+        if (applyLuxuries && isNewTile)
+        {
+            LuxuryType lux = cells[y][x];
+            ConsiderBonus(inoutBestBonus, BonusFromLuxury(lux));
+
+            switch (lux)
+            {
+            case LUXURY_DOUBLE_LETTER:
+                letterScore *= 2;
+                break;
+            case LUXURY_TRIPLE_LETTER:
+                letterScore *= 3;
+                break;
+            case LUXURY_DOUBLE_WORD:
+                wordMult *= 2;
+                break;
+            case LUXURY_TRIPLE_WORD:
+                wordMult *= 3;
+                break;
+            default:
+                break;
+            }
         }
 
-        totalScore += placedTiles[i].value;
+        letterTotal += letterScore;
     }
-    return totalScore;
+
+    return letterTotal * wordMult;
 }
 
 typedef struct {
     char word[BOARD_SIDE + 1];
     Tile tiles[BOARD_SIDE];
+    int xs[BOARD_SIDE];
+    int ys[BOARD_SIDE];
     int length;
 } FormedWord;
 
-int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE], Tile previous_Grid[BOARD_SIDE][BOARD_SIDE], const Dictionary *dictionary)
+static void AppendFormedWord(FormedWord *fw, Tile current_Grid[BOARD_SIDE][BOARD_SIDE],
+                             int startX, int startY, int endX, int endY, bool horizontal)
 {
-    if (!current_Grid || !previous_Grid)
+    int len = horizontal ? (endX - startX + 1) : (endY - startY + 1);
+    fw->length = len;
+    for (int k = 0; k < len; k++)
+    {
+        int x = horizontal ? (startX + k) : startX;
+        int y = horizontal ? startY : (startY + k);
+        fw->word[k] = current_Grid[y][x].letter;
+        fw->tiles[k] = current_Grid[y][x];
+        fw->xs[k] = x;
+        fw->ys[k] = y;
+    }
+    fw->word[len] = '\0';
+}
+
+int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE],
+                           Tile previous_Grid[BOARD_SIDE][BOARD_SIDE],
+                           const LuxuryType cells[BOARD_SIDE][BOARD_SIDE],
+                           bool applyLuxuries,
+                           const Dictionary *dictionary,
+                           ScoreBonusKind *outBestBonus)
+{
+    if (outBestBonus)
+        *outBestBonus = SCORE_BONUS_NONE;
+
+    if (!current_Grid || !previous_Grid || !cells)
     {
         ReportCriticalError("Board Evaluation Failure", "Invalid memory address referenced for grid during scanning");
         return -1;
@@ -84,9 +163,7 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE], Tile previ
     }
 
     if (newCount == 0)
-    {
         return 0;
-    }
 
     // 2. Determine orientation & alignment
     bool isHorizontal = true;
@@ -257,16 +334,7 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE], Tile previ
 
         int len = endX - startX + 1;
         if (len > 1)
-        {
-            FormedWord *fw = &words[wordCount++];
-            fw->length = len;
-            for (int k = 0; k < len; k++)
-            {
-                fw->word[k] = current_Grid[y][startX + k].letter;
-                fw->tiles[k] = current_Grid[y][startX + k];
-            }
-            fw->word[len] = '\0';
-        }
+            AppendFormedWord(&words[wordCount++], current_Grid, startX, y, endX, y, true);
     }
 
     if (checkVertMain)
@@ -279,16 +347,7 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE], Tile previ
 
         int len = endY - startY + 1;
         if (len > 1)
-        {
-            FormedWord *fw = &words[wordCount++];
-            fw->length = len;
-            for (int k = 0; k < len; k++)
-            {
-                fw->word[k] = current_Grid[startY + k][x].letter;
-                fw->tiles[k] = current_Grid[startY + k][x];
-            }
-            fw->word[len] = '\0';
-        }
+            AppendFormedWord(&words[wordCount++], current_Grid, x, startY, x, endY, false);
     }
 
     for (int i = 0; i < newCount; i++)
@@ -305,16 +364,7 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE], Tile previ
 
             int len = endY - startY + 1;
             if (len > 1)
-            {
-                FormedWord *fw = &words[wordCount++];
-                fw->length = len;
-                for (int k = 0; k < len; k++)
-                {
-                    fw->word[k] = current_Grid[startY + k][x].letter;
-                    fw->tiles[k] = current_Grid[startY + k][x];
-                }
-                fw->word[len] = '\0';
-            }
+                AppendFormedWord(&words[wordCount++], current_Grid, x, startY, x, endY, false);
         }
 
         if (isVertical && newCount > 1)
@@ -326,16 +376,7 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE], Tile previ
 
             int len = endX - startX + 1;
             if (len > 1)
-            {
-                FormedWord *fw = &words[wordCount++];
-                fw->length = len;
-                for (int k = 0; k < len; k++)
-                {
-                    fw->word[k] = current_Grid[y][startX + k].letter;
-                    fw->tiles[k] = current_Grid[y][startX + k];
-                }
-                fw->word[len] = '\0';
-            }
+                AppendFormedWord(&words[wordCount++], current_Grid, startX, y, endX, y, true);
         }
     }
 
@@ -346,13 +387,12 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE], Tile previ
         return 0;
     }
 
+    ScoreBonusKind bestBonus = SCORE_BONUS_NONE;
     int totalScore = 0;
     for (int w = 0; w < wordCount; w++)
     {
         for (int k = 0; k < words[w].length; k++)
-        {
             words[w].word[k] = (char)toupper((unsigned char)words[w].word[k]);
-        }
 
         if (!Is_Word_In_Dictionary(words[w].word, dictionary))
         {
@@ -363,8 +403,16 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE], Tile previ
             return 0;
         }
 
-        totalScore += Calculate_Word_Score(words[w].word, words[w].tiles, words[w].length);
+        totalScore += Calculate_Word_Score(words[w].tiles, words[w].xs, words[w].ys, words[w].length,
+                                           previous_Grid, cells, applyLuxuries, &bestBonus);
     }
+
+    // Bingo: all 7 tiles from the rack used in one play
+    if (newCount == 7)
+        totalScore += 50;
+
+    if (outBestBonus)
+        *outBestBonus = applyLuxuries ? bestBonus : SCORE_BONUS_NONE;
 
     return totalScore;
 }

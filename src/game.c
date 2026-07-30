@@ -259,36 +259,25 @@ void GameUpdate(AppState *state)
     {
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         {
-            PlaySoundEffect(SFX_TILE_PLACE);
-
-            int scoreGain = Scan_And_Validate_Move(match->board.grid, match->previousBoard.grid, &match->dictionary);
+            ScoreBonusKind bestBonus = SCORE_BONUS_NONE;
+            int scoreGain = Scan_And_Validate_Move(
+                match->board.grid,
+                match->previousBoard.grid,
+                match->board.cells,
+                match->specialTilesEnabled,
+                &match->dictionary,
+                &bestBonus);
 
             if (scoreGain > 0)
             {
-                // Determine the highest word-multiplier among newly placed tiles
-                bool has3W = false, has2W = false;
-                for (int y = 0; y < BOARD_SIDE; y++)
-                {
-                    for (int x = 0; x < BOARD_SIDE; x++)
-                    {
-                        if (match->board.grid[y][x].letter != '\0' &&
-                            match->previousBoard.grid[y][x].letter == '\0')
-                        {
-                            LuxuryType lux = match->board.cells[y][x];
-                            if (lux == LUXURY_TRIPLE_WORD)
-                                has3W = true;
-                            else if (lux == LUXURY_DOUBLE_WORD)
-                                has2W = true;
-                        }
-                    }
-                }
-
-                if (has3W)
+                // Reward SFX only — place SFX plays when a tile is dropped on the board
+                if (bestBonus == SCORE_BONUS_3W)
                     PlaySoundEffect(SFX_SCORE_3W);
-                else if (has2W)
+                else if (bestBonus == SCORE_BONUS_2W)
                     PlaySoundEffect(SFX_SCORE_2W);
                 else
                     PlaySoundEffect(SFX_SCORE);
+
                 match->players[match->activePlayerIdx].score += scoreGain;
                 refill_rack(&match->players[match->activePlayerIdx], &match->tileBag);
                 match->tileBagCount = match->tileBag.tiles_remaining;
