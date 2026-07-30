@@ -58,6 +58,16 @@ int main(void)
     InitAppState(&appState);
     SoundSysInit();
 
+    if (appState.settingsState != NULL)
+    {
+        ApplySoundSettings(
+            appState.settingsState->bgmVolume,
+            appState.settingsState->bgmEnable,
+            appState.settingsState->sfxVolume,
+            appState.settingsState->sfxEnable
+        );
+    }
+
     appState.shouldClose = false;
 
     if (appState.settingsState != NULL && appState.settingsState->showLoadingScreen)

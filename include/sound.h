@@ -33,5 +33,6 @@ void StopBackgroundMusic(void);
 
 void SetMusicVolumeLevel(float volume);
 void SetSfxVolumeLevel(float volume);
+void ApplySoundSettings(float bgmVol, bool bgmEnable, float sfxVol, bool sfxEnable);
 
 #endif

@@ -48,7 +48,7 @@ void DrawSettingsAudioTab(ExtendedSettingsState *extSettings, float contentX, fl
     {
         settings->bgmEnable = !settings->bgmEnable;
         PlaySoundEffect(SFX_BUTTON);
-        SetMusicVolumeLevel(settings->bgmEnable ? settings->bgmVolume : 0.0f);
+        ApplySoundSettings(settings->bgmVolume, settings->bgmEnable, settings->sfxVolume, settings->sfxEnable);
     }
 
     // --- Row 2: SFX ---
@@ -72,6 +72,6 @@ void DrawSettingsAudioTab(ExtendedSettingsState *extSettings, float contentX, fl
     {
         settings->sfxEnable = !settings->sfxEnable;
         PlaySoundEffect(SFX_BUTTON);
-        SetSfxVolumeLevel(settings->sfxEnable ? settings->sfxVolume : 0.0f);
+        ApplySoundSettings(settings->bgmVolume, settings->bgmEnable, settings->sfxVolume, settings->sfxEnable);
     }
 }

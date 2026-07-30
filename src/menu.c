@@ -87,9 +87,7 @@ static void ToggleAudioMute(SettingsState* settings)
     settings->sfxEnable = enable;
     settings->bgmEnable = enable;
 
-    SetMusicVolumeLevel(enable ? settings->bgmVolume : 0.0f);
-    SetSfxVolumeLevel(enable ? settings->sfxVolume : 0.0f);
-
+    ApplySoundSettings(settings->bgmVolume, settings->bgmEnable, settings->sfxVolume, settings->sfxEnable);
     PlaySoundEffect(SFX_BUTTON);
 }
 
@@ -189,15 +187,10 @@ static void DrawSettingsPanel(AppState* state, Rectangle panelRect, float target
         GuiCheckBox((Rectangle){ soundBoxRect.x + 15.0f, soundBoxRect.y + (soundBoxHeight * 0.28f), checkboxHeight, checkboxHeight }, "Sound Effects (SFX)", &settings->sfxEnable);
         GuiCheckBox((Rectangle){ soundBoxRect.x + 15.0f, soundBoxRect.y + (soundBoxHeight * 0.62f), checkboxHeight, checkboxHeight }, "Background Music (BGM)", &settings->bgmEnable);
 
-        if (prevSfx != settings->sfxEnable)
+        if (prevSfx != settings->sfxEnable || prevBgm != settings->bgmEnable)
         {
             PlaySoundEffect(SFX_BUTTON);
-            SetSfxVolumeLevel(settings->sfxEnable ? settings->sfxVolume : 0.0f);
-        }
-        if (prevBgm != settings->bgmEnable)
-        {
-            PlaySoundEffect(SFX_BUTTON);
-            SetMusicVolumeLevel(settings->bgmEnable ? settings->bgmVolume : 0.0f);
+            ApplySoundSettings(settings->bgmVolume, settings->bgmEnable, settings->sfxVolume, settings->sfxEnable);
         }
     }
 

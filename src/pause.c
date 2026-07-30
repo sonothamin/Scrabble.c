@@ -125,7 +125,7 @@ void DrawPauseOverlay(AppState *state, PauseState *pause)
         {
             if (sfx != settings->sfxEnable)
             {
-                SetSfxVolumeLevel(settings->sfxEnable ? settings->sfxVolume : 0.0f);
+                ApplySoundSettings(settings->bgmVolume, settings->bgmEnable, settings->sfxVolume, settings->sfxEnable);
                 PlaySoundEffect(SFX_BUTTON);
             }
         }
@@ -145,7 +145,7 @@ void DrawPauseOverlay(AppState *state, PauseState *pause)
         {
             if (bgm != settings->bgmEnable)
             {
-                SetMusicVolumeLevel(settings->bgmEnable ? settings->bgmVolume : 0.0f);
+                ApplySoundSettings(settings->bgmVolume, settings->bgmEnable, settings->sfxVolume, settings->sfxEnable);
                 PlaySoundEffect(SFX_BUTTON);
             }
         }

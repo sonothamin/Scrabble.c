@@ -20,6 +20,12 @@ void SoundSysInit(void)
 
     InitAudioDevice();
 
+    if (!IsAudioDeviceReady())
+    {
+        TraceLog(LOG_WARNING, "[SOUND] Audio device failed to initialize.");
+        return;
+    }
+
     gSound.music = LoadMusicStream("audio/bgm/background_evening.mp3");
 
     gSound.sfx[SFX_APP_LAUNCH]   = LoadSound("audio/sfx/app_started.wav");
@@ -30,19 +36,44 @@ void SoundSysInit(void)
     gSound.sfx[SFX_INVALID_MOVE] = LoadSound("audio/sfx/invalid_move.wav");
     gSound.sfx[SFX_GAME_START]   = LoadSound("audio/sfx/game_start.wav");
     gSound.sfx[SFX_GAME_OVER]    = LoadSound("audio/sfx/game_over.wav");
-    gSound.sfx[SFX_ERROR]    = LoadSound("audio/sfx/err.wav");
-    gSound.sfx[SFX_BACK_NAV]    = LoadSound("audio/sfx/back.wav");
-    gSound.sfx[SFX_SCORE_2W]    = LoadSound("audio/sfx/earn_point_bonus_2W.wav");
-    gSound.sfx[SFX_SCORE_3W]    = LoadSound("audio/sfx/earn_point_bonus_3W.wav");
+    gSound.sfx[SFX_ERROR]        = LoadSound("audio/sfx/err.wav");
+    gSound.sfx[SFX_BACK_NAV]     = LoadSound("audio/sfx/back.wav");
+    gSound.sfx[SFX_SCORE_2W]     = LoadSound("audio/sfx/earn_point_bonus_2W.wav");
+    gSound.sfx[SFX_SCORE_3W]     = LoadSound("audio/sfx/earn_point_bonus_3W.wav");
 
     SetMusicVolume(gSound.music, 0.35f);
 
     for (int i = 0; i < SFX_COUNT; i++)
         SetSoundVolume(gSound.sfx[i], 0.8f);
 
-    PlayMusicStream(gSound.music);
-
     gSound.initialized = true;
+}
+
+void ApplySoundSettings(float bgmVol, bool bgmEnable, float sfxVol, bool sfxEnable)
+{
+    if (!gSound.initialized)
+        return;
+
+    float effectiveBgm = bgmEnable ? bgmVol : 0.0f;
+    float effectiveSfx = sfxEnable ? sfxVol : 0.0f;
+
+    SetMusicVolumeLevel(effectiveBgm);
+    SetSfxVolumeLevel(effectiveSfx);
+
+    if (bgmEnable && effectiveBgm > 0.0f)
+    {
+        if (!IsMusicStreamPlaying(gSound.music))
+        {
+            PlayMusicStream(gSound.music);
+        }
+    }
+    else
+    {
+        if (IsMusicStreamPlaying(gSound.music))
+        {
+            PauseMusicStream(gSound.music);
+        }
+    }
 }
 
 void PlaySoundEffect(SoundEffect effect)
