@@ -36,6 +36,40 @@ void WildTileCancel(WildTileOverlayState *state)
     PlaySoundEffect(SFX_BACK_NAV);
 }
 
+bool WildTileApplyToBoard(WildTileOverlayState *state, GameBoard *board)
+{
+    if (!state || !board || state->isActive)
+        return false;
+    if (state->selectedLetter == '\0')
+        return false;
+
+    int gx = state->targetGridX;
+    int gy = state->targetGridY;
+    if (gx < 0 || gx >= BOARD_SIDE || gy < 0 || gy >= BOARD_SIDE)
+        return false;
+
+    Tile *cell = &board->grid[gy][gx];
+    cell->letter = state->selectedLetter;
+    cell->value = 0; // Wildcards score 0 points
+    cell->isWildCard = true;
+
+    state->targetGridX = -1;
+    state->targetGridY = -1;
+    state->selectedLetter = '\0';
+    return true;
+}
+
+Tile WildTileAsRackTile(Tile tile)
+{
+    if (tile.isWildCard || tile.letter == '?')
+    {
+        tile.letter = '?';
+        tile.value = 0;
+        tile.isWildCard = true;
+    }
+    return tile;
+}
+
 void WildTileUpdate(WildTileOverlayState *state)
 {
     if (!state || !state->isActive) return;

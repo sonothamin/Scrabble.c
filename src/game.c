@@ -149,20 +149,11 @@ void GameUpdate(AppState *state)
     float tileSize = rackPanelHeight * 0.6f;
     float tileSpacing = 8.0f;
 
-    // Handle Wildcard Overlay input if active
+    // Handle Wildcard Overlay input if active (keyboard confirm applies here)
     if (match->wildTileState.isActive)
     {
         WildTileUpdate(&match->wildTileState);
-        if (!match->wildTileState.isActive && match->wildTileState.selectedLetter != '\0')
-        {
-            int gx = match->wildTileState.targetGridX;
-            int gy = match->wildTileState.targetGridY;
-            if (gx >= 0 && gx < BOARD_SIDE && gy >= 0 && gy < BOARD_SIDE)
-            {
-                match->board.grid[gy][gx].letter = match->wildTileState.selectedLetter;
-                match->board.grid[gy][gx].value = 0; // Wildcards score 0 points
-            }
-        }
+        WildTileApplyToBoard(&match->wildTileState, &match->board);
         return;
     }
 
@@ -181,7 +172,8 @@ void GameUpdate(AppState *state)
                     match->previousBoard.grid[uy][ux].letter == '\0' &&
                     match->players[ap].rack_count < RACK_SIZE)
                 {
-                    match->players[ap].rack[match->players[ap].rack_count] = match->board.grid[uy][ux];
+                    match->players[ap].rack[match->players[ap].rack_count] =
+                        WildTileAsRackTile(match->board.grid[uy][ux]);
                     match->players[ap].rack_count++;
                 }
         memcpy(&match->board, &match->previousBoard, sizeof(GameBoard));
@@ -211,7 +203,8 @@ void GameUpdate(AppState *state)
                     anyStaged = true;
                     if (match->players[ap].rack_count < RACK_SIZE)
                     {
-                        match->players[ap].rack[match->players[ap].rack_count] = match->board.grid[uy][ux];
+                        match->players[ap].rack[match->players[ap].rack_count] =
+                            WildTileAsRackTile(match->board.grid[uy][ux]);
                         match->players[ap].rack_count++;
                     }
                 }
@@ -326,6 +319,11 @@ void GameDraw(AppState *state)
     ClearBackground((Color){24, 32, 38, 255});
     int baseFontSize = fmaxf(15, screenHeight / 42);
     ApplyScrabbleTheme(baseFontSize);
+
+    // Lock underlying raygui while wild-letter overlay is open so clicks don't bleed through
+    const bool wildOverlayActive = match->wildTileState.isActive;
+    if (wildOverlayActive)
+        GuiLock();
 
     const float padding = screenWidth * 0.03f;
     const float layoutGap = screenWidth * 0.02f;
@@ -604,7 +602,8 @@ void GameDraw(AppState *state)
                 {
                     if (match->players[p].rack_count < RACK_SIZE)
                     {
-                        match->players[p].rack[match->players[p].rack_count] = match->board.grid[uy][ux];
+                        match->players[p].rack[match->players[p].rack_count] =
+                            WildTileAsRackTile(match->board.grid[uy][ux]);
                         match->players[p].rack_count++;
                     }
                 }
@@ -732,6 +731,12 @@ void GameDraw(AppState *state)
     // --- SAVE AND EXIT OVERLAY (drawn on top of all game content) ---
     SaveAndExitDraw(state, match, screenWidth, screenHeight, baseFontSize);
 
+    // Unlock before overlay so its Confirm/Cancel GuiButtons remain interactive
+    if (wildOverlayActive)
+        GuiUnlock();
+
     // --- WILDCARD SELECTION OVERLAY ---
+    // Confirm/Cancel buttons live in Draw (raygui); apply letter after so GUI confirm updates the board
     WildTileDraw(&match->wildTileState, screenWidth, screenHeight, baseFontSize);
+    WildTileApplyToBoard(&match->wildTileState, &match->board);
 }
