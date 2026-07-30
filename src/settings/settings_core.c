@@ -2,6 +2,17 @@
 #include <stdio.h>
 #include <string.h>
 
+#if defined(_WIN32) || defined(_WIN64)
+    #ifndef NOGDI
+    #define NOGDI
+    #endif
+    #ifndef NOUSER
+    #define NOUSER
+    #endif
+    #include <windows.h>
+    #include <shlobj.h>
+#endif
+
 #include "raylib.h"
 #include "raygui.h"
 

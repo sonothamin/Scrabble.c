@@ -10,11 +10,6 @@
 #include "gui_window_file_dialog.h"
 #include "settings.h"
 
-#if defined(_WIN32) || defined(_WIN64)
-    #include <windows.h>
-    #include <shlobj.h>
-#endif
-
 #define CONFIG_FILE_NAME "config.dat"
 #define CONFIG_FILE_PATH GetConfigFilePath()
 
