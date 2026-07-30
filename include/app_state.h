@@ -24,6 +24,8 @@ typedef enum {
     APP_SCREEN_ABOUT
 } AppScreen;
 
+#include "load_from_file.h"
+
 typedef struct AppState
 {
     AppScreen currentScreen;
@@ -33,6 +35,7 @@ typedef struct AppState
     SettingsState* settingsState;
     PauseState* pauseState;
     GameOverState* gameOverState;
+    LoadFromFileOverlayState* menuLoadState;
     bool shouldClose;
 } AppState;
 

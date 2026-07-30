@@ -40,6 +40,10 @@ void InitAppState(AppState *state)
     if (state->gameOverState != NULL)
         InitGameOverState(state->gameOverState);
 
+    state->menuLoadState = (LoadFromFileOverlayState *)malloc(sizeof(LoadFromFileOverlayState));
+    if (state->menuLoadState != NULL)
+        LoadFromFileInit(state->menuLoadState);
+
     if (state->settingsState != NULL && FileExists(CONFIG_FILE_PATH))
     {
         if (!LoadSettingsFromFile(state->settingsState, CONFIG_FILE_PATH))
@@ -232,6 +236,11 @@ void CloseAppState(AppState *state)
     {
         free(state->gameOverState);
         state->gameOverState = NULL;
+    }
+    if (state->menuLoadState)
+    {
+        free(state->menuLoadState);
+        state->menuLoadState = NULL;
     }
 
     MenuUnloadTextures();

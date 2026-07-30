@@ -137,6 +137,24 @@ static void DrawTitleBanner(float padding, float tileSize)
     }
 }
 
+#include "load_from_file.h"
+#include "settings/settings_internal.h"
+
+static void TriggerLoadFileDialog(AppState* state)
+{
+    if (state == NULL || state->menuLoadState == NULL) return;
+
+    PlaySoundEffect(SFX_BUTTON);
+    const char *cfgPath = GetConfigFilePath();
+    const char *saveDirPath = GetDirectoryPath(cfgPath);
+
+    state->menuLoadState->fileDialog = InitGuiWindowFileDialog(saveDirPath);
+    state->menuLoadState->fileDialog.windowActive = true;
+    state->menuLoadState->fileDialog.saveFileMode = false;
+    state->menuLoadState->showFileDialog = true;
+    state->menuLoadState->isActive = true;
+}
+
 static void DrawStartGamePanel(AppState* state, Rectangle panelRect, float rowHeight, float targetBtnHeight, int baseFontSize)
 {
     GuiGroupBox(panelRect, "START A GAME");
@@ -155,8 +173,12 @@ static void DrawStartGamePanel(AppState* state, Rectangle panelRect, float rowHe
     {
         float rowY = panelRect.y + rowHeight * (0.8f + i);
         if (DrawLegendButton(*textures[i], labels[i], (Rectangle){ legendBtnX, rowY, legendBtnW, targetBtnHeight }, baseFontSize, false)) {
-            PlaySoundEffect(i == 2 ? SFX_BUTTON : SFX_GAME_START);
-            StartNewGame(state);
+            if (i == 2) {
+                TriggerLoadFileDialog(state);
+            } else {
+                PlaySoundEffect(SFX_GAME_START);
+                StartNewGame(state);
+            }
         }
         GuiLabel((Rectangle){ labelX, rowY, labelW, targetBtnHeight }, descs[i]);
     }
@@ -215,10 +237,20 @@ void MenuUpdate(AppState* state)
         return;
     }
 
+    if (state->menuLoadState != NULL && state->menuLoadState->isActive)
+    {
+        LoadFromFileUpdate(state);
+        return;
+    }
+
     if (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_N))
     {
         PlaySoundEffect(SFX_GAME_START);
         StartNewGame(state);
+    }
+    else if (IsKeyPressed(KEY_L))
+    {
+        TriggerLoadFileDialog(state);
     }
     else if (IsKeyPressed(KEY_S))
     {
@@ -279,4 +311,9 @@ void MenuDraw(AppState* state)
 
     DrawStartGamePanel(state, (Rectangle){ padding, contentTop, mainPanelWidth, mainPanelHeight }, rowHeight, targetBtnHeight, baseFontSize);
     DrawSettingsPanel(state, (Rectangle){ screenWidth - padding - optionPanelWidth, contentTop, optionPanelWidth, mainPanelHeight }, targetBtnHeight, baseFontSize);
+
+    if (state->menuLoadState != NULL && state->menuLoadState->isActive)
+    {
+        LoadFromFileDraw(state, (int)screenWidth, (int)screenHeight, baseFontSize);
+    }
 }
