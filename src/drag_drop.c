@@ -140,7 +140,16 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
             if (!match->dragState.isFromRack)
             {
                 // Restore tile back to original board slot
-                match->board.grid[match->dragState.sourceGridY][match->dragState.sourceGridX] = match->dragState.draggedTile;
+                int sx = match->dragState.sourceGridX;
+                int sy = match->dragState.sourceGridY;
+                match->board.grid[sy][sx] = match->dragState.draggedTile;
+
+                // Wild was normalized to '?' on pickup — reopen letter picker
+                if (match->dragState.draggedTile.letter == '?' || match->dragState.draggedTile.isWildCard)
+                {
+                    match->board.grid[sy][sx].isWildCard = true;
+                    WildTileOpen(&match->wildTileState, sx, sy);
+                }
             }
         }
         // Reset drag state on mouse release
