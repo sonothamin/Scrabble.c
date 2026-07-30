@@ -13,13 +13,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    # 1. Setup MinGW (GCC/G++ and mingw32-make)
-    - name: Setup MinGW
-      uses: egor-tisin/setup-mingw@v2
-      with:
-        version: '14.2.0' # Matches GCC 14 C23 support from Ubuntu build
+    # 1. Add GCC and mingw32-make (pre-installed on windows-latest) to PATH
+    - name: Add MinGW to PATH
+      shell: bash
+      run: echo "C:\ProgramData\chocolatey\bin" >> $GITHUB_PATH
 
-    # 2. Generate Makefiles using your committed premake5.exe in ./build
+    # 2. Run premake5.exe directly from your repository's ./build directory
     - name: Configure Project (Premake)
       shell: cmd
       run: |
