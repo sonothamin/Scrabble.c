@@ -702,7 +702,7 @@ void GameDraw(AppState *state)
     DrawAppText(submitText, submitTextX, submitTextY, submitFontSize, submitTextColor);
 
     Rectangle actionBtnRect = {rightSideX + rightSideWidth - actionBtnWidth, elementY, actionBtnWidth, elementH};
-    if (GuiButton(actionBtnRect, "Save & Exit Match"))
+    if (GuiButton(actionBtnRect, "Exit Match"))
     {
         if (!match->shuffleState.isActive)
         {
