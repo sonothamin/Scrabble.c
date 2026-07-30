@@ -1,6 +1,6 @@
 @font-face {
   font-family: "PT Serif";
-  src: url("../resources/PTSerif-Regular.ttf") format("truetype");
+  src: url("fonts/PTSerif-Regular.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -92,7 +92,7 @@ a:hover {
   top: 1rem;
 }
 
-/* —— Nav —— */
+/* -- Nav -- */
 .site-header {
   position: sticky;
   top: 0;
@@ -189,7 +189,7 @@ a:hover {
   font-size: 1.1rem;
 }
 
-/* —— Hero (landing only) —— */
+/* -- Hero (landing only) -- */
 .hero {
   position: relative;
   min-height: calc(100vh - var(--nav-h));
@@ -342,7 +342,7 @@ a:hover {
   color: var(--ink);
 }
 
-/* —— Sections —— */
+/* -- Sections -- */
 .section {
   width: min(var(--max), calc(100% - (var(--page-pad) * 2)));
   margin-inline: auto;
@@ -444,7 +444,7 @@ a:hover {
   border-top: 1px solid color-mix(in srgb, var(--line) 25%, transparent);
 }
 
-/* —— Inner pages —— */
+/* -- Inner pages -- */
 .page-hero {
   width: min(var(--max), calc(100% - (var(--page-pad) * 2)));
   margin: 0 auto;
@@ -656,7 +656,7 @@ a:hover {
   color: var(--dim);
 }
 
-/* —— Footer —— */
+/* -- Footer -- */
 .site-footer {
   border-top: 1px solid color-mix(in srgb, var(--line) 30%, transparent);
   background: var(--bg-deep);
@@ -689,7 +689,7 @@ a:hover {
   gap: 0.85rem 1.25rem;
 }
 
-/* —— Motion —— */
+/* -- Motion -- */
 @keyframes riseIn {
   to {
     opacity: 1;
