@@ -1,0 +1,34 @@
+name: C/C++ CI (Windows)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # 1. Setup MinGW (GCC/G++ and mingw32-make)
+    - name: Setup MinGW
+      uses: egor-tisin/setup-mingw@v2
+      with:
+        version: '14.2.0' # Matches GCC 14 C23 support from Ubuntu build
+
+    # 2. Generate Makefiles using your committed premake5.exe in ./build
+    - name: Configure Project (Premake)
+      shell: cmd
+      run: |
+        cd build
+        premake5.exe --file=premake5.lua gmake
+
+    # 3. Clean and build using MinGW Make
+    - name: Build Project
+      shell: cmd
+      run: |
+        mingw32-make clean
+        mingw32-make
