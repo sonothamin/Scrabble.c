@@ -1,16 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #if defined(_WIN32) || defined(_WIN64)
-    #ifndef NOGDI
-    #define NOGDI
-    #endif
-    #ifndef NOUSER
-    #define NOUSER
-    #endif
-    #include <windows.h>
-    #include <shlobj.h>
+#include <direct.h>
 #endif
 
 #include "raylib.h"
@@ -45,12 +39,12 @@ const char *GetConfigFilePath(void)
     }
 
 #if defined(_WIN32) || defined(_WIN64)
-    char appDataPath[MAX_PATH];
-    if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_APPDATA, NULL, 0, appDataPath)))
+    const char *appData = getenv("APPDATA");
+    if (appData && appData[0] != '\0')
     {
-        snprintf(path, sizeof(path), "%s\\Scrabble", appDataPath);
-        CreateDirectoryA(path, NULL);
-        snprintf(path, sizeof(path), "%s\\Scrabble\\%s", appDataPath, CONFIG_FILE_NAME);
+        snprintf(path, sizeof(path), "%s\\Scrabble", appData);
+        _mkdir(path);
+        snprintf(path, sizeof(path), "%s\\Scrabble\\%s", appData, CONFIG_FILE_NAME);
         return path;
     }
 #endif
