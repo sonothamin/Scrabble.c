@@ -9,6 +9,8 @@
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
+#include <stdint.h>
 
 bool SaveMatchToFile(const GameState *match, const char *filePath)
 {
@@ -23,6 +25,9 @@ bool SaveMatchToFile(const GameState *match, const char *filePath)
 
     const char magic[4] = {'S', 'C', 'R', 'B'};
     fwrite(magic, 1, 4, f);
+
+    uint64_t timestamp = (uint64_t)time(NULL);
+    fwrite(&timestamp, sizeof(timestamp), 1, f);
 
     fwrite(&match->mode, sizeof(match->mode), 1, f);
     fwrite(match->dictionaryPath, sizeof(match->dictionaryPath), 1, f);
@@ -39,7 +44,7 @@ bool SaveMatchToFile(const GameState *match, const char *filePath)
     fwrite(&match->winningPlayerIdx, sizeof(match->winningPlayerIdx), 1, f);
 
     fclose(f);
-    TraceLog(LOG_INFO, "[SAVE] Successfully saved match state to %s", filePath);
+    TraceLog(LOG_INFO, "[SAVE] Successfully saved match state to %s (timestamp: %llu)", filePath, (unsigned long long)timestamp);
     return true;
 }
 
@@ -156,7 +161,19 @@ void SaveAndExitDraw(AppState *appState, GameState *match, int screenWidth, int 
         match->saveExitState.fileDialog = InitGuiWindowFileDialog(saveDirPath);
         match->saveExitState.fileDialog.windowActive = true;
         match->saveExitState.fileDialog.saveFileMode = true;
-        strcpy(match->saveExitState.fileDialog.fileNameText, "scrabble_match.sav");
+        time_t now = time(NULL);
+        struct tm *t = localtime(&now);
+        char defaultName[128];
+        if (t != NULL)
+        {
+            strftime(defaultName, sizeof(defaultName), "scrabble_save_%Y%m%d_%H%M%S.sav", t);
+        }
+        else
+        {
+            snprintf(defaultName, sizeof(defaultName), "scrabble_match_%ld.sav", (long)now);
+        }
+
+        strcpy(match->saveExitState.fileDialog.fileNameText, defaultName);
         match->saveExitState.showFileDialog = true;
     }
     else if (triggerExitNoSave || IsKeyPressed(KEY_E))
