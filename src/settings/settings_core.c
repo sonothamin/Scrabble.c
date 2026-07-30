@@ -72,7 +72,7 @@ SettingsState *InitSettingsState(void)
     settings->selectedOption = SETTINGS_TAB_GAME;
     settings->bgmVolume = 0.3f;
     settings->sfxVolume = 1.0f;
-    settings->bgmEnable = true;
+    settings->bgmEnable = false;
     settings->sfxEnable = true;
 
     snprintf(settings->dictionaryPath, sizeof(settings->dictionaryPath), "resources/dictionary.txt");
