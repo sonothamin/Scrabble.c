@@ -18,6 +18,7 @@ void init_player(Player *player)
     {
         player->rack[i].letter = '\0';
         player->rack[i].value = 0;
+        player->rack[i].isWildCard = false;
     }
 }
 

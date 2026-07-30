@@ -149,13 +149,15 @@ void GameUpdate(AppState *state)
     float tileSize = rackPanelHeight * 0.6f;
     float tileSpacing = 8.0f;
 
-    // Handle Wildcard Overlay input if active (keyboard confirm applies here)
+    // Handle Wildcard Overlay input if active (keyboard confirm/cancel resolve here)
     if (match->wildTileState.isActive)
-    {
         WildTileUpdate(&match->wildTileState);
-        WildTileApplyToBoard(&match->wildTileState, &match->board);
+
+    WildTileApplyToBoard(&match->wildTileState, &match->board);
+    WildTileReturnCancelled(&match->wildTileState, &match->board, &match->players[match->activePlayerIdx]);
+
+    if (match->wildTileState.isActive)
         return;
-    }
 
     // Process drag and drop interactions (blocked while shuffle overlay is open)
     if (!match->shuffleState.isActive)
@@ -259,43 +261,51 @@ void GameUpdate(AppState *state)
     {
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         {
-            PlaySoundEffect(SFX_TILE_PLACE);
-
-            int scoreGain = Scan_And_Validate_Move(match->board.grid, match->previousBoard.grid, &match->dictionary);
-
-            if (scoreGain > 0)
+            if (WildTileHasUnassignedOnBoard(&match->board, &match->previousBoard))
             {
-                // Determine the highest word-multiplier among newly placed tiles
-                bool has3W = false, has2W = false;
-                for (int y = 0; y < BOARD_SIDE; y++)
+                ReportGameWarning("Wildcard Unassigned", "Choose a letter for every blank tile before submitting.", 3.0f);
+                PlaySoundEffect(SFX_INVALID_MOVE);
+            }
+            else
+            {
+                PlaySoundEffect(SFX_TILE_PLACE);
+
+                int scoreGain = Scan_And_Validate_Move(match->board.grid, match->previousBoard.grid, &match->dictionary);
+
+                if (scoreGain > 0)
                 {
-                    for (int x = 0; x < BOARD_SIDE; x++)
+                    // Determine the highest word-multiplier among newly placed tiles
+                    bool has3W = false, has2W = false;
+                    for (int y = 0; y < BOARD_SIDE; y++)
                     {
-                        if (match->board.grid[y][x].letter != '\0' &&
-                            match->previousBoard.grid[y][x].letter == '\0')
+                        for (int x = 0; x < BOARD_SIDE; x++)
                         {
-                            LuxuryType lux = match->board.cells[y][x];
-                            if (lux == LUXURY_TRIPLE_WORD)
-                                has3W = true;
-                            else if (lux == LUXURY_DOUBLE_WORD)
-                                has2W = true;
+                            if (match->board.grid[y][x].letter != '\0' &&
+                                match->previousBoard.grid[y][x].letter == '\0')
+                            {
+                                LuxuryType lux = match->board.cells[y][x];
+                                if (lux == LUXURY_TRIPLE_WORD)
+                                    has3W = true;
+                                else if (lux == LUXURY_DOUBLE_WORD)
+                                    has2W = true;
+                            }
                         }
                     }
+
+                    if (has3W)
+                        PlaySoundEffect(SFX_SCORE_3W);
+                    else if (has2W)
+                        PlaySoundEffect(SFX_SCORE_2W);
+                    else
+                        PlaySoundEffect(SFX_SCORE);
+                    match->players[match->activePlayerIdx].score += scoreGain;
+                    refill_rack(&match->players[match->activePlayerIdx], &match->tileBag);
+                    match->tileBagCount = match->tileBag.tiles_remaining;
+                    match->consecutivePassCount = 0;
+
+                    memcpy(&match->previousBoard, &match->board, sizeof(GameBoard));
+                    match->activePlayerIdx = (match->activePlayerIdx + 1) % 2;
                 }
-
-                if (has3W)
-                    PlaySoundEffect(SFX_SCORE_3W);
-                else if (has2W)
-                    PlaySoundEffect(SFX_SCORE_2W);
-                else
-                    PlaySoundEffect(SFX_SCORE);
-                match->players[match->activePlayerIdx].score += scoreGain;
-                refill_rack(&match->players[match->activePlayerIdx], &match->tileBag);
-                match->tileBagCount = match->tileBag.tiles_remaining;
-                match->consecutivePassCount = 0;
-
-                memcpy(&match->previousBoard, &match->board, sizeof(GameBoard));
-                match->activePlayerIdx = (match->activePlayerIdx + 1) % 2;
             }
         }
     }
@@ -557,6 +567,17 @@ void GameDraw(AppState *state)
     {
         if (!match->shuffleState.isActive)
         {
+            // Return staged tiles (wilds as '?') before clearing the board
+            for (int uy = 0; uy < BOARD_SIDE; uy++)
+                for (int ux = 0; ux < BOARD_SIDE; ux++)
+                    if (match->board.grid[uy][ux].letter != '\0' &&
+                        match->previousBoard.grid[uy][ux].letter == '\0' &&
+                        match->players[p].rack_count < RACK_SIZE)
+                    {
+                        match->players[p].rack[match->players[p].rack_count] =
+                            WildTileAsRackTile(match->board.grid[uy][ux]);
+                        match->players[p].rack_count++;
+                    }
             memcpy(&match->board, &match->previousBoard, sizeof(GameBoard));
             match->consecutivePassCount++;
             PlaySoundEffect(SFX_BACK_NAV);
@@ -736,7 +757,8 @@ void GameDraw(AppState *state)
         GuiUnlock();
 
     // --- WILDCARD SELECTION OVERLAY ---
-    // Confirm/Cancel buttons live in Draw (raygui); apply letter after so GUI confirm updates the board
+    // Confirm/Cancel buttons live in Draw (raygui); resolve letter or return-to-rack after
     WildTileDraw(&match->wildTileState, screenWidth, screenHeight, baseFontSize);
     WildTileApplyToBoard(&match->wildTileState, &match->board);
+    WildTileReturnCancelled(&match->wildTileState, &match->board, &match->players[match->activePlayerIdx]);
 }

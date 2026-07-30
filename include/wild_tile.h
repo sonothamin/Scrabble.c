@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include "raylib.h"
 #include "board.h"
+#include "player.h"
 
 #if defined(__cplusplus)
 extern "C" {
@@ -25,8 +26,12 @@ void WildTileUpdate(WildTileOverlayState *state);
 void WildTileDraw(WildTileOverlayState *state, int screenWidth, int screenHeight, int baseFontSize);
 /** If overlay just confirmed, write selectedLetter onto the board cell and clear pending state. */
 bool WildTileApplyToBoard(WildTileOverlayState *state, GameBoard *board);
+/** After cancel: return the unassigned wild from the board to the rack as '?'. */
+bool WildTileReturnCancelled(WildTileOverlayState *state, GameBoard *board, Player *player);
 /** Rack form of a tile: wildcards always return as '?' (letter choice is board-only until submit). */
 Tile WildTileAsRackTile(Tile tile);
+/** True if any newly placed tile is still an unassigned wild ('?'). */
+bool WildTileHasUnassignedOnBoard(const GameBoard *board, const GameBoard *previousBoard);
 
 #if defined(__cplusplus)
 }
