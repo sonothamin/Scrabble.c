@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Downloads : Scrabble.c</title>
+  <meta name="description" content="Download Scrabble.c binaries for Windows, Linux, and macOS, or build from source." />
+  <link rel="icon" href="../images/icon.png" type="image/png" />
+  <link rel="stylesheet" href="../site.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="brand" href="../index.html">
+        <img class="brand__mark" src="../images/icon.png" alt="" width="32" height="32" />
+        SCRABBLE<span class="brand__dot">.</span>c
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menu">☰</button>
+      <nav class="nav" id="site-nav" aria-label="Primary">
+        <a href="rulebook.html">Rulebook</a>
+        <a href="about.html">About</a>
+        <a href="downloads.html" aria-current="page">Downloads</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <header class="page-hero">
+      <h1>Downloads</h1>
+      <p>Prebuilt binaries ship on GitHub Releases. Grab an installer or archive for your platform. No toolchain required.</p>
+    </header>
+
+    <article class="prose">
+      <div class="download-grid">
+        <div class="download-item">
+          <div>
+            <h3>Latest release</h3>
+            <p>Windows, Linux, and macOS assets for Scrabble.c 1.0.0-RC.</p>
+          </div>
+          <a class="btn btn--primary" href="https://github.com/sonothamin/Scrabble.c/releases/latest">Open releases</a>
+        </div>
+        <div class="download-item">
+          <div>
+            <h3>Source repository</h3>
+            <p>Clone, build with Premake + make, and hack on the board yourself.</p>
+          </div>
+          <a class="btn btn--ghost" href="https://github.com/sonothamin/Scrabble.c">GitHub</a>
+        </div>
+      </div>
+
+      <h2>Build from source</h2>
+      <p>Raylib and Premake are vendored under <code>build/</code>. Short paths:</p>
+      <ul>
+        <li><strong>Linux</strong> : install X11/OpenGL/ALSA headers, run Premake, then <code>make</code>.</li>
+        <li><strong>macOS</strong> : Xcode Command Line Tools, Premake via <code>premake5.osx</code>, then <code>make</code>.</li>
+        <li><strong>Windows</strong> : <a href="https://github.com/skeeto/w64devkit/releases">w64devkit</a> + <code>build-MinGW-W64.bat</code>, or the Visual Studio batch scripts.</li>
+      </ul>
+      <p>Full setup notes are in <a href="https://github.com/sonothamin/Scrabble.c/blob/main/DevEnvironment.md">DevEnvironment.md</a> and the project <a href="https://github.com/sonothamin/Scrabble.c/blob/main/README.md">README</a>.</p>
+
+      <h2>After install</h2>
+      <p>Launch Scrabble, start a local game, and keep an eye on the hotkey bar. Mute and fullscreen are a keystroke away from the main menu.</p>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="site-footer__inner">
+      <p>Scrabble.c · Version 1.0.0-RC</p>
+      <div class="footer-links">
+        <a href="../index.html">Home</a>
+        <a href="mailto:contact@sonothamin.dev">contact@sonothamin.dev</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../site.js" defer></script>
+</body>
+</html>

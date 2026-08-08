@@ -112,19 +112,16 @@ void SaveAndExitDraw(AppState *appState, GameState *match, int screenWidth, int 
     DrawRectangleRounded(cardRect, 0.08f, 6, (Color){20, 28, 36, 255});
     DrawRectangleRoundedLinesEx(cardRect, 0.08f, 6, 2.0f, (Color){54, 72, 90, 255});
 
-    // Header Title
     float titleY = cardY + 22.0f;
-    const char *titleText = "SAVE & EXIT MATCH";
+    const char *titleText = "Are you sure?";
     int titleFontSize = (int)(baseFontSize * 1.6f);
     int titleW = MeasureAppText(titleText, titleFontSize);
     DrawAppText(titleText, cardX + (cardW - titleW) / 2.0f, titleY, titleFontSize, (Color){244, 228, 198, 255});
 
-    // Header Accent Line
     DrawLineV((Vector2){cardX + 30.0f, titleY + titleFontSize + 10.0f},
               (Vector2){cardX + cardW - 30.0f, titleY + titleFontSize + 10.0f},
               (Color){46, 202, 113, 255});
 
-    // Action Option Buttons
     float btnW = cardW - 60.0f;
     float btnH = 42.0f;
     float btnGap = 12.0f;
@@ -134,11 +131,10 @@ void SaveAndExitDraw(AppState *appState, GameState *match, int screenWidth, int 
     Rectangle btnExitNoSave = {cardX + 30.0f, startBtnY + btnH + btnGap, btnW, btnH};
     Rectangle btnCancel = {cardX + 30.0f, startBtnY + (btnH + btnGap) * 2.0f, btnW, btnH};
 
-    bool triggerSaveExit = GuiButton(btnSaveExit, "[S] Save & Exit");
-    bool triggerExitNoSave = GuiButton(btnExitNoSave, "[E] Exit Without Saving");
-    bool triggerCancel = GuiButton(btnCancel, "[C] Cancel");
+    bool triggerSaveExit = GuiButton(btnSaveExit, "Save & Exit");
+    bool triggerExitNoSave = GuiButton(btnExitNoSave, "Exit Without Saving");
+    bool triggerCancel = GuiButton(btnCancel, "Cancel");
 
-    // Keyboard Shortcut Bar inside Modal
     static const HotkeyEntry overlayKeys[] = {
         {"S", "Save & Exit"},
         {"E", "Exit No Save"},
@@ -149,7 +145,6 @@ void SaveAndExitDraw(AppState *appState, GameState *match, int screenWidth, int 
     float modalHkBarY = cardY + cardH - hkBarH - 12.0f;
     DrawHotkeyBar(overlayKeys, 4, cardX + 30.0f, modalHkBarY, btnW, hkBarH, baseFontSize);
 
-    // Process Interactions & Hotkeys
     if (triggerSaveExit || IsKeyPressed(KEY_S))
     {
         PlaySoundEffect(SFX_BUTTON);
