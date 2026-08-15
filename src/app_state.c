@@ -17,32 +17,39 @@
 void InitAppState(AppState *state)
 {
     if (state == NULL)
+    {
+        ReportCriticalError("Initialization Failure", "NULL AppState pointer provided to InitAppState.");
         return;
+    }
 
     state->currentScreen = APP_SCREEN_LOADING;
+    state->loadingState = NULL;
+    state->aboutState = NULL;
     state->gamestate = NULL;
+    state->settingsState = NULL;
+    state->pauseState = NULL;
+    state->gameOverState = NULL;
+    state->menuLoadState = NULL;
 
     state->loadingState = (LoadingState *)malloc(sizeof(LoadingState));
-    if (state->loadingState != NULL)
-        LoadingInit(state->loadingState);
-
     state->aboutState = (AboutState *)malloc(sizeof(AboutState));
-    if (state->aboutState != NULL)
-        AboutInit(state->aboutState);
-
     state->settingsState = InitSettingsState();
-
     state->pauseState = (PauseState *)malloc(sizeof(PauseState));
-    if (state->pauseState != NULL)
-        InitPauseState(state->pauseState);
-
     state->gameOverState = (GameOverState *)malloc(sizeof(GameOverState));
-    if (state->gameOverState != NULL)
-        InitGameOverState(state->gameOverState);
-
     state->menuLoadState = (LoadFromFileOverlayState *)malloc(sizeof(LoadFromFileOverlayState));
-    if (state->menuLoadState != NULL)
-        LoadFromFileInit(state->menuLoadState);
+
+    if (!state->loadingState || !state->aboutState || !state->settingsState || !state->pauseState || !state->gameOverState || !state->menuLoadState)
+    {
+        ReportCriticalError("Memory Allocation Error", "Failed to allocate memory for AppState components.");
+        CloseAppState(state);
+        return;
+    }
+
+    LoadingInit(state->loadingState);
+    AboutInit(state->aboutState);
+    InitPauseState(state->pauseState);
+    InitGameOverState(state->gameOverState);
+    LoadFromFileInit(state->menuLoadState);
 
     if (state->settingsState != NULL && FileExists(CONFIG_FILE_PATH))
     {
