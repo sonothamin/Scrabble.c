@@ -17,32 +17,60 @@
 void InitAppState(AppState *state)
 {
     if (state == NULL)
+    {
+        ReportCriticalError("Initialization Failure", "NULL AppState pointer provided to InitAppState.");
         return;
+    }
 
     state->currentScreen = APP_SCREEN_LOADING;
-    state->gamestate = NULL;
-
     state->loadingState = (LoadingState *)malloc(sizeof(LoadingState));
     if (state->loadingState != NULL)
         LoadingInit(state->loadingState);
+    else
+    {
+        ReportCriticalError("Memory Allocation Error", "Failed to allocate memory for LoadingState.");
+        return;
+    }
 
     state->aboutState = (AboutState *)malloc(sizeof(AboutState));
     if (state->aboutState != NULL)
         AboutInit(state->aboutState);
+    else
+    {
+        ReportCriticalError("Memory Allocation Error", "Failed to allocate memory for AboutState.");
+    }
+
+    state->gamestate = NULL;
 
     state->settingsState = InitSettingsState();
+    if (state->settingsState == NULL)
+    {
+        ReportCriticalError("Memory Allocation Error", "Failed to initialize SettingsState.");
+    }
 
     state->pauseState = (PauseState *)malloc(sizeof(PauseState));
     if (state->pauseState != NULL)
         InitPauseState(state->pauseState);
+    else
+    {
+        ReportCriticalError("Memory Allocation Error", "Failed to allocate memory for PauseState.");
+    }
 
     state->gameOverState = (GameOverState *)malloc(sizeof(GameOverState));
     if (state->gameOverState != NULL)
         InitGameOverState(state->gameOverState);
+    else
+    {
+        ReportCriticalError("Memory Allocation Error", "Failed to allocate memory for GameOverState.");
+    }
 
     state->menuLoadState = (LoadFromFileOverlayState *)malloc(sizeof(LoadFromFileOverlayState));
     if (state->menuLoadState != NULL)
         LoadFromFileInit(state->menuLoadState);
+    else
+    {
+        ReportCriticalError("Memory Allocation Error", "Failed to allocate memory for MenuLoadState.");
+    }
 
     if (state->settingsState != NULL && FileExists(CONFIG_FILE_PATH))
     {
