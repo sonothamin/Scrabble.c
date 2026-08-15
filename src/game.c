@@ -126,9 +126,9 @@ void GameUpdate(AppState *state)
     const float rightSideX = (screenWidth * 0.45f) + padding + layoutGap;
     const float rightSideWidth = screenWidth - rightSideX - padding;
 
-    float hkBarHeight  = (float)fmaxf(15, screenHeight / 42) * 2.2f; // matches baseFontSize * 2.2
-    float hkBarMargin  = padding * 0.5f;
-    float boardGroupH  = screenHeight - (padding * 2.0f) - hkBarMargin - hkBarHeight - hkBarMargin;
+    float hkBarHeight = (float)fmaxf(15, screenHeight / 42) * 2.2f; // matches baseFontSize * 2.2
+    float hkBarMargin = padding * 0.5f;
+    float boardGroupH = screenHeight - (padding * 2.0f) - hkBarMargin - hkBarHeight - hkBarMargin;
     Rectangle boardBoundaries = {padding, padding, screenWidth * 0.45f, boardGroupH};
     float groupBoxHeaderHeight = 25.0f;
     float gridInnerPad = 15.0f;
@@ -331,9 +331,9 @@ void GameDraw(AppState *state)
 
     // --- LEFT COLUMN: MAIN BOARD PANEL ---
     float boardColWidth = screenWidth * 0.45f;
-    float hkBarHeight   = baseFontSize * 2.2f;
-    float hkBarMargin   = padding * 0.5f;
-    float boardGroupH   = screenHeight - (padding * 2.0f) - hkBarMargin - hkBarHeight - hkBarMargin;
+    float hkBarHeight = baseFontSize * 2.2f;
+    float hkBarMargin = padding * 0.5f;
+    float boardGroupH = screenHeight - (padding * 2.0f) - hkBarMargin - hkBarHeight - hkBarMargin;
     Rectangle boardBoundaries = {padding, padding, boardColWidth, boardGroupH};
     GuiGroupBox(boardBoundaries, "Game Board");
 
@@ -383,17 +383,18 @@ void GameDraw(AppState *state)
 
     // --- HOTKEY BAR ---
     float hkBarY = padding + boardGroupH + hkBarMargin;
-    
+
     bool isMuted = (state->settingsState != NULL && !state->settingsState->bgmEnable);
     static const HotkeyEntry gameKeys[] = {
-        { "P",   "Pause" },
-        { "S",   "Pass"  },
-        { "Z",   "Undo"  },
-        { "M",   "Mute"  },
-        { "Q",   "Quit"  },
+        {"P", "Pause"},
+        {"S", "Pass"},
+        {"Z", "Undo"},
+        {"M", "Mute"},
+        {"Q", "Quit"},
     };
     HotkeyEntry liveKeys[5];
-    for (int hki = 0; hki < 5; hki++) liveKeys[hki] = gameKeys[hki];
+    for (int hki = 0; hki < 5; hki++)
+        liveKeys[hki] = gameKeys[hki];
     liveKeys[3].label = isMuted ? "Unmute" : "Mute";
     DrawHotkeyBar(liveKeys, 5,
                   padding, hkBarY + padding * 0.25,
@@ -411,14 +412,13 @@ void GameDraw(AppState *state)
 
     float tableY = detailsRect.y + 25.0f;
     float rowHeight = (topPanelsHeight - 35.0f) / 3.0f;
-    const char *keys[3] = {"Mode:", "P1 Total:", "P2 Total:"};
 
     const char *modeStr = (match->mode == GAME_MODE_LOCAL_1V1) ? "Local 1v1" : "Network";
-    int p1TotalTiles = match->players[0].rack_count + match->tileBagCount;
-    int p2TotalTiles = match->players[1].rack_count + match->tileBagCount;
-    const char *p1TotalStr = TextFormat("%d Tiles", p1TotalTiles);
-    const char *p2TotalStr = TextFormat("%d Tiles", p2TotalTiles);
-    const char *values[3] = {modeStr, p1TotalStr, p2TotalStr};
+    const char *bagCountStr = TextFormat("%d Tiles", match->tileBagCount);
+    const char *consecutivePassesStr = TextFormat("%d / 6", match->consecutivePassCount);
+
+    const char *keys[3] = {"Mode:", "Tiles Remaining:", "Pass Count:"};
+    const char *values[3] = {modeStr, bagCountStr, consecutivePassesStr};
 
     for (int i = 0; i < 3; i++)
     {
@@ -486,7 +486,7 @@ void GameDraw(AppState *state)
 
         Tile tile = match->players[p].rack[t];
         Rectangle tileBounds = {rackRect.x + 15.0f + (t * (activeTileSize + activeTileSpacing)),
-                                 tileY, activeTileSize, activeTileSize};
+                                tileY, activeTileSize, activeTileSize};
         DrawRectangleRounded(tileBounds, 0.2f, 4, (Color){244, 228, 198, 255});
         DrawRectangleRoundedLines(tileBounds, 0.2f, 4, (Color){194, 169, 126, 255});
 
@@ -507,11 +507,13 @@ void GameDraw(AppState *state)
 
     // Muted bag-tile count after last tile
     float bagTextX = rackRect.x + 15.0f + (match->players[p].rack_count * (activeTileSize + activeTileSpacing)) + 10.0f;
-    if (bagTextX < rackRect.x + rightSideWidth - 8.0f)
+    const char *mutedBagText = TextFormat("+%d Tiles", match->tileBagCount);
+    int mutedFontSize = (int)(baseFontSize * 0.9f);
+    int textWidth = MeasureAppText(mutedBagText, mutedFontSize);
+
+    if (bagTextX + textWidth < rackRect.x + rightSideWidth - 12.0f)
     {
-        const char *mutedBagText = TextFormat("+%d Tiles", match->tileBagCount);
-        int mutedFontSize = (int)(baseFontSize * 0.9f);
-        float mutedTextY  = rackRect.y + (rackPanelHeight - mutedFontSize) / 2.0f + 2.0f;
+        float mutedTextY = rackRect.y + (rackPanelHeight - mutedFontSize) / 2.0f + 2.0f;
         DrawAppText(mutedBagText, bagTextX, mutedTextY, mutedFontSize, (Color){140, 155, 165, 200});
     }
 
@@ -519,23 +521,23 @@ void GameDraw(AppState *state)
     // Action Bar – strip immediately below the rack
     // Contains: Pass | Shuffle | Undo Turn | pass counter badge
     // -----------------------------------------------------------------------
-    float actionBarH = (float)(int)(baseFontSize * 2.0f);  // compact strip height
+    float actionBarH = (float)(int)(baseFontSize * 2.0f); // compact strip height
     float actionBarY = rackSectionY + rackPanelHeight + (layoutGap * 0.35f);
     Rectangle actionBarRect = {rightSideX, actionBarY, rightSideWidth, actionBarH};
 
     DrawRectangleRec(actionBarRect, (Color){22, 30, 36, 220});
     DrawRectangleLinesEx(actionBarRect, 1.0f, (Color){54, 68, 82, 180});
 
-    float abPad   = 6.0f;
-    float abBtnH  = actionBarH - abPad * 2.0f;
-    float abBtnW  = rightSideWidth * 0.23f;
-    float abGap   = 6.0f;
+    float abPad = 6.0f;
+    float abBtnH = actionBarH - abPad * 2.0f;
+    float abBtnW = rightSideWidth * 0.23f;
+    float abGap = 6.0f;
 
     // Pass count badge on the right side of the strip
-    int passCount     = match->consecutivePassCount;
+    int passCount = match->consecutivePassCount;
     int badgeFontSize = (int)(baseFontSize * 0.78f);
-    const char *passCountStr  = TextFormat("Passes: %d/6", passCount);
-    int passCountW  = MeasureAppText(passCountStr, badgeFontSize);
+    const char *passCountStr = TextFormat("Passes: %d/6", passCount);
+    int passCountW = MeasureAppText(passCountStr, badgeFontSize);
     Color passCountColor = (passCount > 0) ? (Color){255, 80, 70, 255} : (Color){90, 105, 120, 180};
     DrawAppText(passCountStr,
                 actionBarRect.x + actionBarRect.width - passCountW - abPad - 2.0f,
@@ -546,11 +548,11 @@ void GameDraw(AppState *state)
     float abBtn1X = actionBarRect.x + abPad;
     float abBtn2X = abBtn1X + abBtnW + abGap;
     float abBtn3X = abBtn2X + abBtnW + abGap;
-    float abBtnY  = actionBarRect.y + abPad;
+    float abBtnY = actionBarRect.y + abPad;
 
-    Rectangle passBtn   = {abBtn1X, abBtnY, abBtnW, abBtnH};
+    Rectangle passBtn = {abBtn1X, abBtnY, abBtnW, abBtnH};
     Rectangle shuffleBtn = {abBtn2X, abBtnY, abBtnW, abBtnH};
-    Rectangle undoBtn   = {abBtn3X, abBtnY, abBtnW, abBtnH};
+    Rectangle undoBtn = {abBtn3X, abBtnY, abBtnW, abBtnH};
 
     if (GuiButton(passBtn, "Pass"))
     {
@@ -599,7 +601,8 @@ void GameDraw(AppState *state)
                 match->previousBoard.grid[uy][ux].letter == '\0')
                 hasStagedTiles = true;
 
-    if (!hasStagedTiles) GuiSetState(STATE_DISABLED);
+    if (!hasStagedTiles)
+        GuiSetState(STATE_DISABLED);
     if (GuiButton(undoBtn, "Undo Turn") && hasStagedTiles && !match->shuffleState.isActive)
     {
         // Return each staged tile back to the active player's rack
@@ -623,7 +626,8 @@ void GameDraw(AppState *state)
         memcpy(&match->board, &match->previousBoard, sizeof(GameBoard));
         PlaySoundEffect(SFX_BACK_NAV);
     }
-    if (!hasStagedTiles) GuiSetState(STATE_NORMAL);
+    if (!hasStagedTiles)
+        GuiSetState(STATE_NORMAL);
 
     // Lower Section: History Logs  (offset by action bar height)
     float actionBarTotalH = (float)(int)(baseFontSize * 2.0f) + (layoutGap * 0.35f);
