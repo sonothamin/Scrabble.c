@@ -32,52 +32,24 @@ void InitAppState(AppState *state)
     state->menuLoadState = NULL;
 
     state->loadingState = (LoadingState *)malloc(sizeof(LoadingState));
-    if (state->loadingState != NULL)
-        LoadingInit(state->loadingState);
-    else
-    {
-        ReportCriticalError("Memory Allocation Error", "Failed to allocate memory for LoadingState.");
-    }
-
     state->aboutState = (AboutState *)malloc(sizeof(AboutState));
-    if (state->aboutState != NULL)
-        AboutInit(state->aboutState);
-    else
-    {
-        ReportCriticalError("Memory Allocation Error", "Failed to allocate memory for AboutState.");
-    }
-
-    state->gamestate = NULL;
-
     state->settingsState = InitSettingsState();
-    if (state->settingsState == NULL)
-    {
-        ReportCriticalError("Memory Allocation Error", "Failed to initialize SettingsState.");
-    }
-
     state->pauseState = (PauseState *)malloc(sizeof(PauseState));
-    if (state->pauseState != NULL)
-        InitPauseState(state->pauseState);
-    else
-    {
-        ReportCriticalError("Memory Allocation Error", "Failed to allocate memory for PauseState.");
-    }
-
     state->gameOverState = (GameOverState *)malloc(sizeof(GameOverState));
-    if (state->gameOverState != NULL)
-        InitGameOverState(state->gameOverState);
-    else
+    state->menuLoadState = (LoadFromFileOverlayState *)malloc(sizeof(LoadFromFileOverlayState));
+
+    if (!state->loadingState || !state->aboutState || !state->settingsState || !state->pauseState || !state->gameOverState || !state->menuLoadState)
     {
-        ReportCriticalError("Memory Allocation Error", "Failed to allocate memory for GameOverState.");
+        ReportCriticalError("Memory Allocation Error", "Failed to allocate memory for AppState components.");
+        CloseAppState(state);
+        return;
     }
 
-    state->menuLoadState = (LoadFromFileOverlayState *)malloc(sizeof(LoadFromFileOverlayState));
-    if (state->menuLoadState != NULL)
-        LoadFromFileInit(state->menuLoadState);
-    else
-    {
-        ReportCriticalError("Memory Allocation Error", "Failed to allocate memory for MenuLoadState.");
-    }
+    LoadingInit(state->loadingState);
+    AboutInit(state->aboutState);
+    InitPauseState(state->pauseState);
+    InitGameOverState(state->gameOverState);
+    LoadFromFileInit(state->menuLoadState);
 
     if (state->settingsState != NULL && FileExists(CONFIG_FILE_PATH))
     {
