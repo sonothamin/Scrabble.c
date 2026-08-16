@@ -23,6 +23,56 @@ void Action_ReturnStagedTilesToRack(GameState *match)
     }
 }
 
+void Action_FinalizeGameOver(GameState *match)
+{
+    if (!match) return;
+
+    match->isMatchOver = true;
+
+    int rackPenalty[2] = {0, 0};
+    for (int p = 0; p < 2; p++)
+    {
+        for (int i = 0; i < match->players[p].rack_count; i++)
+        {
+            if (match->players[p].rack[i].letter != '\0')
+            {
+                rackPenalty[p] += match->players[p].rack[i].value;
+            }
+        }
+    }
+
+    for (int p = 0; p < 2; p++)
+    {
+        match->players[p].score -= rackPenalty[p];
+        if (match->players[p].score < 0)
+        {
+            match->players[p].score = 0;
+        }
+    }
+
+    for (int p = 0; p < 2; p++)
+    {
+        if (match->players[p].rack_count == 0)
+        {
+            int opponentIdx = (p + 1) % 2;
+            match->players[p].score += rackPenalty[opponentIdx];
+        }
+    }
+
+    if (match->players[0].score > match->players[1].score)
+    {
+        match->winningPlayerIdx = 0;
+    }
+    else if (match->players[1].score > match->players[0].score)
+    {
+        match->winningPlayerIdx = 1;
+    }
+    else
+    {
+        match->winningPlayerIdx = 0;
+    }
+}
+
 void Action_PassTurn(GameState *match)
 {
     Action_ReturnStagedTilesToRack(match);
@@ -32,8 +82,7 @@ void Action_PassTurn(GameState *match)
 
     if (match->consecutivePassCount >= 6)
     {
-        match->isMatchOver = true;
-        match->winningPlayerIdx = (match->activePlayerIdx + 1) % 2;
+        Action_FinalizeGameOver(match);
     }
     else
     {
@@ -100,6 +149,14 @@ void Action_SubmitMove(GameState *match)
         match->consecutivePassCount = 0;
 
         memcpy(&match->previousBoard, &match->board, sizeof(GameBoard));
-        match->activePlayerIdx = (match->activePlayerIdx + 1) % 2;
+
+        if (match->tileBagCount == 0 && match->players[match->activePlayerIdx].rack_count == 0)
+        {
+            Action_FinalizeGameOver(match);
+        }
+        else
+        {
+            match->activePlayerIdx = (match->activePlayerIdx + 1) % 2;
+        }
     }
 }

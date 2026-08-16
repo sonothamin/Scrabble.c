@@ -145,7 +145,14 @@ void GameUpdate(AppState *state)
             {
                 memcpy(&match->board, &match->previousBoard, sizeof(GameBoard));
                 match->consecutivePassCount++;
-                match->activePlayerIdx = (match->activePlayerIdx + 1) % 2;
+                if (match->consecutivePassCount >= 6)
+                {
+                    Action_FinalizeGameOver(match);
+                }
+                else
+                {
+                    match->activePlayerIdx = (match->activePlayerIdx + 1) % 2;
+                }
             }
             return;
         }
@@ -211,7 +218,14 @@ void GameDraw(AppState *state)
             {
                 memcpy(&match->board, &match->previousBoard, sizeof(GameBoard));
                 match->consecutivePassCount++;
-                match->activePlayerIdx = (match->activePlayerIdx + 1) % 2;
+                if (match->consecutivePassCount >= 6)
+                {
+                    Action_FinalizeGameOver(match);
+                }
+                else
+                {
+                    match->activePlayerIdx = (match->activePlayerIdx + 1) % 2;
+                }
             }
         }
         else if (shuffleResult == -1)
