@@ -23,12 +23,6 @@ void Free_Dictionary(Dictionary *dictionary)
 
 bool Load_Dictionary(Dictionary *dictionary, const char *dictionary_file)
 {
-    if (!dictionary || !dictionary_file)
-    {
-        ReportGameWarning("Dictionary struct or file is not received", "Failed to receive struct or the dictionary file", 3.0f);
-        return false;
-    }
-
     FILE *file = fopen(dictionary_file, "r");
 
     if (!file)
