@@ -30,7 +30,7 @@ typedef struct GameBoard
 } GameBoard;
 
 void BoardInit(GameBoard *board, const char *filename);
-void DrawTheCellTypes(GameBoard *match, float boardX, float boardY, float boardVisualSize, float cellSize);
+void DrawTheCellTypes(const GameBoard *match, float boardX, float boardY, float boardVisualSize, float cellSize);
 void BoardReset(GameBoard *board);
 
 #endif

@@ -65,7 +65,7 @@ void BoardReset(GameBoard *board)
     board->sideSize = BOARD_SIDE;
 }
 
-void DrawTheCellTypes(GameBoard *match, float boardX, float boardY, float boardVisualSize, float cellSize)
+void DrawTheCellTypes(const GameBoard *match, float boardX, float boardY, float boardVisualSize, float cellSize)
 {
     if (!match)
         return;
