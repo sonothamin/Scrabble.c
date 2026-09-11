@@ -19,16 +19,21 @@
 #include <stdlib.h>
 #include <string.h>
 
-void GameInit(GameState *match)
+void GameInit(GameState *match, const char *dictionaryPath)
 {
     if (match == NULL)
         return;
 
     memset(match, 0, sizeof(*match));
+    if (dictionaryPath != NULL)
+    {
+        strncpy(match->dictionaryPath, dictionaryPath, sizeof(match->dictionaryPath) - 1);
+        match->dictionaryPath[sizeof(match->dictionaryPath) - 1] = '\0';
+    }
     match->mode = GAME_MODE_LOCAL_1V1;
     match->specialTilesEnabled = true;
 
-    if (!Load_Dictionary(&match->dictionary, "dictionary.txt"))
+    if (!Load_Dictionary(&match->dictionary, match->dictionaryPath))
     {
         TraceLog(LOG_WARNING, "Failed to load dictionary file! Check path.");
     }

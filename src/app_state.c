@@ -81,7 +81,7 @@ void StartNewGame(AppState *state)
     state->gamestate = (GameState *)malloc(sizeof(GameState));
     if (state->gamestate != NULL)
     {
-        GameInit(state->gamestate);
+        GameInit(state->gamestate, state->settingsState != NULL ? state->settingsState->dictionaryPath : NULL);
     }
 
     if (state->pauseState != NULL)
@@ -126,7 +126,7 @@ void UpdateAppState(AppState *state)
         {
             state->gamestate = (GameState *)malloc(sizeof(GameState));
             if (state->gamestate != NULL)
-                GameInit(state->gamestate);
+                GameInit(state->gamestate, state->settingsState != NULL ? state->settingsState->dictionaryPath : NULL);
         }
 
         if (state->pauseState != NULL)
