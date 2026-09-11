@@ -42,12 +42,12 @@ typedef struct GameState
     bool isMatchOver;
     int winningPlayerIdx;
     DragNDropState dragState;
-    ShuffleState   shuffleState;
+    ShuffleState shuffleState;
     SaveAndExitOverlayState saveExitState;
     WildTileOverlayState wildTileState;
 } GameState;
 
-void GameInit(GameState *match);
+void GameInit(GameState *match, const char *dictionaryPath);
 void GameUpdate(AppState *state);
 void GameDraw(AppState *state);
 void GameCleanUp(GameState *match);
