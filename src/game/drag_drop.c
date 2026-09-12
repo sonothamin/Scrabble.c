@@ -95,6 +95,7 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
                 {
                     match->board.grid[gridY][gridX].isWildCard = true;
                     WildTileOpen(&match->wildTileState, gridX, gridY);
+                    PlaySoundEffect(SFX_ABOUT);
                 }
                 else
                 {
