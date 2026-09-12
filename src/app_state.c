@@ -81,7 +81,10 @@ void StartNewGame(AppState *state)
     state->gamestate = (GameState *)malloc(sizeof(GameState));
     if (state->gamestate != NULL)
     {
-        GameInit(state->gamestate, state->settingsState != NULL ? state->settingsState->dictionaryPath : NULL);
+        GameInit(state->gamestate,
+                 state->settingsState != NULL ? state->settingsState->dictionaryPath : NULL,
+                 state->settingsState != NULL ? state->settingsState->boardLayoutPath : NULL,
+                 state->settingsState != NULL ? state->settingsState->tileMapPath : NULL);
     }
 
     if (state->pauseState != NULL)
@@ -126,7 +129,10 @@ void UpdateAppState(AppState *state)
         {
             state->gamestate = (GameState *)malloc(sizeof(GameState));
             if (state->gamestate != NULL)
-                GameInit(state->gamestate, state->settingsState != NULL ? state->settingsState->dictionaryPath : NULL);
+                GameInit(state->gamestate,
+                         state->settingsState != NULL ? state->settingsState->dictionaryPath : NULL,
+                         state->settingsState != NULL ? state->settingsState->boardLayoutPath : NULL,
+                         state->settingsState != NULL ? state->settingsState->tileMapPath : NULL);
         }
 
         if (state->pauseState != NULL)

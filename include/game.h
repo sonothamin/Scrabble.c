@@ -47,7 +47,7 @@ typedef struct GameState
     WildTileOverlayState wildTileState;
 } GameState;
 
-void GameInit(GameState *match, const char *dictionaryPath);
+void GameInit(GameState *match, const char *dictionaryPath, const char *boardLayoutPath, const char *tileMapPath);
 void GameUpdate(AppState *state);
 void GameDraw(AppState *state);
 void GameCleanUp(GameState *match);

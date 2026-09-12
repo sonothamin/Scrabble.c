@@ -4,9 +4,13 @@
 #include <stdbool.h>
 #include <time.h>
 
-bool init_bag_from_file(TileBag *bag)
+bool init_bag_from_file(TileBag *bag, const char *filename)
 {
-    FILE *file = fopen("resources/letters.txt", "r");
+    FILE *file = filename != NULL ? fopen(filename, "r") : NULL;
+    if (file == NULL)
+    {
+        file = fopen("resources/letters.txt", "r");
+    }
     if (file == NULL)
     {
         file = fopen("letters.txt", "r");

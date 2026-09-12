@@ -77,7 +77,7 @@ SettingsState *InitSettingsState(void)
 
     snprintf(settings->dictionaryPath, sizeof(settings->dictionaryPath), "resources/dictionary.txt");
     snprintf(settings->boardLayoutPath, sizeof(settings->boardLayoutPath), "resources/board_layout.txt");
-    snprintf(settings->tileMapPath, sizeof(settings->tileMapPath), "resources/scores/letters.txt");
+    snprintf(settings->tileMapPath, sizeof(settings->tileMapPath), "resources/letters.txt");
 
     settings->dictionaryEditMode = false;
     settings->boardLayoutEditMode = false;
@@ -343,13 +343,13 @@ void SettingsDraw(const AppState *state)
 
     // --- Footer Hotkey Bar ---
     static const HotkeyEntry settingsKeys[] = {
-        { "1",   "Game Rules"  },
-        { "2",   "Audio"       },
-        { "3",   "Network"     },
-        { "4",   "Advanced"    },
-        { "A/D", "Navigate"    },
-        { "B",   "Save & Back" },
-        { "ESC", "Cancel"      },
+        {"1", "Game Rules"},
+        {"2", "Audio"},
+        {"3", "Network"},
+        {"4", "Advanced"},
+        {"A/D", "Navigate"},
+        {"B", "Save & Back"},
+        {"ESC", "Cancel"},
     };
     float hkH = baseFontSize * 2.50f;
     float hkY = (float)screenHeight - padding - hkH;
