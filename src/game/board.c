@@ -16,7 +16,7 @@ void BoardInit(GameBoard *board, const char *filename)
 
     BoardReset(board);
     board->sideSize = BOARD_SIDE;
-    FILE *file = fopen(filename, "r");
+    FILE *file = filename != NULL ? fopen(filename, "r") : NULL;
     if (file == NULL)
     {
         ReportCriticalError("Board Inialization Failed", "Failed to open board layout file. Falling back to default board file.");

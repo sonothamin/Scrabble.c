@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-void GameInit(GameState *match, const char *dictionaryPath)
+void GameInit(GameState *match, const char *dictionaryPath, const char *boardLayoutPath, const char *tileMapPath)
 {
     if (match == NULL)
         return;
@@ -38,11 +38,11 @@ void GameInit(GameState *match, const char *dictionaryPath)
         TraceLog(LOG_WARNING, "Failed to load dictionary file! Check path.");
     }
 
-    BoardInit(&match->board, "board_layout.txt");
+    BoardInit(&match->board, boardLayoutPath);
     memcpy(&match->previousBoard, &match->board, sizeof(GameBoard));
     init_player(&match->players[0]);
     init_player(&match->players[1]);
-    init_bag_from_file(&match->tileBag);
+    init_bag_from_file(&match->tileBag, tileMapPath);
     shuffle_tiles_in_bag(&match->tileBag);
     refill_rack(&match->players[0], &match->tileBag);
     refill_rack(&match->players[1], &match->tileBag);
