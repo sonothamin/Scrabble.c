@@ -75,9 +75,9 @@ SettingsState *InitSettingsState(void)
     settings->bgmEnable = false;
     settings->sfxEnable = true;
 
-    snprintf(settings->dictionaryPath, sizeof(settings->dictionaryPath), "resources/dictionary.txt");
-    snprintf(settings->boardLayoutPath, sizeof(settings->boardLayoutPath), "resources/board_layout.txt");
-    snprintf(settings->tileMapPath, sizeof(settings->tileMapPath), "resources/letters.txt");
+    snprintf(settings->dictionaryPath, sizeof(settings->dictionaryPath), "dictionary.txt");
+    snprintf(settings->boardLayoutPath, sizeof(settings->boardLayoutPath), "board_layout.txt");
+    snprintf(settings->tileMapPath, sizeof(settings->tileMapPath), "letters.txt");
 
     settings->dictionaryEditMode = false;
     settings->boardLayoutEditMode = false;

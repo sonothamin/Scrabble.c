@@ -6,11 +6,12 @@
 
 bool init_bag_from_file(TileBag *bag, const char *filename)
 {
+    if (bag == NULL)
+        return false;
+
+    bag->tiles_remaining = 0;
     FILE *file = filename != NULL ? fopen(filename, "r") : NULL;
-    if (file == NULL)
-    {
-        file = fopen("resources/letters.txt", "r");
-    }
+    
     if (file == NULL)
     {
         file = fopen("letters.txt", "r");
@@ -18,10 +19,14 @@ bool init_bag_from_file(TileBag *bag, const char *filename)
 
     if (file == NULL)
     {
+        file = fopen("resources/letters.txt", "r");
+    }
+
+    if (file == NULL)
+    {
         printf("Could not open the letters file\n");
         return false;
     }
-    bag->tiles_remaining = 0;
     char letter;
     int quantity;
     int value;
