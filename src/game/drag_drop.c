@@ -25,6 +25,7 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
         {
             Rectangle tileBounds = {startX + (t * (tileSize + tileSpacing)), tileY, tileSize, tileSize};
 
+            // Try picking up from Active Rack
             if (CheckCollisionPointRec(mousePos, tileBounds))
             {
                 match->dragState.isDragging = true;
