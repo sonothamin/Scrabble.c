@@ -43,7 +43,7 @@ bool init_bag_from_file(TileBag *bag, const char *filename)
     return true;
 }
 
-void shuffle_tiles_in_bag(TileBag *bag)
+void shuffle_tiles_in_bag(TileBag *bag) //Fisher–Yates shuffle
 {
     if (!bag || bag->tiles_remaining <= 1)
     {
@@ -52,7 +52,7 @@ void shuffle_tiles_in_bag(TileBag *bag)
 
     for (int i = bag->tiles_remaining - 1; i > 0; i--)
     {
-        int j = rand() % (i + 1);
+        int j = rand() % (i + 1); // Modulus Arithmatic - Thank you Bakhtiar Sir
 
         Tile temp = bag->tiles[i];
         bag->tiles[i] = bag->tiles[j];
