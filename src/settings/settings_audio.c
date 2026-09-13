@@ -28,7 +28,6 @@ void DrawSettingsAudioTab(ExtendedSettingsState *extSettings, float contentX, fl
     float currentY = contentY + 10.0f;
     float actionBtnX = contentX + labelWidth + sliderWidth + 30.0f + textPadding + gap;
 
-    // --- Row 1: BGM ---
     GuiLabel((Rectangle){contentX, currentY + 2.0f, labelWidth, controlHeight}, "BGM");
 
     char musicText[16];
@@ -51,7 +50,6 @@ void DrawSettingsAudioTab(ExtendedSettingsState *extSettings, float contentX, fl
         ApplySoundSettings(settings->bgmVolume, settings->bgmEnable, settings->sfxVolume, settings->sfxEnable);
     }
 
-    // --- Row 2: SFX ---
     currentY += rowSpacing;
     GuiLabel((Rectangle){contentX, currentY + 2.0f, labelWidth, controlHeight}, "Sound Effects");
 

@@ -17,7 +17,6 @@ void DrawSettingsGameTab(ExtendedSettingsState *extSettings, float contentX, flo
 
     float rowY = contentY + 10.0f;
 
-    // --- Row 1: Dictionary ---
     GuiLabel((Rectangle){contentX, rowY, labelWidth, inputHeight}, "Dictionary");
 
     GuiTextBox((Rectangle){contentX + labelWidth, rowY, inputWidth, inputHeight}, settings->dictionaryPath, 256, false);
@@ -30,7 +29,6 @@ void DrawSettingsGameTab(ExtendedSettingsState *extSettings, float contentX, flo
         snprintf(extSettings->fileDialogState.filterExt, sizeof(extSettings->fileDialogState.filterExt), ".txt");
     }
 
-    // --- Row 2: Board Layout ---
     rowY += rowSpacing;
     GuiLabel((Rectangle){contentX, rowY, labelWidth, inputHeight}, "Board Layout");
 
@@ -44,7 +42,6 @@ void DrawSettingsGameTab(ExtendedSettingsState *extSettings, float contentX, flo
         snprintf(extSettings->fileDialogState.filterExt, sizeof(extSettings->fileDialogState.filterExt), ".txt");
     }
 
-    // --- Row 3: Tile Letter Scoring Map ---
     rowY += rowSpacing;
     GuiLabel((Rectangle){contentX, rowY, labelWidth, inputHeight}, "Tile Map");
 
@@ -58,11 +55,9 @@ void DrawSettingsGameTab(ExtendedSettingsState *extSettings, float contentX, flo
         snprintf(extSettings->fileDialogState.filterExt, sizeof(extSettings->fileDialogState.filterExt), ".txt");
     }
 
-    // --- Divider Line ---
     rowY += rowSpacing + 5.0f;
     GuiLine((Rectangle){contentX, rowY, contentWidth - 60.0f, 2.0f}, NULL);
 
-    // --- Row 4: Luxury Tiles Toggle ---
     rowY += 20.0f;
     float checkboxSize = inputHeight * 0.85f;
 

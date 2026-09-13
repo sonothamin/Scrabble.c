@@ -58,7 +58,7 @@ void UpdatePauseOverlay(AppState *state, PauseState *pause)
     if (IsKeyPressed(KEY_Q))
     {
         ExitPauseMenu(state, pause);
-        state->currentScreen = APP_SCREEN_MAIN_MENU;
+        state->gamestate->saveExitState.isActive = true;
         PlaySoundEffect(SFX_BACK_NAV);
         return;
     }
@@ -182,7 +182,7 @@ void DrawPauseOverlay(AppState *state, PauseState *pause)
     if (GuiButton((Rectangle){ cardX + 30.0f, btnY + 2.0f * (btnH + btnGap), btnW, btnH }, "Exit to Main Menu"))
     {
         ExitPauseMenu(state, pause);
-        state->currentScreen = APP_SCREEN_MAIN_MENU;
+        state->gamestate->saveExitState.isActive = true;
         PlaySoundEffect(SFX_BACK_NAV);
     }
 

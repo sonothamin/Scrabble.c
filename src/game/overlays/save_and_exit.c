@@ -107,7 +107,6 @@ void SaveAndExitDraw(AppState *appState, GameState *match, int screenWidth, int 
     float cardY = (screenHeight - cardH) / 2.0f;
     Rectangle cardRect = {cardX, cardY, cardW, cardH};
 
-    // Glassmorphism & Shadow Style
     DrawRectangleRounded((Rectangle){cardX + 6, cardY + 8, cardW, cardH}, 0.08f, 6, (Color){0, 0, 0, 150});
     DrawRectangleRounded(cardRect, 0.08f, 6, (Color){20, 28, 36, 255});
     DrawRectangleRoundedLinesEx(cardRect, 0.08f, 6, 2.0f, (Color){54, 72, 90, 255});
