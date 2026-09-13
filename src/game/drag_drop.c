@@ -124,10 +124,10 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
             int targetIdx = (int)((relativeX / (tileSize + tileSpacing)) + 0.5f);
 
             // Inserting at desired place
-            if (currentPlayer->rack_count < RACK_SIZE)
+            if (!match->dragState.isFromRack)
             {
                 // If it came from the board, add it back to the rack
-                if (!match->dragState.isFromRack)
+                if (currentPlayer->rack_count < RACK_SIZE)
                 {
                     if (targetIdx < 0)
                         targetIdx = 0;
@@ -143,6 +143,44 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
                     currentPlayer->rack_count++;
                 }
                 // If it came from rack to rack, no change needed
+                dropSuccessful = true;
+            }
+
+            // 2. RACK TO RACK (Reordering / Rearranging)
+            else
+            {
+                int srcIdx = match->dragState.draggedTileIdx;
+
+                // Clamp target index to existing rack boundaries [0, rack_count - 1]
+                if (targetIdx < 0)
+                    targetIdx = 0;
+                if (targetIdx >= currentPlayer->rack_count)
+                    targetIdx = currentPlayer->rack_count - 1;
+
+                if (srcIdx != targetIdx)
+                {
+                    Tile tileToMove = match->dragState.draggedTile;
+
+                    // Shift left
+                    if (srcIdx < targetIdx)
+                    {
+                        for (int i = srcIdx; i < targetIdx; i++)
+                        {
+                            currentPlayer->rack[i] = currentPlayer->rack[i + 1];
+                        }
+                    }
+                    // Shift right
+                    else
+                    {
+                        for (int i = srcIdx; i > targetIdx; i--)
+                        {
+                            currentPlayer->rack[i] = currentPlayer->rack[i - 1];
+                        }
+                    }
+
+                    // Place tile in target position
+                    currentPlayer->rack[targetIdx] = tileToMove;
+                }
                 dropSuccessful = true;
             }
         }
