@@ -95,7 +95,6 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
                 {
                     match->board.grid[gridY][gridX].isWildCard = true;
                     WildTileOpen(&match->wildTileState, gridX, gridY);
-                    PlaySoundEffect(SFX_ABOUT);
                 }
                 else
                 {
@@ -106,13 +105,15 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
                 if (match->dragState.isFromRack)
                 {
                     int srcIdx = match->dragState.draggedTileIdx;
-
-                    for (int i = srcIdx; i < currentPlayer->rack_count - 1; i++)
+                    if (srcIdx >= 0 && srcIdx < currentPlayer->rack_count)
                     {
-                        currentPlayer->rack[i] = currentPlayer->rack[i + 1];
+                        for (int i = srcIdx; i < currentPlayer->rack_count - 1; i++)
+                        {
+                            currentPlayer->rack[i] = currentPlayer->rack[i + 1];
+                        }
+                        currentPlayer->rack[currentPlayer->rack_count - 1] = (Tile){.letter = '\0', .value = 0, .isWildCard = false};
+                        currentPlayer->rack_count--;
                     }
-                    currentPlayer->rack[currentPlayer->rack_count - 1] = (Tile){.letter = '\0', .value = 0, .isWildCard = false};
-                    currentPlayer->rack_count--;
                 }
                 dropSuccessful = true;
             }
