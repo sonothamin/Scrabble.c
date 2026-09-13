@@ -38,11 +38,16 @@ static ScoreBonusKind BonusFromLuxury(LuxuryType lux)
 {
     switch (lux)
     {
-    case LUXURY_TRIPLE_WORD:   return SCORE_BONUS_3W;
-    case LUXURY_DOUBLE_WORD:   return SCORE_BONUS_2W;
-    case LUXURY_TRIPLE_LETTER: return SCORE_BONUS_3L;
-    case LUXURY_DOUBLE_LETTER: return SCORE_BONUS_2L;
-    default:                   return SCORE_BONUS_NONE;
+    case LUXURY_TRIPLE_WORD:
+        return SCORE_BONUS_3W;
+    case LUXURY_DOUBLE_WORD:
+        return SCORE_BONUS_2W;
+    case LUXURY_TRIPLE_LETTER:
+        return SCORE_BONUS_3L;
+    case LUXURY_DOUBLE_LETTER:
+        return SCORE_BONUS_2L;
+    default:
+        return SCORE_BONUS_NONE;
     }
 }
 
@@ -103,7 +108,8 @@ int Calculate_Word_Score(const Tile *tiles, const int *xs, const int *ys, int wo
     return letterTotal * wordMult;
 }
 
-typedef struct {
+typedef struct
+{
     char word[BOARD_SIDE + 1];
     Tile tiles[BOARD_SIDE];
     int xs[BOARD_SIDE];
@@ -175,8 +181,10 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE],
 
     for (int i = 1; i < newCount; i++)
     {
-        if (newY[i] != firstY) isHorizontal = false;
-        if (newX[i] != firstX) isVertical = false;
+        if (newY[i] != firstY)
+            isHorizontal = false;
+        if (newX[i] != firstX)
+            isVertical = false;
     }
 
     if (!isHorizontal && !isVertical)
@@ -276,9 +284,11 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE],
             {
                 int y = firstY;
                 int startX = newX[0];
-                while (startX > 0 && current_Grid[y][startX - 1].letter != '\0') startX--;
+                while (startX > 0 && current_Grid[y][startX - 1].letter != '\0')
+                    startX--;
                 int endX = newX[0];
-                while (endX < BOARD_SIDE - 1 && current_Grid[y][endX + 1].letter != '\0') endX++;
+                while (endX < BOARD_SIDE - 1 && current_Grid[y][endX + 1].letter != '\0')
+                    endX++;
                 for (int x = startX; x <= endX; x++)
                 {
                     if (previous_Grid[y][x].letter != '\0')
@@ -292,9 +302,11 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE],
             {
                 int x = firstX;
                 int startY = newY[0];
-                while (startY > 0 && current_Grid[startY - 1][x].letter != '\0') startY--;
+                while (startY > 0 && current_Grid[startY - 1][x].letter != '\0')
+                    startY--;
                 int endY = newY[0];
-                while (endY < BOARD_SIDE - 1 && current_Grid[endY + 1][x].letter != '\0') endY++;
+                while (endY < BOARD_SIDE - 1 && current_Grid[endY + 1][x].letter != '\0')
+                    endY++;
                 for (int y = startY; y <= endY; y++)
                 {
                     if (previous_Grid[y][x].letter != '\0')
@@ -318,15 +330,17 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE],
     int wordCount = 0;
 
     bool checkHorizMain = isHorizontal || (newCount == 1);
-    bool checkVertMain  = isVertical   || (newCount == 1);
+    bool checkVertMain = isVertical || (newCount == 1);
 
     if (checkHorizMain)
     {
         int y = newY[0];
         int startX = newX[0];
-        while (startX > 0 && current_Grid[y][startX - 1].letter != '\0') startX--;
+        while (startX > 0 && current_Grid[y][startX - 1].letter != '\0')
+            startX--;
         int endX = newX[0];
-        while (endX < BOARD_SIDE - 1 && current_Grid[y][endX + 1].letter != '\0') endX++;
+        while (endX < BOARD_SIDE - 1 && current_Grid[y][endX + 1].letter != '\0')
+            endX++;
 
         int len = endX - startX + 1;
         if (len > 1)
@@ -337,16 +351,18 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE],
     {
         int x = newX[0];
         int startY = newY[0];
-        while (startY > 0 && current_Grid[startY - 1][x].letter != '\0') startY--;
+        while (startY > 0 && current_Grid[startY - 1][x].letter != '\0')
+            startY--;
         int endY = newY[0];
-        while (endY < BOARD_SIDE - 1 && current_Grid[endY + 1][x].letter != '\0') endY++;
+        while (endY < BOARD_SIDE - 1 && current_Grid[endY + 1][x].letter != '\0')
+            endY++;
 
         int len = endY - startY + 1;
         if (len > 1)
             AppendFormedWord(&words[wordCount++], current_Grid, x, startY, x, endY, false);
     }
 
-    //check perpendicular crosswords to newly formed word
+    // check perpendicular crosswords to newly formed word
     for (int i = 0; i < newCount; i++)
     {
         int x = newX[i];
@@ -356,9 +372,11 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE],
         if (isHorizontal && newCount > 1)
         {
             int startY = y;
-            while (startY > 0 && current_Grid[startY - 1][x].letter != '\0') startY--;
+            while (startY > 0 && current_Grid[startY - 1][x].letter != '\0')
+                startY--;
             int endY = y;
-            while (endY < BOARD_SIDE - 1 && current_Grid[endY + 1][x].letter != '\0') endY++;
+            while (endY < BOARD_SIDE - 1 && current_Grid[endY + 1][x].letter != '\0')
+                endY++;
 
             int len = endY - startY + 1;
             if (len > 1)
@@ -369,9 +387,11 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE],
         if (isVertical && newCount > 1)
         {
             int startX = x;
-            while (startX > 0 && current_Grid[y][startX - 1].letter != '\0') startX--;
+            while (startX > 0 && current_Grid[y][startX - 1].letter != '\0')
+                startX--;
             int endX = x;
-            while (endX < BOARD_SIDE - 1 && current_Grid[y][endX + 1].letter != '\0') endX++;
+            while (endX < BOARD_SIDE - 1 && current_Grid[y][endX + 1].letter != '\0')
+                endX++;
 
             int len = endX - startX + 1;
             if (len > 1)
