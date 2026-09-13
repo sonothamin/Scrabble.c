@@ -19,7 +19,10 @@ void BoardInit(GameBoard *board, const char *filename)
     FILE *file = filename != NULL ? fopen(filename, "r") : NULL;
     if (file == NULL)
     {
-        ReportCriticalError("Board Inialization Failed", "Failed to open board layout file. Falling back to default board file.");
+        file = fopen("board_layout.txt", "r");
+    }
+    if (file == NULL)
+    {
         file = fopen("resources/board_layout.txt", "r");
     }
     if (file == NULL)

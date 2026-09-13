@@ -21,6 +21,7 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
     // Pick up a tile on left click
     if (!match->dragState.isDragging && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
     {
+        // Try picking up from Active Rack
         for (int t = 0; t < currentPlayer->rack_count; t++)
         {
             Rectangle tileBounds = {startX + (t * (tileSize + tileSpacing)), tileY, tileSize, tileSize};
@@ -94,6 +95,7 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
                 {
                     match->board.grid[gridY][gridX].isWildCard = true;
                     WildTileOpen(&match->wildTileState, gridX, gridY);
+                    PlaySoundEffect(SFX_ABOUT);
                 }
                 else
                 {
@@ -104,15 +106,13 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
                 if (match->dragState.isFromRack)
                 {
                     int srcIdx = match->dragState.draggedTileIdx;
-                    if (srcIdx >= 0 && srcIdx < currentPlayer->rack_count)
+
+                    for (int i = srcIdx; i < currentPlayer->rack_count - 1; i++)
                     {
-                        for (int i = srcIdx; i < currentPlayer->rack_count - 1; i++)
-                        {
-                            currentPlayer->rack[i] = currentPlayer->rack[i + 1];
-                        }
-                        currentPlayer->rack[currentPlayer->rack_count - 1] = (Tile){.letter = '\0', .value = 0, .isWildCard = false};
-                        currentPlayer->rack_count--;
+                        currentPlayer->rack[i] = currentPlayer->rack[i + 1];
                     }
+                    currentPlayer->rack[currentPlayer->rack_count - 1] = (Tile){.letter = '\0', .value = 0, .isWildCard = false};
+                    currentPlayer->rack_count--;
                 }
                 dropSuccessful = true;
             }
@@ -120,13 +120,26 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
         // DROPPING BACK TO THE ACTIVE RACK
         else if (CheckCollisionPointRec(mousePos, rackRect))
         {
+            float relativeX = mousePos.x - startX;
+            int targetIdx = (int)((relativeX / (tileSize + tileSpacing)) + 0.5f);
+
+            // Inserting at desired place
             if (currentPlayer->rack_count < RACK_SIZE)
             {
                 // If it came from the board, add it back to the rack
                 if (!match->dragState.isFromRack)
                 {
-                    currentPlayer->rack[currentPlayer->rack_count] =
-                        WildTileAsRackTile(match->dragState.draggedTile);
+                    if (targetIdx < 0)
+                        targetIdx = 0;
+                    if (targetIdx > currentPlayer->rack_count)
+                        targetIdx = currentPlayer->rack_count;
+
+                    // Shift elements right to create a slot at targetIdx
+                    for (int i = currentPlayer->rack_count; i > targetIdx; i--)
+                    {
+                        currentPlayer->rack[i] = currentPlayer->rack[i - 1];
+                    }
+                    currentPlayer->rack[targetIdx] = WildTileAsRackTile(match->dragState.draggedTile);
                     currentPlayer->rack_count++;
                 }
                 // If it came from rack to rack, no change needed
