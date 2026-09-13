@@ -128,8 +128,9 @@ static void AppendFormedWord(FormedWord *fw, Tile current_Grid[BOARD_SIDE][BOARD
         int y = horizontal ? startY : (startY + k);
         fw->word[k] = current_Grid[y][x].letter;
         fw->tiles[k] = current_Grid[y][x];
-        fw->xs[k] = x;
-        fw->ys[k] = y;
+
+        fw->xs[k] = x; // for scoring multipliers
+        fw->ys[k] = y; // for scoring multipliers
     }
     fw->word[len] = '\0';
 }
@@ -198,14 +199,8 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE],
     {
         if (isHorizontal)
         {
-            int minX = newX[0], maxX = newX[0];
-            for (int i = 1; i < newCount; i++)
-            {
-                if (newX[i] < minX)
-                    minX = newX[i];
-                if (newX[i] > maxX)
-                    maxX = newX[i];
-            }
+            int minX = newX[0], maxX = newX[newCount - 1];
+
             for (int x = minX; x <= maxX; x++)
             {
                 if (current_Grid[firstY][x].letter == '\0')
@@ -218,14 +213,8 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE],
         }
         else // isVertical
         {
-            int minY = newY[0], maxY = newY[0];
-            for (int i = 1; i < newCount; i++)
-            {
-                if (newY[i] < minY)
-                    minY = newY[i];
-                if (newY[i] > maxY)
-                    maxY = newY[i];
-            }
+            int minY = newY[0], maxY = newY[newCount - 1];
+
             for (int y = minY; y <= maxY; y++)
             {
                 if (current_Grid[y][firstX].letter == '\0')
@@ -278,6 +267,7 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE],
         {
             int x = newX[i];
             int y = newY[i];
+            // Direct adjacent neighbours
             if ((x > 0 && previous_Grid[y][x - 1].letter != '\0') ||
                 (x < BOARD_SIDE - 1 && previous_Grid[y][x + 1].letter != '\0') ||
                 (y > 0 && previous_Grid[y - 1][x].letter != '\0') ||
@@ -286,6 +276,8 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE],
                 connectsToExisting = true;
             }
         }
+
+        // new tile added to an existing word
         if (!connectsToExisting)
         {
             if (isHorizontal || newCount == 1)
@@ -370,11 +362,13 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE],
             AppendFormedWord(&words[wordCount++], current_Grid, x, startY, x, endY, false);
     }
 
+    //check perpendicular crosswords to newly formed word
     for (int i = 0; i < newCount; i++)
     {
         int x = newX[i];
         int y = newY[i];
 
+        // new word is horizontal, check perpendicular vertical words
         if (isHorizontal && newCount > 1)
         {
             int startY = y;
@@ -389,6 +383,7 @@ int Scan_And_Validate_Move(Tile current_Grid[BOARD_SIDE][BOARD_SIDE],
                 AppendFormedWord(&words[wordCount++], current_Grid, x, startY, x, endY, false);
         }
 
+        // new word is vertical, check perpendicular horizontal words
         if (isVertical && newCount > 1)
         {
             int startX = x;
