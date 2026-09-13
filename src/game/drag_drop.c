@@ -21,6 +21,7 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
     // Pick up a tile on left click
     if (!match->dragState.isDragging && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
     {
+        // Try picking up from Active Rack
         for (int t = 0; t < currentPlayer->rack_count; t++)
         {
             Rectangle tileBounds = {startX + (t * (tileSize + tileSpacing)), tileY, tileSize, tileSize};
@@ -120,16 +121,67 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
         // DROPPING BACK TO THE ACTIVE RACK
         else if (CheckCollisionPointRec(mousePos, rackRect))
         {
-            if (currentPlayer->rack_count < RACK_SIZE)
+            float relativeX = mousePos.x - startX;
+            int targetIdx = (int)((relativeX / (tileSize + tileSpacing)) + 0.5f);
+
+            // Inserting at desired place
+            if (!match->dragState.isFromRack)
             {
                 // If it came from the board, add it back to the rack
-                if (!match->dragState.isFromRack)
+                if (currentPlayer->rack_count < RACK_SIZE)
                 {
-                    currentPlayer->rack[currentPlayer->rack_count] =
-                        WildTileAsRackTile(match->dragState.draggedTile);
+                    if (targetIdx < 0)
+                        targetIdx = 0;
+                    if (targetIdx > currentPlayer->rack_count)
+                        targetIdx = currentPlayer->rack_count;
+
+                    // Shift elements right to create a slot at targetIdx
+                    for (int i = currentPlayer->rack_count; i > targetIdx; i--)
+                    {
+                        currentPlayer->rack[i] = currentPlayer->rack[i - 1];
+                    }
+                    currentPlayer->rack[targetIdx] = WildTileAsRackTile(match->dragState.draggedTile);
                     currentPlayer->rack_count++;
                 }
                 // If it came from rack to rack, no change needed
+                dropSuccessful = true;
+            }
+
+            // 2. RACK TO RACK (Reordering / Rearranging)
+            else
+            {
+                int srcIdx = match->dragState.draggedTileIdx;
+
+                // Clamp target index to existing rack boundaries [0, rack_count - 1]
+                if (targetIdx < 0)
+                    targetIdx = 0;
+                if (targetIdx >= currentPlayer->rack_count)
+                    targetIdx = currentPlayer->rack_count - 1;
+
+                if (srcIdx != targetIdx)
+                {
+                    Tile tileToMove = match->dragState.draggedTile;
+
+                    // Shift left
+                    if (srcIdx < targetIdx)
+                    {
+                        for (int i = srcIdx; i < targetIdx; i++)
+                        {
+                            currentPlayer->rack[i] = currentPlayer->rack[i + 1];
+                        }
+                    }
+                    // Shift right
+                    else
+                    {
+                        for (int i = srcIdx; i > targetIdx; i--)
+                        {
+                            currentPlayer->rack[i] = currentPlayer->rack[i - 1];
+                        }
+                    }
+
+                    // Place tile in target position
+                    currentPlayer->rack[targetIdx] = tileToMove;
+                }
                 dropSuccessful = true;
             }
         }
