@@ -23,13 +23,6 @@ void InitAppState(AppState *state)
     }
 
     state->currentScreen = APP_SCREEN_LOADING;
-    state->loadingState = NULL;
-    state->aboutState = NULL;
-    state->gamestate = NULL;
-    state->settingsState = NULL;
-    state->pauseState = NULL;
-    state->gameOverState = NULL;
-    state->menuLoadState = NULL;
 
     state->loadingState = (LoadingState *)malloc(sizeof(LoadingState));
     state->aboutState = (AboutState *)malloc(sizeof(AboutState));
