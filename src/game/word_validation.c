@@ -53,7 +53,7 @@ static ScoreBonusKind BonusFromLuxury(LuxuryType lux)
 
 static void ConsiderBonus(ScoreBonusKind *inoutBestBonus, ScoreBonusKind candidate)
 {
-    if (inoutBestBonus && candidate > *inoutBestBonus)
+    if ((inoutBestBonus) && (candidate > *inoutBestBonus))
         *inoutBestBonus = candidate;
 }
 
@@ -72,8 +72,6 @@ int Calculate_Word_Score(const Tile *tiles, const int *xs, const int *ys, int wo
     {
         int x = xs[i];
         int y = ys[i];
-        if (x < 0 || x >= BOARD_SIDE || y < 0 || y >= BOARD_SIDE)
-            continue;
 
         int letterScore = tiles[i].isWildCard ? 0 : tiles[i].value;
         bool isNewTile = (previous_Grid[y][x].letter == '\0');
