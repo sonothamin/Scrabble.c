@@ -15,7 +15,6 @@ void BoardInit(GameBoard *board, const char *filename)
     }
 
     BoardReset(board);
-    board->sideSize = BOARD_SIDE;
     FILE *file = filename != NULL ? fopen(filename, "r") : NULL;
     if (file == NULL)
     {
