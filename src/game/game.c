@@ -98,11 +98,11 @@ void GameUpdate(AppState *state)
         PlaySoundEffect(SFX_BUTTON);
     }
 
-    if (IsKeyPressed(KEY_Q))
+    if (IsKeyPressed(KEY_Q) && !state->gamestate->wildTileState.isActive)
     {
-        state->currentScreen = APP_SCREEN_MAIN_MENU;
-        PlaySoundEffect(SFX_BACK_NAV);
-        return;
+        state->gamestate->saveExitState.isActive=true;
+        state->gamestate->saveExitState.showFileDialog = false;
+        PlaySoundEffect(SFX_BUTTON);
     }
 
     if (state->gamestate == NULL)

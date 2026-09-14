@@ -5,18 +5,13 @@
 #include <string.h>
 #include <math.h>
 
-// ---------------------------------------------------------------------------
-// Internal layout helper – computes modal geometry from screen dimensions.
-// All drawing and hit-testing derives from this single function.
-// ---------------------------------------------------------------------------
-
 typedef struct
 {
-    Rectangle modal;        // outer modal panel
-    Rectangle tilesArea;    // inner area where tiles are drawn
+    Rectangle modal;
+    Rectangle tilesArea;
     float     tileSize;
     float     tileSpacing;
-    float     tileRowY;     // Y of the tile row (top of tiles)
+    float     tileRowY;
     Rectangle confirmBtn;
     Rectangle cancelBtn;
     int       titleFontSize;
@@ -28,7 +23,6 @@ static ShuffleLayout ComputeLayout(int screenW, int screenH, int baseFontSize)
 {
     ShuffleLayout L = {0};
 
-    // Modal dimensions – responsive but capped for large screens
     float modalW = fminf(screenW * 0.60f, 700.0f);
     float modalH = fminf(screenH * 0.52f, 440.0f);
     float modalX = (screenW - modalW) / 2.0f;
@@ -37,11 +31,9 @@ static ShuffleLayout ComputeLayout(int screenW, int screenH, int baseFontSize)
 
     float pad = 18.0f;
 
-    // Fonts
     L.titleFontSize = (int)(baseFontSize * 1.15f);
-    L.subFontSize   = (int)(baseFontSize * 0.82f);
+    L.subFontSize   = (int)(baseFontSize * 0.88f);
 
-    // Tile row – sits in the upper half of the modal body
     float bodyTop    = modalY + pad + L.titleFontSize + 10.0f + L.subFontSize + 10.0f;
     float bodyBottom = modalY + modalH - pad - 44.0f - 10.0f; // leave room for buttons
     float tileRowH   = bodyBottom - bodyTop;
@@ -50,34 +42,28 @@ static ShuffleLayout ComputeLayout(int screenW, int screenH, int baseFontSize)
     L.tileSpacing = fminf(10.0f, (modalW - pad * 2.0f - RACK_SIZE * L.tileSize) / (RACK_SIZE - 1));
     L.tileFontSize = (int)(L.tileSize * 0.55f);
 
-    // Centre the tile row horizontally
     float rowWidth = RACK_SIZE * L.tileSize + (RACK_SIZE - 1) * L.tileSpacing;
     float rowStartX = modalX + (modalW - rowWidth) / 2.0f;
     L.tileRowY = bodyTop + (tileRowH - L.tileSize) / 2.0f;
     L.tilesArea = (Rectangle){rowStartX, L.tileRowY, rowWidth, L.tileSize};
 
-    // Hotkey bar sits at the very bottom of the modal
-    float hkBarH   = (float)(int)(baseFontSize * 0.72f) * 2.0f + 6.0f;  // matches DrawHotkeyBar sizing
-    float hkBarPad = 8.0f;  // gap between hotkey bar and modal bottom edge
+    float hkBarH   = (float)(int)(baseFontSize * 0.72f) * 2.0f + 6.0f;
+    float hkBarPad = 8.0f;
     float hkBarY   = modalY + modalH - hkBarPad - hkBarH;
 
-    // Buttons sit immediately above the hotkey bar
+    // Buttons
     float btnW   = modalW * 0.38f;
     float btnH   = 40.0f;
-    float btnGap = 12.0f;                       // fixed narrow gap between the two buttons
+    float btnGap = 12.0f;
     float btnBlockW = btnW * 2.0f + btnGap;
-    float btnStartX = modalX + (modalW - btnBlockW) / 2.0f;  // centred
-    float btnY   = hkBarY - 10.0f - btnH;      // 10px breathing room above hotkey bar
+    float btnStartX = modalX + (modalW - btnBlockW) / 2.0f;
+    float btnY   = hkBarY - 10.0f - btnH;      // padding up
 
     L.confirmBtn = (Rectangle){btnStartX,             btnY, btnW, btnH};
     L.cancelBtn  = (Rectangle){btnStartX + btnW + btnGap, btnY, btnW, btnH};
 
     return L;
 }
-
-// ---------------------------------------------------------------------------
-// State helpers
-// ---------------------------------------------------------------------------
 
 void ShuffleOpen(ShuffleState *shuffle)
 {
@@ -152,10 +138,6 @@ bool ShuffleCommit(ShuffleState *shuffle, Player *player, TileBag *bag, int *bag
     return true;
 }
 
-// ---------------------------------------------------------------------------
-// Input  (modal-space hit-testing, fully independent of game layout)
-// ---------------------------------------------------------------------------
-
 void ShuffleUpdate(ShuffleState *shuffle, const Player *player,
                    int screenW, int screenH, int baseFontSize)
 {
@@ -185,11 +167,6 @@ void ShuffleUpdate(ShuffleState *shuffle, const Player *player,
     }
 }
 
-// ---------------------------------------------------------------------------
-// Drawing  (fully self-contained modal)
-// ---------------------------------------------------------------------------
-
-// Accent palette
 static Color ColAccentBlue(void)   { return (Color){100, 185, 255, 255}; }
 static Color ColModalBg(void)      { return (Color){ 18,  24,  32, 252}; }
 static Color ColModalBorder(void)  { return (Color){ 60,  85, 115, 220}; }
@@ -204,29 +181,15 @@ int ShuffleDraw(ShuffleState *shuffle, const Player *player,
     Vector2 mouse   = GetMousePosition();
     int result      = 0;
 
-    // -------------------------------------------------------------------
-    // 1. Full-screen scrim
-    // -------------------------------------------------------------------
     DrawRectangle(0, 0, screenW, screenH, (Color){0, 0, 0, 190});
 
-    // -------------------------------------------------------------------
-    // 2. Modal panel  (layered for depth)
-    // -------------------------------------------------------------------
-    // Outer glow
     Rectangle glow1 = {L.modal.x - 6, L.modal.y - 6, L.modal.width + 12, L.modal.height + 12};
     Rectangle glow2 = {L.modal.x - 2, L.modal.y - 2, L.modal.width +  4, L.modal.height +  4};
     DrawRectangleRounded(glow1, 0.10f, 8, (Color){ 80, 150, 255, 30});
     DrawRectangleRounded(glow2, 0.10f, 8, (Color){ 80, 150, 255, 55});
-
-    // Panel background
     DrawRectangleRounded(L.modal, 0.08f, 8, ColModalBg());
 
-    // Panel border
     DrawRectangleRoundedLinesEx(L.modal, 0.08f, 8, 1.5f, ColModalBorder());
-
-    // -------------------------------------------------------------------
-    // 3. Header text
-    // -------------------------------------------------------------------
     float pad  = 18.0f;
     float textX = L.modal.x + pad;
     float textY = L.modal.y + pad + 6.0f;
@@ -239,19 +202,16 @@ int ShuffleDraw(ShuffleState *shuffle, const Player *player,
     float subY = textY + L.titleFontSize + 6.0f;
     const char *subLabel = (shuffle->selectedCount == 0)
         ? "Click tiles to mark them for exchange"
-        : TextFormat("%d tile%s selected — confirm to swap from the bag",
+        : TextFormat("%d tile%s selected. Confirm to swap from the bag",
                      shuffle->selectedCount, shuffle->selectedCount == 1 ? "" : "s");
     DrawAppText(subLabel, textX, subY, L.subFontSize, ColSubtleText());
 
-    // Thin separator under header
+    // separator
     float sepY = subY + L.subFontSize + 8.0f;
     DrawLineEx((Vector2){L.modal.x + pad, sepY},
                (Vector2){L.modal.x + L.modal.width - pad, sepY},
                1.0f, ColModalBorder());
 
-    // -------------------------------------------------------------------
-    // 4. Tile row
-    // -------------------------------------------------------------------
     for (int t = 0; t < player->rack_count; t++)
     {
         Tile tile = player->rack[t];
@@ -276,11 +236,10 @@ int ShuffleDraw(ShuffleState *shuffle, const Player *player,
             DrawRectangleRounded(gr, 0.28f, 4, glowCol);
         }
 
-        // Face colour
         Color faceBg     = sel ? (Color){ 65, 140, 240, 255} : (Color){244, 228, 198, 255};
         Color faceBorder = sel ? (Color){140, 210, 255, 255} : (Color){194, 169, 126, 255};
 
-        // Hover tint when not selected
+        // Hover tint
         if (!sel && hovT)
         {
             faceBg     = (Color){250, 238, 215, 255};
@@ -307,7 +266,7 @@ int ShuffleDraw(ShuffleState *shuffle, const Player *player,
                     tileBounds.y + L.tileSize - scoreFontSize - (L.tileSize * 0.08f),
                     scoreFontSize, scoreColor);
 
-        // Checkmark badge (selected)
+        // Checkmark/sel
         if (sel)
         {
             float bR  = L.tileSize * 0.16f;
@@ -323,9 +282,6 @@ int ShuffleDraw(ShuffleState *shuffle, const Player *player,
         }
     }
 
-    // -------------------------------------------------------------------
-    // 5. Confirm button
-    // -------------------------------------------------------------------
     bool confirmEnabled = (shuffle->selectedCount > 0);
     bool hoverConfirm   = CheckCollisionPointRec(mouse, L.confirmBtn);
 
@@ -362,10 +318,6 @@ int ShuffleDraw(ShuffleState *shuffle, const Player *player,
 
     if (hoverConfirm && confirmEnabled && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         result = 1;
-
-    // -------------------------------------------------------------------
-    // 6. Cancel button
-    // -------------------------------------------------------------------
     bool hoverCancel = CheckCollisionPointRec(mouse, L.cancelBtn);
 
     Color cancelBg     = hoverCancel ? (Color){155, 42, 42, 245} : (Color){ 80, 28, 28, 220};
@@ -386,9 +338,6 @@ int ShuffleDraw(ShuffleState *shuffle, const Player *player,
     if (hoverCancel && IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
         result = -1;
 
-    // -------------------------------------------------------------------
-    // 7. Hotkey bar  (ESC = Cancel, C = Confirm)
-    // -------------------------------------------------------------------
     float hkBarH   = (float)(int)(baseFontSize * 0.72f) * 2.0f + 6.0f;
     float hkBarPad = 8.0f;
     float hkBarY   = L.modal.y + L.modal.height - hkBarPad - hkBarH;

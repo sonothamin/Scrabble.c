@@ -6,6 +6,7 @@
 #include "ui.h"
 #include "sound.h"
 #include "settings/settings_internal.h"
+#include "error_service.h"
 #include "raygui.h"
 #include <stdlib.h>
 #include <string.h>
@@ -57,6 +58,9 @@ bool LoadMatchFromFile(GameState *match, const char *filePath)
     if (!Load_Dictionary(&match->dictionary, dictPath))
     {
         TraceLog(LOG_WARNING, "[LOAD] Failed to load dictionary file '%s'", dictPath);
+        ReportCriticalError("Dictionary Error", "The save file points to an invalid dictionary.");
+        ShowErrorDialog();
+        
     }
 
     // Reset runtime drag/drop, shuffle, save/exit, and wild overlay states

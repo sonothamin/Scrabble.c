@@ -52,11 +52,11 @@ void DrawGameOverOverlay(AppState *state, GameOverState *gameOver)
     DrawRectangleRounded((Rectangle){ dialogX + 6, dialogY + 8, dialogW, dialogH }, 0.06f, 6, (Color){ 0, 0, 0, 180 });
     DrawRectangleRounded(dialogRect, 0.06f, 6, (Color){ 22, 30, 40, 255 });
 
-    // Gold / Neon accent border
+    // border
     Color accentBorder = (Color){ 255, 215, 0, 255 }; // Gold
     DrawRectangleRoundedLinesEx(dialogRect, 0.06f, 6, 3.0f, accentBorder);
 
-    // Victory / Game Over Header
+    // Header
     float headerH = 75.0f;
     Rectangle headerRect = { dialogX, dialogY, dialogW, headerH };
     DrawRectangleRounded((Rectangle){ headerRect.x, headerRect.y, headerRect.width, headerH }, 0.06f, 6, (Color){ 32, 42, 56, 255 });
@@ -67,7 +67,7 @@ void DrawGameOverOverlay(AppState *state, GameOverState *gameOver)
     int headerW = MeasureAppText(headerTitle, headerFontSize);
     DrawAppText(headerTitle, dialogX + (dialogW - headerW) / 2.0f, dialogY + (headerH - headerFontSize) / 2.0f, headerFontSize, (Color){ 244, 228, 198, 255 });
 
-    // Winner Banner Section
+    // Winner
     float winnerY = dialogY + headerH + 25.0f;
     int winnerIdx = match->winningPlayerIdx;
     bool isTie = (match->players[0].score == match->players[1].score);
@@ -78,7 +78,7 @@ void DrawGameOverOverlay(AppState *state, GameOverState *gameOver)
     int winnerFontSize = (int)(baseFontSize * 1.8f);
     int winnerW = MeasureAppText(winnerText, winnerFontSize);
 
-    // Glowing winner highlight badge
+    // winner highlight 
     Rectangle winnerBadge = { dialogX + (dialogW - winnerW - 40.0f) / 2.0f, winnerY, winnerW + 40.0f, winnerFontSize + 16.0f };
     DrawRectangleRounded(winnerBadge, 0.3f, 4, (Color){ 15, 22, 30, 255 });
     DrawRectangleRoundedLinesEx(winnerBadge, 0.3f, 4, 2.0f, winnerColor);

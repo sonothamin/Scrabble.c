@@ -9,9 +9,6 @@
 
 #include <math.h>
 
-// -----------------------------------------------------------------------------
-// Constants & Configuration
-// -----------------------------------------------------------------------------
 static const Color MENU_BG_COLOR         = { 24,  32,  38,  255 };
 static const Color TILE_SHADOW_COLOR     = { 10,  14,  18,  160 };
 static const Color TILE_FILL_COLOR       = { 244, 228, 198, 255 };
@@ -40,9 +37,6 @@ static const HotkeyEntry MENU_HOTKEYS[] = {
 };
 static const int MENU_HOTKEYS_COUNT = sizeof(MENU_HOTKEYS) / sizeof(MENU_HOTKEYS[0]);
 
-// -----------------------------------------------------------------------------
-// Helper Functions
-// -----------------------------------------------------------------------------
 static const char* GetMenuScrabbleScore(char c) 
 {
     switch (c) {
@@ -91,9 +85,6 @@ static void ToggleAudioMute(SettingsState* settings)
     PlaySoundEffect(SFX_BUTTON);
 }
 
-// -----------------------------------------------------------------------------
-// Drawing Subroutines
-// -----------------------------------------------------------------------------
 static void DrawHeaderBackground(Rectangle headerArea)
 {
     if (g_menuTextures.background.id > 0)

@@ -26,10 +26,6 @@
 #include "error_service.h"
 #include "app_state.h"
 
-// =============================================================================
-// PATH MANAGEMENT
-// =============================================================================
-
 const char *GetConfigFilePath(void)
 {
     static char path[512] = {0};
@@ -53,10 +49,6 @@ const char *GetConfigFilePath(void)
     return path;
 }
 
-// =============================================================================
-// LIFECYCLE MANAGEMENT
-// =============================================================================
-
 SettingsState *InitSettingsState(void)
 {
     ExtendedSettingsState *extSettings = (ExtendedSettingsState *)calloc(1, sizeof(ExtendedSettingsState));
@@ -68,7 +60,7 @@ SettingsState *InitSettingsState(void)
 
     SettingsState *settings = &extSettings->base;
 
-    // Default Fallback Values
+    // Default values
     settings->selectedOption = SETTINGS_TAB_GAME;
     settings->bgmVolume = 0.3f;
     settings->sfxVolume = 1.0f;
@@ -109,10 +101,6 @@ void FreeSettingsState(SettingsState *settings)
         free(settings);
     }
 }
-
-// =============================================================================
-// UPDATE LOGIC & DIALOG HELPERS
-// =============================================================================
 
 void HandleFileSelection(ExtendedSettingsState *extSettings)
 {
@@ -171,7 +159,6 @@ void SettingsUpdate(AppState *state)
 
     bool isDialogOpen = extSettings->fileDialogState.windowActive;
 
-    // Save configuration and return to main menu
     if ((IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_B)) && !isEditingText && !isDialogOpen)
     {
         PlaySoundEffect(SFX_BACK_NAV);
@@ -180,7 +167,6 @@ void SettingsUpdate(AppState *state)
         return;
     }
 
-    // Navigation shortcuts (blocked when modal dialog is active)
     if (!isEditingText && !isDialogOpen)
     {
         if (IsKeyPressed(KEY_DOWN) || IsKeyPressed(KEY_D))
@@ -217,12 +203,6 @@ void SettingsUpdate(AppState *state)
     }
 }
 
-// =============================================================================
-// RENDERING LOGIC
-// =============================================================================
-
-// Using globalized DrawTabButton from ui.h
-
 void SettingsDraw(const AppState *state)
 {
     if (state == NULL || state->settingsState == NULL)
@@ -258,11 +238,9 @@ void SettingsDraw(const AppState *state)
         GuiLock();
     }
 
-    // --- Header ---
     DrawAppText("SETTINGS & CONFIGURATION", padding, padding, baseFontSize * 1.7f, WHITE);
     DrawLineEx((Vector2){padding, headerLineY}, (Vector2){screenWidth - padding, headerLineY}, 2, GetColor(GuiGetStyle(DEFAULT, LINE_COLOR)));
 
-    // --- Sidebar Navigation ---
     float sidebarX = padding;
     float sidebarY = headerLineY + 25.0f;
     float tabWidth = baseFontSize * 11.0f;
@@ -290,7 +268,6 @@ void SettingsDraw(const AppState *state)
         PlaySoundEffect(SFX_BUTTON);
     }
 
-    // --- Main Panel Container ---
     float contentLeft = sidebarX + tabWidth + 40.0f;
     float contentTop = sidebarY + 30.0f;
     float contentWidth = screenWidth - contentLeft - padding;
@@ -341,7 +318,6 @@ void SettingsDraw(const AppState *state)
 
     EndScissorMode();
 
-    // --- Footer Hotkey Bar ---
     static const HotkeyEntry settingsKeys[] = {
         {"1", "Game Rules"},
         {"2", "Audio"},
@@ -370,15 +346,11 @@ void SettingsDraw(const AppState *state)
         mutableState->currentScreen = APP_SCREEN_MAIN_MENU;
     }
 
-    // --- Unlock GUI controls if locked ---
     if (isDialogOpen)
     {
         GuiUnlock();
     }
 
-    // =========================================================================
-    // MODAL DIALOG DRAWING OVERLAY
-    // =========================================================================
     if (extSettings->fileDialogState.windowActive)
     {
         const char *dialogTitle = "Select File";
