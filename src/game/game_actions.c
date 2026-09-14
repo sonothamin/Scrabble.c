@@ -67,9 +67,10 @@ void Action_FinalizeGameOver(GameState *match)
     {
         match->winningPlayerIdx = 1;
     }
-    else
+    else if (match->players[1].score == match->players[0].score)
     {
-        match->winningPlayerIdx = 0;
+        match->winningPlayerIdx = 2;
+        match->isTie = true;
     }
 }
 

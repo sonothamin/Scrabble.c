@@ -70,7 +70,7 @@ void DrawGameOverOverlay(AppState *state, GameOverState *gameOver)
     // Winner
     float winnerY = dialogY + headerH + 25.0f;
     int winnerIdx = match->winningPlayerIdx;
-    bool isTie = (match->players[0].score == match->players[1].score);
+    bool isTie = state->gamestate->isTie;
 
     const char *winnerText = isTie ? "IT'S A DRAW!" : TextFormat("PLAYER %d VICTORY!", winnerIdx + 1);
     Color winnerColor = isTie ? (Color){ 200, 200, 200, 255 } : ((winnerIdx == 0) ? (Color){ 0, 220, 255, 255 } : (Color){ 255, 180, 0, 255 });

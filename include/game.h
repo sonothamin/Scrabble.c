@@ -40,6 +40,7 @@ typedef struct GameState
     int tileBagCount;
     int consecutivePassCount;
     bool isMatchOver;
+    bool isTie;
     int winningPlayerIdx;
     DragNDropState dragState;
     ShuffleState shuffleState;
