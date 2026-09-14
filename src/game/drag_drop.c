@@ -139,7 +139,7 @@ void HandleDragNDropInput(GameState *match, Rectangle boardBounds, Rectangle rac
                     {
                         currentPlayer->rack[i] = currentPlayer->rack[i - 1];
                     }
-                    currentPlayer->rack[targetIdx] = WildTileAsRackTile(match->dragState.draggedTile);
+                    currentPlayer->rack[targetIdx] = (match->dragState.draggedTile);
                     currentPlayer->rack_count++;
                 }
                 // If it came from rack to rack, no change needed
