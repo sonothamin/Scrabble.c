@@ -6,6 +6,7 @@
 #include "shuffle.h"
 #include "settings.h"
 #include <math.h>
+#include <string.h>
 
 void Draw_BoardView(const GameState *match, const GameLayout *layout)
 {
@@ -203,24 +204,186 @@ void Draw_ActionBarView(GameState *match, const GameLayout *layout, int baseFont
     if (!hasStagedTiles)
         GuiSetState(STATE_NORMAL);
 }
-
-void Draw_HistoryView(const GameLayout *layout, int baseFontSize)
+void Draw_ChessTimerView(const GameState *match, const GameLayout *layout, int baseFontSize)
 {
-    GuiGroupBox(layout->historyOuterRect, "Points History");
-    float historySplitWidth = (layout->rightSideWidth - (layout->layoutGap * 1.5f)) / 2.0f;
-    float historyInnerY = layout->historySectionY + 25.0f;
+    GuiGroupBox(layout->timerRect, "Timer");
 
-    for (int hp = 0; hp < 2; hp++)
+    float startY = layout->timerRect.y + 20.0f;
+    float rowH = (layout->timerRect.height - 25.0f) / 2.0f;
+    float boxW = layout->timerRect.width - 12.0f;
+
+    for (int p = 0; p < 2; p++)
     {
-        Rectangle subHistoryRect = {layout->historyOuterRect.x + 12.0f + (hp * (historySplitWidth + layout->layoutGap)),
-                                    historyInnerY, historySplitWidth, layout->historyPanelHeight - 40.0f};
+        Rectangle timerBox = {layout->timerRect.x + 6.0f, startY + (p * rowH), boxW, rowH - 2.0f};
+        bool isActiveTurn = (match->activePlayerIdx == p) && (!match->isMatchOver);
 
-        DrawRectangleRec(subHistoryRect, (Color){30, 38, 46, 255});
-        DrawRectangleLinesEx(subHistoryRect, 1.0f, (Color){54, 68, 82, 255});
-        DrawRectangle(subHistoryRect.x, subHistoryRect.y, subHistoryRect.width, 28, (Color){45, 55, 66, 255});
-        DrawAppText(TextFormat("Player %d History", hp + 1), subHistoryRect.x + 12, subHistoryRect.y + 7, baseFontSize - 2, (Color){196, 181, 137, 255});
+        Color bgCol = isActiveTurn ? (Color){30, 50, 38, 240} : (Color){20, 26, 32, 220};
+        Color borderCol = isActiveTurn ? (Color){57, 255, 20, 255} : (Color){54, 68, 82, 180};
+
+        DrawRectangleRounded(timerBox, 0.25f, 4, bgCol);
+        DrawRectangleRoundedLinesEx(timerBox, 0.25f, 4, isActiveTurn ? 2.0f : 1.0f, borderCol);
+
+        float timeLeft = (p == 0) ? match->timerState.p1TimeRemaining : match->timerState.p2TimeRemaining;
+        if (timeLeft < 0.0f)
+            timeLeft = 0.0f;
+
+        int mins = (int)(timeLeft / 60.0f);
+        int secs = (int)fmodf(timeLeft, 60.0f);
+        const char *timeStr = TextFormat("P%d: %02d:%02d", p + 1, mins, secs);
+
+        int timerFontSz = (int)(baseFontSize * 0.85f);
+        Color textColor = (timeLeft < 30.0f && isActiveTurn) ? RED : (isActiveTurn ? (Color){220, 255, 220, 255} : (Color){150, 165, 180, 255});
+
+        float textX = timerBox.x + (timerBox.width - MeasureAppText(timeStr, timerFontSz)) / 2.0f;
+        float textY = timerBox.y + (timerBox.height - timerFontSz) / 2.0f;
+
+        DrawAppText(timeStr, textX, textY, timerFontSz, textColor);
     }
 }
+
+void Draw_HistoryView(GameState *match, const GameLayout *layout, int baseFontSize)
+{
+    GuiGroupBox(layout->historyOuterRect, "Points History");
+
+    Rectangle contentArea = {
+        layout->historyOuterRect.x + 10.0f,
+        layout->historyOuterRect.y + 25.0f,
+        layout->historyOuterRect.width - 20.0f,
+        layout->historyPanelHeight - 35.0f};
+
+    DrawRectangleRec(contentArea, (Color){20, 26, 32, 255});
+    DrawRectangleLinesEx(contentArea, 1.0f, (Color){54, 68, 82, 255});
+
+    if (match->historyCount == 0)
+    {
+        const char *emptyMsg = "No moves played yet.";
+        int emptyFontSz = (int)(baseFontSize * 0.85f);
+        float emptyX = contentArea.x + (contentArea.width - MeasureAppText(emptyMsg, emptyFontSz)) / 2.0f;
+        float emptyY = contentArea.y + (contentArea.height - emptyFontSz) / 2.0f;
+        DrawAppText(emptyMsg, emptyX, emptyY, emptyFontSz, (Color){100, 115, 130, 255});
+        return;
+    }
+
+    Vector2 mousePos = GetMousePosition();
+    if (CheckCollisionPointRec(mousePos, contentArea))
+    {
+        float wheel = GetMouseWheelMove();
+        if (wheel != 0)
+        {
+            match->historyScrollOffset += wheel * 30.0f;
+        }
+    }
+
+    float bubbleH = baseFontSize * 2.5f;
+    float tileSz = bubbleH * 0.70f;
+    float pad = 10.0f;
+
+    // Calculate total content height
+    float totalContentH = match->historyCount * (bubbleH + 10.0f) + pad;
+    float maxScroll = totalContentH - contentArea.height;
+    if (maxScroll < 0)
+        maxScroll = 0;
+
+    // Clamp scroll offset
+    if (match->historyScrollOffset > 0)
+        match->historyScrollOffset = 0;
+    if (match->historyScrollOffset < -maxScroll)
+        match->historyScrollOffset = -maxScroll;
+
+    float curY = contentArea.y + pad + match->historyScrollOffset;
+
+    BeginScissorMode((int)contentArea.x + 2, (int)contentArea.y + 2, (int)contentArea.width - 4, (int)contentArea.height - 4);
+
+    for (int i = 0; i < match->historyCount; i++)
+    {
+        const TurnHistoryEntry *entry = &match->historyEntries[i];
+        bool isP1 = (entry->playerIdx == 0);
+
+        int len = entry->tileCount;
+        if (len <= 0)
+            len = (int)strlen(entry->word);
+
+        float wordWidth = len * (tileSz + 4.0f) + 12.0f;
+        float pillW = wordWidth + 40.0f;
+
+        float pillX = isP1 ? (contentArea.x + pad) : (contentArea.x + contentArea.width - pillW - pad);
+        Rectangle pillRect = {pillX, curY, pillW, bubbleH};
+
+        // Render only if visible inside scissor box
+        if (curY + bubbleH >= contentArea.y && curY <= contentArea.y + contentArea.height)
+        {
+            Color bubbleBg = isP1 ? (Color){72, 202, 210, 240} : (Color){240, 240, 240, 240};
+            DrawRectangleRounded(pillRect, 0.35f, 6, bubbleBg);
+
+            float startTileX = pillX + 10.0f;
+            float startTileY = curY + (bubbleH - tileSz) / 2.0f;
+
+            for (int c = 0; c < len; c++)
+            {
+                Rectangle tRect = {startTileX + c * (tileSz + 4.0f), startTileY, tileSz, tileSz};
+
+                Color tileBg = (Color){244, 228, 198, 255};
+                LuxuryType lux = entry->tiles[c].luxury;
+
+                if (lux == LUXURY_DOUBLE_LETTER)
+                    tileBg = (Color){180, 220, 250, 255};
+                else if (lux == LUXURY_TRIPLE_LETTER)
+                    tileBg = (Color){100, 160, 240, 255};
+                else if (lux == LUXURY_DOUBLE_WORD)
+                    tileBg = (Color){250, 180, 180, 255};
+                else if (lux == LUXURY_TRIPLE_WORD)
+                    tileBg = (Color){240, 90, 90, 255};
+
+                DrawRectangleRounded(tRect, 0.20f, 4, tileBg);
+                DrawRectangleRoundedLines(tRect, 0.20f, 4, (Color){180, 155, 115, 255});
+
+                const char *luxStr = "";
+                if (lux == LUXURY_DOUBLE_LETTER)
+                    luxStr = "DL";
+                else if (lux == LUXURY_TRIPLE_LETTER)
+                    luxStr = "TL";
+                else if (lux == LUXURY_DOUBLE_WORD)
+                    luxStr = "DW";
+                else if (lux == LUXURY_TRIPLE_WORD)
+                    luxStr = "TW";
+
+                if (luxStr[0] != '\0')
+                {
+                    int luxFontSz = (int)(tileSz * 0.28f);
+                    DrawAppText(luxStr, tRect.x + 2.0f, tRect.y + 1.0f, luxFontSz, (Color){60, 60, 60, 255});
+                }
+
+                char lStr[2] = {entry->word[c], '\0'};
+                int fontSz = (int)(tileSz * 0.55f);
+                float textX = tRect.x + (tileSz - MeasureAppText(lStr, fontSz)) / 2.0f;
+                float textY = tRect.y + (tileSz - fontSz) / 2.0f;
+                DrawAppText(lStr, textX, textY, fontSz, (Color){38, 28, 16, 255});
+
+                int scoreVal = entry->tiles[c].value;
+                const char *valStr = TextFormat("%d", scoreVal);
+                int valFontSz = (int)(tileSz * 0.30f);
+                float valX = tRect.x + tileSz - MeasureAppText(valStr, valFontSz) - 3.0f;
+                float valY = tRect.y + tileSz - valFontSz - 2.0f;
+                DrawAppText(valStr, valX, valY, valFontSz, (Color){80, 65, 50, 255});
+            }
+
+            float badgeRadius = bubbleH * 0.36f;
+            Vector2 badgeCenter = {pillX + pillW - badgeRadius - 4.0f, curY + bubbleH / 2.0f};
+            DrawCircleV(badgeCenter, badgeRadius, (Color){0, 102, 255, 255});
+
+            const char *scoreTxt = TextFormat("%d", entry->scoreEarned);
+            int scoreFontSz = (int)(badgeRadius * 1.05f);
+            float scoreX = badgeCenter.x - (MeasureAppText(scoreTxt, scoreFontSz) / 2.0f);
+            float scoreY = badgeCenter.y - (scoreFontSz / 2.0f);
+            DrawAppText(scoreTxt, scoreX, scoreY, scoreFontSz, WHITE);
+        }
+
+        curY += bubbleH + 10.0f;
+    }
+
+    EndScissorMode();
+}
+
 
 void Draw_FooterView(GameState *match, const GameLayout *layout, int baseFontSize)
 {

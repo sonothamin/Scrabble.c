@@ -25,6 +25,7 @@ void GameInit(GameState *match, const char *dictionaryPath, const char *boardLay
         return;
 
     memset(match, 0, sizeof(*match));
+
     if (dictionaryPath != NULL)
     {
         strncpy(match->dictionaryPath, dictionaryPath, sizeof(match->dictionaryPath) - 1);
@@ -56,6 +57,12 @@ void GameInit(GameState *match, const char *dictionaryPath, const char *boardLay
     SaveAndExitInit(&match->saveExitState);
     WildTileInit(&match->wildTileState);
 
+    // Initialize Turn History & Chess Timer (5 minutes per player)
+    match->historyCount = 0;
+    match->timerState.isRunning = true;
+    match->timerState.p1TimeRemaining = 300.0f;
+    match->timerState.p2TimeRemaining = 300.0f;
+
     PlaySoundEffect(SFX_GAME_START);
 }
 
@@ -75,12 +82,56 @@ void GameUpdate(AppState *state)
         return;
     }
 
-    if (state->gamestate != NULL && state->gamestate->saveExitState.isActive)
+    if (state->gamestate == NULL)
+        return;
+
+    GameState *match = state->gamestate;
+
+    // --- REAL-TIME TIMER COUNTDOWN & AUDIO ALERTS ---
+    if (!match->isMatchOver && match->timerState.isRunning &&
+        (!state->pauseState || !state->pauseState->isPaused) &&
+        !match->wildTileState.isActive &&
+        !match->saveExitState.isActive &&
+        !match->shuffleState.isActive)
+    {
+        float dt = GetFrameTime();
+        float *activeTime = (match->activePlayerIdx == 0) ? &match->timerState.p1TimeRemaining : &match->timerState.p2TimeRemaining;
+
+        float prevTime = *activeTime;
+        *activeTime -= dt;
+
+        // Audio Countdown Trigger for Last 10 Seconds (Every integer second)
+        if (*activeTime <= 10.0f && *activeTime > 0.0f)
+        {
+            if ((int)prevTime != (int)(*activeTime))
+            {
+                PlaySoundEffect(SFX_BUTTON); // Beep tone for last 10s countdown
+            }
+        }
+
+        // Time Expiration
+        if (*activeTime <= 0.0f)
+        {
+            *activeTime = 0.0f;
+            PlaySoundEffect(SFX_INVALID_MOVE); // Sound effect on turn timeout
+            Action_PassTurn(match);
+        }
+    }
+
+    // Auto-scroll history to show latest move when history size increases
+    static int prevHistCount = 0;
+    if (match->historyCount > prevHistCount)
+    {
+        match->historyScrollOffset = -9999.0f; // Forces scrolling to bottom
+        prevHistCount = match->historyCount;
+    }
+
+    if (match->saveExitState.isActive)
         return;
 
     if (IsKeyPressed(KEY_ESCAPE) || IsKeyPressed(KEY_P))
     {
-        if (state->gamestate == NULL || !state->gamestate->shuffleState.isActive)
+        if (!match->shuffleState.isActive)
         {
             if (state->pauseState)
             {
@@ -98,20 +149,13 @@ void GameUpdate(AppState *state)
         PlaySoundEffect(SFX_BUTTON);
     }
 
-    if (IsKeyPressed(KEY_Q) && !state->gamestate->wildTileState.isActive)
+    if (IsKeyPressed(KEY_Q) && !match->wildTileState.isActive)
     {
-        state->gamestate->saveExitState.isActive=true;
-        state->gamestate->saveExitState.showFileDialog = false;
+        match->saveExitState.isActive = true;
+        match->saveExitState.showFileDialog = false;
         PlaySoundEffect(SFX_BUTTON);
     }
 
-    if (state->gamestate == NULL)
-    {
-        ReportCriticalError("Invalid Game State", "NULL GameState pointer encountered in AppState while updating Game.");
-        return;
-    }
-
-    GameState *match = state->gamestate;
     int baseFontSize = fmaxf(15, GetScreenHeight() / 42);
     GameLayout layout = CalculateGameLayout(GetScreenWidth(), GetScreenHeight(), baseFontSize);
 
@@ -200,14 +244,15 @@ void GameDraw(AppState *state)
     if (wildOverlayActive)
         GuiLock();
 
-    // Render components
+    // Render Game Views
     Draw_BoardView(match, &layout);
     Draw_HotkeyView(state, &layout, baseFontSize);
     Draw_MatchStatusView(match, &layout);
     Draw_ScoreBoardView(match, &layout, baseFontSize);
+    Draw_ChessTimerView(match, &layout, baseFontSize);
     Draw_RackView(match, &layout, baseFontSize);
     Draw_ActionBarView(match, &layout, baseFontSize);
-    Draw_HistoryView(&layout, baseFontSize);
+    Draw_HistoryView(match, &layout, baseFontSize);
     Draw_FooterView(match, &layout, baseFontSize);
 
     // Render Drag Overlay
