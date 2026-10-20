@@ -2,6 +2,7 @@
 #include "sound.h"
 #include "word_validation.h"
 #include "error_service.h"
+#include <stdio.h>
 #include <string.h>
 
 void Action_ReturnStagedTilesToRack(GameState *match)
@@ -25,8 +26,9 @@ void Action_ReturnStagedTilesToRack(GameState *match)
 
 void Action_FinalizeGameOver(GameState *match)
 {
-    if (!match) return;
-
+    if (!match)
+        return;
+    PlaySoundEffect(SFX_GAME_OVER);
     match->isMatchOver = true;
 
     int rackPenalty[2] = {0, 0};
@@ -137,6 +139,85 @@ void Action_SubmitMove(GameState *match)
 
     if (scoreGain > 0)
     {
+        // --- RECORD FULL FORMED WORD & TILES INTO HISTORY ---
+        if (match->historyCount < MAX_HISTORY_ENTRIES)
+        {
+            TurnHistoryEntry *hist = &match->historyEntries[match->historyCount++];
+            hist->playerIdx = match->activePlayerIdx;
+            hist->scoreEarned = scoreGain;
+            hist->bonus = bestBonus;
+
+            int minX = BOARD_SIDE, maxX = -1;
+            int minY = BOARD_SIDE, maxY = -1;
+
+            // 1. Locate newly placed tiles bounds
+            for (int y = 0; y < BOARD_SIDE; y++)
+            {
+                for (int x = 0; x < BOARD_SIDE; x++)
+                {
+                    if (match->board.grid[y][x].letter != '\0' &&
+                        match->previousBoard.grid[y][x].letter == '\0')
+                    {
+                        if (x < minX)
+                            minX = x;
+                        if (x > maxX)
+                            maxX = x;
+                        if (y < minY)
+                            minY = y;
+                        if (y > maxY)
+                            maxY = y;
+                    }
+                }
+            }
+
+            int startX = minX, endX = maxX;
+            int startY = minY, endY = maxY;
+            bool isHorizontal = (minY == maxY);
+
+            // 2. Expand outwards to include attached existing letters
+            if (isHorizontal)
+            {
+                while (startX > 0 && match->board.grid[startY][startX - 1].letter != '\0')
+                    startX--;
+                while (endX < BOARD_SIDE - 1 && match->board.grid[endY][endX + 1].letter != '\0')
+                    endX++;
+            }
+            else
+            {
+                while (startY > 0 && match->board.grid[startY - 1][startX].letter != '\0')
+                    startY--;
+                while (endY < BOARD_SIDE - 1 && match->board.grid[endY + 1][startX].letter != '\0')
+                    endY++;
+            }
+
+            // 3. Traverse in sequence to build the complete word & tile info
+            int count = 0;
+            if (isHorizontal)
+            {
+                for (int x = startX; x <= endX && count < BOARD_SIDE; x++)
+                {
+                    hist->word[count] = match->board.grid[startY][x].letter;
+                    hist->tiles[count].letter = match->board.grid[startY][x].letter;
+                    hist->tiles[count].value = match->board.grid[startY][x].value;
+                    hist->tiles[count].luxury = match->board.cells[startY][x];
+                    count++;
+                }
+            }
+            else
+            {
+                for (int y = startY; y <= endY && count < BOARD_SIDE; y++)
+                {
+                    hist->word[count] = match->board.grid[y][startX].letter;
+                    hist->tiles[count].letter = match->board.grid[y][startX].letter;
+                    hist->tiles[count].value = match->board.grid[y][startX].value;
+                    hist->tiles[count].luxury = match->board.cells[y][startX];
+                    count++;
+                }
+            }
+            hist->word[count] = '\0';
+            hist->tileCount = count;
+        }
+
         if (bestBonus == SCORE_BONUS_3W)
             PlaySoundEffect(SFX_SCORE_3W);
         else if (bestBonus == SCORE_BONUS_2W)

@@ -20,6 +20,7 @@ typedef struct
     float halfRightWidth;
     Rectangle detailsRect;
     Rectangle scoreRect;
+    Rectangle timerRect;
     float rackSectionY;
     float rackPanelHeight;
     Rectangle rackRect;
